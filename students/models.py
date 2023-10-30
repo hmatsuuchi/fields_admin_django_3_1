@@ -1,9 +1,16 @@
 from django.db import models
 from django.utils import timezone
+from django.utils.functional import cached_property
 
 class Phone(models.Model):
     number                      = models.CharField(max_length=24)
     number_type                 = models.ForeignKey("PhoneChoice", on_delete=models.CASCADE, blank=True, null=True)
+
+    def number_type_verbose(self):
+        try:
+            return self.number_type.name
+        except:
+            return ''
 
     class Meta:
             verbose_name_plural = "Phone"
@@ -46,7 +53,35 @@ class Students(models.Model):
 
     archived                    = models.BooleanField(default=False)
 
-    @property
+    @cached_property
+    def prefecture_verbose(self):
+        try:
+            return self.prefecture.name
+        except:
+            return ''
+        
+    @cached_property
+    def grade_verbose(self):
+        try:
+            return self.grade.name
+        except:
+            return ''
+        
+    @cached_property
+    def status_verbose(self):
+        try:
+            return self.status.name
+        except:
+            return ''
+        
+    @cached_property
+    def payment_method_verbose(self):
+        try:
+            return self.payment_method.name
+        except:
+            return ''
+
+    @cached_property
     def age(self):
         if self.birthday:
             now = timezone.now()

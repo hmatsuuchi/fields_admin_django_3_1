@@ -4,18 +4,22 @@ import environ # environment variables
 from datetime import timedelta
 
 # initializes environment variables
-env = environ.Env()
+env = environ.Env(DEBUG=(bool, False))
 environ.Env.read_env()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = env('SECRET_KEY')
 
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    '64.176.53.171',
+    '127.0.0.1',
+    ]
 
 INSTALLED_APPS = [
+    'corsheaders', # cors headers
     'authentication', # Authentication App
     'students', # Students App
     'django.contrib.admin',
@@ -25,16 +29,15 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework', # rest framework
-    'corsheaders', # cors headers
     'rest_framework_simplejwt', # simple jwt
     'rest_framework_simplejwt.token_blacklist', # jwt token blacklist
 ]
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware', # cors headers
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -96,10 +99,7 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = 'static/'
-STATICFILES_DIRS = [
-    BASE_DIR / 'static'
-]
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -118,5 +118,5 @@ SIMPLE_JWT = {
 
 # cors policy settings
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
+    'http://localhost:3000',
 ]

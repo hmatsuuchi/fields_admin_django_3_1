@@ -16,7 +16,7 @@ class ProfilesView(APIView):
     
     def get(self, request, format=None):
         try:
-            profiles = Students.objects.all().order_by('last_name_katakana')
+            profiles = Students.objects.all().order_by('-id').prefetch_related('phone', 'phone__number_type', 'prefecture', 'grade', 'status', 'payment_method')
             serializer = ProfileSerializer(profiles, many=True)
 
             return Response(serializer.data, status=status.HTTP_200_OK)
