@@ -1,7 +1,9 @@
+from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework import status
 from rest_framework.views import APIView
+# group permission control
+from authentication.permissions import isInStaffGroup
 
 # importing csv
 import csv
@@ -12,7 +14,7 @@ from .models import Students
 from .serializers import ProfileSerializer
 
 class ProfilesView(APIView):
-    permission_classes = (IsAuthenticated, )
+    permission_classes = ([isInStaffGroup])
     
     def get(self, request, format=None):
         try:
