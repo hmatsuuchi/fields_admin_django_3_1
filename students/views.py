@@ -25,6 +25,18 @@ class ProfilesView(APIView):
             
         except Exception as e:
             return Response(status=status.HTTP_400_BAD_REQUEST)
+        
+class ProfilesDetailsView(APIView):
+    permission_classes = ([isInStaffGroup])
+    def post(self, request, format=None):
+        try:
+            profile = Students.objects.get(id=request.data["profile_id"])
+            serializer = ProfileSerializer(profile)
+
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
 # used to import profiles from CSV     
 def ProfilesImport(request):

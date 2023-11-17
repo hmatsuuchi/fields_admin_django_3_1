@@ -7,5 +7,4 @@ class isInStaffGroup(permissions.BasePermission):
             print("user not authenticated")
             return False
         # checks if user in in Staff group
-        print(request.user.groups.filter(name="Staff").exists())
         return request.user.groups.filter(name="Staff").exists()
