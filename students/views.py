@@ -13,6 +13,7 @@ from .models import PaymentChoices, Phone, PhoneChoice, GradeChoices, StatusChoi
 from .models import Students
 from .serializers import ProfileSerializer
 
+# gets all profiles
 class ProfilesView(APIView):
     permission_classes = ([isInStaffGroup])
     
@@ -25,7 +26,8 @@ class ProfilesView(APIView):
             
         except Exception as e:
             return Response(status=status.HTTP_400_BAD_REQUEST)
-        
+
+# gets profile details
 class ProfilesDetailsView(APIView):
     permission_classes = ([isInStaffGroup])
     def post(self, request, format=None):
@@ -34,6 +36,64 @@ class ProfilesDetailsView(APIView):
             serializer = ProfileSerializer(profile)
 
             return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+# handles creation of new profiles
+class ProfilesCreateView(APIView):
+    permission_classes = ([isInStaffGroup])
+    def post(self, request):
+        try:
+            print("----------------  REQUEST DATA  ----------------")
+            print(request.data)
+            print("")
+
+            # sets birthday to None if it is an empty string
+            if request.data['birthday'] == "":
+                request.data['birthday'] = None
+
+            # parses bool from form submit and converts to Django bool
+            if request.data['archived'] == None:
+                request.data['archived'] = False
+            else:
+                request.data['archived'] = True
+
+            serializer = ProfileSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            
+            print("----------------  SERIALIZER ERRORS  ----------------")
+            print(serializer.errors)
+            print("")
+
+            return Response(serializer.errors, status=status.HTTP_406_NOT_ACCEPTABLE)
+
+        except Exception as e:
+            print("----------------  EXCEPTION E  ----------------")
+            print(e)
+            print("")
+
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+# gets all the choices for the profile create form
+class ProfilesChoicesView(APIView):
+    def get(self, request):
+        try:
+            phone_choices = PhoneChoice.objects.all().order_by('order')
+            prefecture_choices = PrefectureChoices.objects.all().order_by('order')
+            grade_choices = GradeChoices.objects.all().order_by('order')
+            status_choices = StatusChoices.objects.all().order_by('order')
+            payment_choices = PaymentChoices.objects.all().order_by('order')
+
+            return Response({
+                'phone_choices': phone_choices.values(),
+                'prefecture_choices': prefecture_choices.values(),
+                'grade_choices': grade_choices.values(),
+                'status_choices': status_choices.values(),
+                'payment_choices': payment_choices.values(),
+            }, status=status.HTTP_200_OK)
 
         except Exception as e:
             return Response(status=status.HTTP_400_BAD_REQUEST)

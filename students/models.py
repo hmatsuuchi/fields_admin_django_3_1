@@ -42,7 +42,7 @@ class Students(models.Model):
     address_1                   = models.CharField(max_length=35, blank=True, null=True)
     address_2                   = models.CharField(max_length=35, blank=True, null=True)
 
-    phone                       = models.ManyToManyField(Phone)
+    phone                       = models.ManyToManyField(Phone, blank=True)
 
     birthday                    = models.DateField(null=True, blank=True)
     grade                       = models.ForeignKey("GradeChoices", on_delete=models.CASCADE, blank=True, null=True)
