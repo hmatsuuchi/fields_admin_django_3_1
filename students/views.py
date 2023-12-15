@@ -13,8 +13,8 @@ from .models import PaymentChoices, Phone, PhoneChoice, GradeChoices, StatusChoi
 from .models import Students
 from .serializers import ProfileSerializer
 
-# gets all profiles
-class ProfilesView(APIView):
+# all profiles
+class ProfilesListView(APIView):
     permission_classes = ([isInStaffGroup])
     
     def get(self, request, format=None):
@@ -27,25 +27,26 @@ class ProfilesView(APIView):
         except Exception as e:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-# gets profile details
+# profile details
 class ProfilesDetailsView(APIView):
+    # GET
     permission_classes = ([isInStaffGroup])
-    def post(self, request, format=None):
+    def get(self, request, format=None):
         try:
-            profile = Students.objects.get(id=request.data["profile_id"])
+            profile_id = request.GET.get('profile_id')
+            profile = Students.objects.get(id=profile_id)
             serializer = ProfileSerializer(profile)
 
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         except Exception as e:
             return Response(status=status.HTTP_400_BAD_REQUEST)
-
-# handles creation of new profiles
-class ProfilesCreateView(APIView):
+        
+    # POST
     permission_classes = ([isInStaffGroup])
     def post(self, request):
         try:
-            print("----------------  REQUEST DATA  ----------------")
+            print("----------------  REQUEST DATA (POST)  ----------------")
             print(request.data)
             print("")
 
@@ -53,28 +54,61 @@ class ProfilesCreateView(APIView):
             if request.data['birthday'] == "":
                 request.data['birthday'] = None
 
-            # parses bool from form submit and converts to Django bool
-            if request.data['archived'] == None:
-                request.data['archived'] = False
-            else:
-                request.data['archived'] = True
-
             serializer = ProfileSerializer(data=request.data)
             if serializer.is_valid():
                 serializer.save()
-                return Response(serializer.data, status=status.HTTP_200_OK)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
             
-            print("----------------  SERIALIZER ERRORS  ----------------")
+            print("----------------  SERIALIZER ERRORS (POST)  ----------------")
             print(serializer.errors)
             print("")
 
             return Response(serializer.errors, status=status.HTTP_406_NOT_ACCEPTABLE)
 
         except Exception as e:
-            print("----------------  EXCEPTION E  ----------------")
+            print("----------------  EXCEPTION E (POST)  ----------------")
             print(e)
             print("")
 
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        
+    # PUT
+    permission_classes = ([isInStaffGroup])
+    def put(self, request):
+        try:            
+            # copies the request data so that it can be modified
+            data = request.data.copy()
+
+            # gets the profile to be updated
+            profile = Students.objects.get(id=data['id'])
+
+            # sets birthday to None if it is an empty string
+            if data['birthday'] == "":
+                data['birthday'] = None
+
+            serializer = ProfileSerializer(profile, data=data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+            return Response(serializer.errors, status=status.HTTP_406_NOT_ACCEPTABLE)
+
+        except Exception as e:
+            print(e)
+
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+    # DELETE
+    permission_classes = ([isInStaffGroup])
+    def delete(self, request):
+        try:
+            profile = Students.objects.get(id=request.query_params['profile_id'])
+            profile.delete()
+
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+        except Exception as e:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
 # gets all the choices for the profile create form

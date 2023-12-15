@@ -3,7 +3,7 @@ from django.utils import timezone
 from django.utils.functional import cached_property
 
 class Phone(models.Model):
-    number                      = models.CharField(max_length=24)
+    number                      = models.CharField(max_length=24, blank=True, null=True)
     number_type                 = models.ForeignKey("PhoneChoice", on_delete=models.CASCADE, blank=True, null=True)
 
     def number_type_verbose(self):

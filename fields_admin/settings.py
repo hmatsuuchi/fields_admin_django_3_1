@@ -11,10 +11,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = env('SECRET_KEY')
 
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [
-    '64.176.53.171',
+    'fieldsadmin.dev',
+    'www.fieldsadmin.dev',
     '127.0.0.1',
     ]
 
@@ -110,7 +111,7 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=1),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=15),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
@@ -119,4 +120,5 @@ SIMPLE_JWT = {
 # cors policy settings
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
+    'https://fieldsadmin.dev',
 ]
