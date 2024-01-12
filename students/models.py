@@ -53,6 +53,9 @@ class Students(models.Model):
 
     archived                    = models.BooleanField(default=False)
 
+    date_time_created           = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    date_time_modified          = models.DateTimeField(auto_now=True, blank=True, null=True)
+
     @cached_property
     def prefecture_verbose(self):
         try:
