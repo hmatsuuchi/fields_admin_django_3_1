@@ -46,31 +46,25 @@ class ProfilesDetailsView(APIView):
     # POST
     permission_classes = ([isInStaffGroup])
     def post(self, request):
+        data = request.data.copy()
+
+        print(data)
+
         try:
-            print("----------------  REQUEST DATA (POST)  ----------------")
-            print(request.data)
-            print("")
-
             # sets birthday to None if it is an empty string
-            if request.data['birthday'] == "":
-                request.data['birthday'] = None
+            if data['birthday'] == "":
+                data['birthday'] = None
 
-            serializer = ProfileSerializer(data=request.data)
+            serializer = ProfileSerializer(data=data)
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             
-            print("----------------  SERIALIZER ERRORS (POST)  ----------------")
             print(serializer.errors)
-            print("")
-
             return Response(serializer.errors, status=status.HTTP_406_NOT_ACCEPTABLE)
 
         except Exception as e:
-            print("----------------  EXCEPTION E (POST)  ----------------")
             print(e)
-            print("")
-
             return Response(status=status.HTTP_400_BAD_REQUEST)
         
     # PUT
