@@ -48,8 +48,6 @@ class ProfilesDetailsView(APIView):
     def post(self, request):
         data = request.data.copy()
 
-        print(data)
-
         try:
             # sets birthday to None if it is an empty string
             if data['birthday'] == "":
@@ -86,11 +84,11 @@ class ProfilesDetailsView(APIView):
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+            print(serializer.errors)
             return Response(serializer.errors, status=status.HTTP_406_NOT_ACCEPTABLE)
 
         except Exception as e:
             print(e)
-
             return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
     # DELETE
