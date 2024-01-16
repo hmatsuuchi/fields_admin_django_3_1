@@ -73,7 +73,7 @@ class ProfilesDetailsView(APIView):
             data = request.data.copy()
 
             # gets the profile to be updated
-            profile = Students.objects.get(id=data['id'])
+            profile = Students.objects.get(id=data['profile_id'])
 
             # sets birthday to None if it is an empty string
             if data['birthday'] == "":
@@ -100,8 +100,8 @@ class ProfilesDetailsView(APIView):
 
             return Response(status=status.HTTP_204_NO_CONTENT)
 
-
         except Exception as e:
+            print(e)
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
 # gets all the choices for the profile create form
