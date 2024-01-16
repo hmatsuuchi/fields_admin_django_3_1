@@ -3,6 +3,7 @@ from django.urls import reverse
 from rest_framework import status
 from django.contrib.auth.models import User
 
+# tests JWT authentication endpoints
 class AuthenticationTest(TestCase):
     def setUp(self):
         self.client = Client()
