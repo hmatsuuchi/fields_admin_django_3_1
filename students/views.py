@@ -1,5 +1,4 @@
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 # group permission control
@@ -13,8 +12,11 @@ from .models import PaymentChoices, Phone, PhoneChoice, GradeChoices, StatusChoi
 from .models import Students
 from .serializers import ProfileSerializer
 
+from authentication.customAuthentication import CustomAuthentication
+
 # all profiles
 class ProfilesListView(APIView):
+    authentication_classes = ([CustomAuthentication])
     permission_classes = ([isInStaffGroup])
     
     def get(self, request, format=None):
@@ -30,8 +32,10 @@ class ProfilesListView(APIView):
 
 # profile details
 class ProfilesDetailsView(APIView):
-    # GET
+    authentication_classes = ([CustomAuthentication])
     permission_classes = ([isInStaffGroup])
+
+    # GET
     def get(self, request, format=None):
         try:
             profile_id = request.GET.get('profile_id')
@@ -44,7 +48,6 @@ class ProfilesDetailsView(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST)
         
     # POST
-    permission_classes = ([isInStaffGroup])
     def post(self, request):
         data = request.data.copy()
 
@@ -66,7 +69,6 @@ class ProfilesDetailsView(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST)
         
     # PUT
-    permission_classes = ([isInStaffGroup])
     def put(self, request):
         try:            
             # copies the request data so that it can be modified
@@ -92,7 +94,6 @@ class ProfilesDetailsView(APIView):
             return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
     # DELETE
-    permission_classes = ([isInStaffGroup])
     def delete(self, request):
         try:
             profile = Students.objects.get(id=request.query_params['profile_id'])
@@ -106,6 +107,9 @@ class ProfilesDetailsView(APIView):
 
 # gets all the choices for the profile create form
 class ProfilesChoicesView(APIView):
+    authentication_classes = ([CustomAuthentication])
+    permission_classes = ([isInStaffGroup])
+
     def get(self, request):
         try:
             phone_choices = PhoneChoice.objects.all().order_by('order')

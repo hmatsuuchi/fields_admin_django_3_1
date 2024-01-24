@@ -5,12 +5,15 @@ from .views import LoggedInUserData
 # URLS
 import authentication.urls as AuthenticationUrls
 import students.urls as StudentsUrls
+from authentication.customTokenObtainPair import CustomTokenObtainPairView, CustomTokenRefreshView # custom jwt authentication
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     # simple jwt authentication
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    # path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    # path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/token/refresh/', CustomTokenRefreshView.as_view(), name='token_refresh'),
     path('api/', include(AuthenticationUrls)),
     path('api/students/', include(StudentsUrls)),
     # logged in user data

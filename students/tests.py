@@ -27,9 +27,7 @@ class ProfilesListViewAsNoGroupTest(TestCase):
 
         self.user = User.objects.create_user(username='testuser', password='testpassword')
 
-        refresh = RefreshToken.for_user(self.user)
-        self.access_token = str(refresh.access_token)
-        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.access_token}')
+        self.client.force_authenticate(user=self.user)
 
     def test_profiles_list_view(self):
         response = self.client.get(reverse('student_profiles'))
@@ -44,9 +42,7 @@ class ProfilesListViewAsCustomerGroupTest(TestCase):
         self.group = Group.objects.create(name='Customers')
         self.user.groups.add(self.group)
 
-        refresh = RefreshToken.for_user(self.user)
-        self.access_token = str(refresh.access_token)
-        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.access_token}')
+        self.client.force_authenticate(user=self.user)
 
     def test_profiles_list_view(self):
         response = self.client.get(reverse('student_profiles'))
@@ -61,9 +57,7 @@ class ProfilesListViewAsStaffGroupTest(TestCase):
         self.group = Group.objects.create(name='Staff')
         self.user.groups.add(self.group)
 
-        refresh = RefreshToken.for_user(self.user)
-        self.access_token = str(refresh.access_token)
-        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.access_token}')
+        self.client.force_authenticate(user=self.user)
 
     def test_profiles_list_view(self):
         response = self.client.get(reverse('student_profiles'))
@@ -225,10 +219,7 @@ class ProfilesDetailsViewAsNoGroupTest(TestCase):
         self.client = APIClient()
 
         self.user = User.objects.create_user(username='testuser', password='testpassword')
-
-        refresh = RefreshToken.for_user(self.user)
-        self.access_token = str(refresh.access_token)
-        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.access_token}')
+        self.client.force_authenticate(user=self.user)
 
         # create test prefecture choice
         self.test_prefecture_choice = PrefectureChoices()
@@ -381,10 +372,7 @@ class ProfilesDetailsViewAsCustomerGroupTest(TestCase):
         self.user = User.objects.create_user(username='testuser', password='testpassword')
         self.group = Group.objects.create(name='Customers')
         self.user.groups.add(self.group)
-
-        refresh = RefreshToken.for_user(self.user)
-        self.access_token = str(refresh.access_token)
-        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.access_token}')
+        self.client.force_authenticate(user=self.user)
 
         # create test prefecture choice
         self.test_prefecture_choice = PrefectureChoices()
@@ -537,10 +525,7 @@ class ProfilesDetailsViewAsStaffGroupTest(TestCase):
         self.user = User.objects.create_user(username='testuser', password='testpassword')
         self.group = Group.objects.create(name='Staff')
         self.user.groups.add(self.group)
-
-        refresh = RefreshToken.for_user(self.user)
-        self.access_token = str(refresh.access_token)
-        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.access_token}')
+        self.client.force_authenticate(user=self.user)
 
         # create test prefecture choice
         self.test_prefecture_choice = PrefectureChoices()

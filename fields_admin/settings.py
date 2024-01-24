@@ -3,6 +3,28 @@ from pathlib import Path
 import environ # environment variables
 from datetime import timedelta
 
+# PUSH TO PRODUCTION CHECKLIST:
+# 1. change DEBUG to False
+# ------------------------
+# 2. change ALLOWED_HOSTS
+# ------------------------
+# 3. change CORS_ALLOWED_ORIGINS
+# ------------------------
+# 4. change CSRF_TRUSTED_ORIGINS
+# 5. change AUTH_COOKIE_TRUSTED_ORIGINS
+# 6. change REFRESH_COOKIE_TRUSTED_ORIGINS
+# 7. change LOGOUT_COOKIE_TRUSTED_ORIGINS
+# ------------------------
+# 8. change CSRF_COOKIE_SAMESITE
+# 9. change AUTH_COOKIE_SAMESITE
+# 10. change REFRESH_COOKIE_SAMESITE
+# 11. change LOGOUT_COOKIE_SAMESITE
+# ------------------------
+# 12. change ACCESS_TOKEN_LIFETIME
+# ------------------------
+# 13. remove hardcoded usernames or passwords from React
+# 14. change axios baseURL in React
+
 # initializes environment variables
 env = environ.Env(DEBUG=(bool, False))
 environ.Env.read_env()
@@ -11,11 +33,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = env('SECRET_KEY')
 
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = [
-    'fieldsadmin.dev',
-    'www.fieldsadmin.dev',
+    # 'fieldsadmin.dev',
+    # 'www.fieldsadmin.dev',
     '127.0.0.1',
     ]
 
@@ -35,10 +57,10 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware', # cors headers
-    'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware', # cors headers
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -106,19 +128,65 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        # 'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'authentication.customAuthentication.CustomAuthentication',
     )
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=1),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=15),
+    "LOGOUT_TOKEN_LIFETIME": timedelta(days=15),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
+
+    # access cookie settings
+    'AUTH_COOKIE': 'access_token',
+    'AUTH_COOKIE_SECURE': True,
+    'AUTH_COOKIE_HTTP_ONLY': True,
+    'AUTH_COOKIE_PATH': '/',
+    # 'AUTH_COOKIE_SAMESITE': 'Lax',
+    'AUTH_COOKIE_SAMESITE': 'None',
+    # 'AUTH_COOKIE_TRUSTED_ORIGINS': ['https://fieldsadmin.dev'],
+    'AUTH_COOKIE_TRUSTED_ORIGINS': ['http://localhost:3000'],
+
+    # refresh cookie settings
+    'REFRESH_COOKIE': 'refresh_token',
+    'REFRESH_COOKIE_SECURE': True,
+    'REFRESH_COOKIE_HTTP_ONLY': True,
+    # 'REFRESH_COOKIE_SAMESITE': 'Lax',
+    'REFRESH_COOKIE_SAMESITE': 'None',
+    # 'REFRESH_COOKIE_TRUSTED_ORIGINS': ['https://fieldsadmin.dev'],
+    'REFRESH_COOKIE_TRUSTED_ORIGINS': ['http://localhost:3000'],
+    'REFRESH_COOKIE_PATH': '/api/token/refresh/',
+
+    # logout cookie settings
+    'LOGOUT_COOKIE': 'logout_token',
+    'LOGOUT_COOKIE_SECURE': True,
+    'LOGOUT_COOKIE_HTTP_ONLY': True,
+    # 'LOGOUT_COOKIE_SAMESITE': 'Lax',
+    'LOGOUT_COOKIE_SAMESITE': 'None',
+    # 'LOGOUT_COOKIE_TRUSTED_ORIGINS': ['https://fieldsadmin.dev'],
+    'LOGOUT_COOKIE_TRUSTED_ORIGINS': ['http://localhost:3000'],
+    'LOGOUT_COOKIE_PATH': '/api/logout/',
 }
+
+# csrf cookie settings
+CSRF_COOKIE = 'csrftoken'
+CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_PATH = '/'
+# CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'None'
+# CSRF_TRUSTED_ORIGINS = ['https://fieldsadmin.dev']
+CSRF_TRUSTED_ORIGINS = ['http://localhost:3000']
+
 
 # cors policy settings
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
-    'https://fieldsadmin.dev',
+    'http://127.0.0.1:8000',
+    # 'https://fieldsadmin.dev',
 ]
+
+CORS_ALLOW_CREDENTIALS = True

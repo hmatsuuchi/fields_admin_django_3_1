@@ -1,6 +1,7 @@
 from rest_framework import permissions
 
 class isInStaffGroup(permissions.BasePermission):
+    
     def has_permission(self, request, view):
         # checks if user is authenticated
         if not request.user.is_authenticated:
