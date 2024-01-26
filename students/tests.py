@@ -14,53 +14,81 @@ from .models import Students, Phone, PhoneChoice, PrefectureChoices, GradeChoice
 # users NOT logged in CANNOT access the student profiles list view
 class ProfilesListViewAsUnauthenticatedUserTest(TestCase):
     def setUp(self):
+        # create test client
         self.client = APIClient()
 
     def test_profiles_list_view(self):
+        # attempt to access student profiles list view
         response = self.client.get(reverse('student_profiles'))
+
+        # assertion
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 # users NOT in any group CANNOT access the student profiles list view
 class ProfilesListViewAsNoGroupTest(TestCase):
     def setUp(self):
+        # create test client
         self.client = APIClient()
 
+        # create test user
         self.user = User.objects.create_user(username='testuser', password='testpassword')
 
+        # set test user as authenticated
         self.client.force_authenticate(user=self.user)
 
     def test_profiles_list_view(self):
+        # attempt to access student profiles list view
         response = self.client.get(reverse('student_profiles'))
+
+        # assertion
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 # users in the 'Customers' group CANNOT access the student profiles list view
 class ProfilesListViewAsCustomerGroupTest(TestCase):
     def setUp(self):
+        # create test client
         self.client = APIClient()
 
+        # create test user
         self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        # create test group
         self.group = Group.objects.create(name='Customers')
+
+        # add test user to test group
         self.user.groups.add(self.group)
 
+        # set test user as authenticated
         self.client.force_authenticate(user=self.user)
 
     def test_profiles_list_view(self):
+        # attempt to access student profiles list view
         response = self.client.get(reverse('student_profiles'))
+
+        # assertion
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 # users in the 'Staff' group CAN access the student profiles list view
 class ProfilesListViewAsStaffGroupTest(TestCase):
     def setUp(self):
+        # create test client
         self.client = APIClient()
 
+        # create test user
         self.user = User.objects.create_user(username='testuser', password='testpassword')
+        # create test group
         self.group = Group.objects.create(name='Staff')
+        # add test user to test group
         self.user.groups.add(self.group)
 
+        # set test user as authenticated
         self.client.force_authenticate(user=self.user)
 
     def test_profiles_list_view(self):
+        # attempt to access student profiles list view
         response = self.client.get(reverse('student_profiles'))
+
+        # assertion
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 # ======= Student Profiles Details View Tests =======
@@ -68,6 +96,7 @@ class ProfilesListViewAsStaffGroupTest(TestCase):
 # users NOT logged in CANNOT access the student details view using GET, POST, PUT or DELETE
 class ProfilesDetailsViewAsUnauthenticatedUserTest(TestCase):
     def setUp(self):
+        # create test client
         self.client = APIClient()
 
         # create test prefecture choice
@@ -146,15 +175,20 @@ class ProfilesDetailsViewAsUnauthenticatedUserTest(TestCase):
         self.test_profile.archived = False
         self.test_profile.save()
 
-    # GET - retrieve a student profile
+    # GET - retrieve student profile
     def test_profiles_details_view_get(self):
+        # sets student profile id
         params = {'profile_id': self.test_profile.id}
 
+        # attempt to retrieve student profile
         response = self.client.get(reverse('student_profiles_details'), params)
+
+        # assertion
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    # POST - create a new student profile
+    # POST - create new student profile
     def test_profiles_details_view_post(self):
+        # sets student profile data
         data = {
             'last_name_romaji': 'last_name_romaji',
             'first_name_romaji': 'first_name_romaji',
@@ -175,13 +209,18 @@ class ProfilesDetailsViewAsUnauthenticatedUserTest(TestCase):
             'archived': False,
             }
         
+        # converts student profile data to json
         json_data = json.dumps(data)
                     
+        # attempt to create new student profile
         response = self.client.post(reverse('student_profiles_details'), json_data, content_type='application/json')
+        
+        # assertion
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     # PUT - update a student profile
     def test_profiles_details_view_put(self):
+        # sets student profile data
         data = {
             'profile_id': self.test_profile.id,
             'last_name_romaji': 'last_name_romaji_updated',
@@ -203,22 +242,33 @@ class ProfilesDetailsViewAsUnauthenticatedUserTest(TestCase):
             'archived': True,
             }
         
+        # converts student profile data to json
         json_data = json.dumps(data)
                     
+        # attempt to update student profile
         response = self.client.put(reverse('student_profiles_details'), json_data, content_type='application/json')
+        
+        # assertion
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     # DELETE - delete a student profile
     def test_profiles_details_view_delete(self):
+        # attempt to delete student profile
         response = self.client.delete(f"{reverse('student_profiles_details')}?profile_id={self.test_profile.id}")
+        
+        # assertion
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
       
 # users NOT in any group CANNOT access the student details view using GET, POST, PUT or DELETE
 class ProfilesDetailsViewAsNoGroupTest(TestCase):
     def setUp(self):
+        # create test client
         self.client = APIClient()
 
+        # create test user
         self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        # set test user as authenticated
         self.client.force_authenticate(user=self.user)
 
         # create test prefecture choice
@@ -299,13 +349,18 @@ class ProfilesDetailsViewAsNoGroupTest(TestCase):
 
     # GET - retrieve a student profile
     def test_profiles_details_view_get(self):
+        # sets student profile id
         params = {'profile_id': self.test_profile.id}
 
+        # attempt to retrieve student profile
         response = self.client.get(reverse('student_profiles_details'), params)
+
+        # assertion
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
     
     # POST - create a new student profile
     def test_profiles_details_view_post(self):
+        # sets student profile data
         data = {
             'last_name_romaji': 'last_name_romaji',
             'first_name_romaji': 'first_name_romaji',
@@ -326,13 +381,18 @@ class ProfilesDetailsViewAsNoGroupTest(TestCase):
             'archived': False,
             }
         
+        # converts student profile data to json
         json_data = json.dumps(data)
-                    
+
+        # attempt to create new student profile    
         response = self.client.post(reverse('student_profiles_details'), json_data, content_type='application/json')
+        
+        # assertion
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     # PUT - update a student profile
     def test_profiles_details_view_put(self):
+        # sets student profile data
         data = {
             'profile_id': self.test_profile.id,
             'last_name_romaji': 'last_name_romaji_updated',
@@ -354,24 +414,39 @@ class ProfilesDetailsViewAsNoGroupTest(TestCase):
             'archived': True,
             }
         
+        # converts student profile data to json
         json_data = json.dumps(data)
-                    
+
+        # attempt to update student profile       
         response = self.client.put(reverse('student_profiles_details'), json_data, content_type='application/json')
+        
+        # assertion
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     # DELETE - delete a student profile
     def test_profiles_details_view_delete(self):
+        # attempt to delete student profile
         response = self.client.delete(f"{reverse('student_profiles_details')}?profile_id={self.test_profile.id}")
+        
+        # assertion
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 # users in the 'Customers' group CANNOT access the student details view using GET, POST, PUT or DELETE
 class ProfilesDetailsViewAsCustomerGroupTest(TestCase):
     def setUp(self):
+        # create test client
         self.client = APIClient()
 
+        # create test user
         self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        # create test group
         self.group = Group.objects.create(name='Customers')
+
+        # add test user to test group
         self.user.groups.add(self.group)
+
+        # set test user as authenticated
         self.client.force_authenticate(user=self.user)
 
         # create test prefecture choice
@@ -452,13 +527,18 @@ class ProfilesDetailsViewAsCustomerGroupTest(TestCase):
 
     # GET - retrieve a student profile
     def test_profiles_details_view_get(self):
+        # sets student profile id
         params = {'profile_id': self.test_profile.id}
 
+        # attempt to retrieve student profile
         response = self.client.get(reverse('student_profiles_details'), params)
+
+        # assertion
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
     
     # POST - create a new student profile
     def test_profiles_details_view_post(self):
+        # sets student profile data
         data = {
             'last_name_romaji': 'last_name_romaji',
             'first_name_romaji': 'first_name_romaji',
@@ -479,13 +559,18 @@ class ProfilesDetailsViewAsCustomerGroupTest(TestCase):
             'archived': False,
             }
         
+        # converts student profile data to json
         json_data = json.dumps(data)
-                    
+
+        # attempt to create new student profile    
         response = self.client.post(reverse('student_profiles_details'), json_data, content_type='application/json')
+        
+        # assertion
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     # PUT - update a student profile
     def test_profiles_details_view_put(self):
+        # sets student profile data
         data = {
             'profile_id': self.test_profile.id,
             'last_name_romaji': 'last_name_romaji_updated',
@@ -507,24 +592,39 @@ class ProfilesDetailsViewAsCustomerGroupTest(TestCase):
             'archived': True,
             }
         
+        # converts student profile data to json
         json_data = json.dumps(data)
-                    
+
+        # attempt to update student profile     
         response = self.client.put(reverse('student_profiles_details'), json_data, content_type='application/json')
+        
+        # assertion
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     # DELETE - delete a student profile
     def test_profiles_details_view_delete(self):
+        # attempt to delete student profile
         response = self.client.delete(f"{reverse('student_profiles_details')}?profile_id={self.test_profile.id}")
+        
+        # assertion
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 # users in the 'Staff' group CAN access the student details view using GET, POST, PUT or DELETE
 class ProfilesDetailsViewAsStaffGroupTest(TestCase):
     def setUp(self):
+        # create test client
         self.client = APIClient()
 
+        # create test user
         self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        # create test group
         self.group = Group.objects.create(name='Staff')
+
+        # add test user to test group
         self.user.groups.add(self.group)
+
+        # set test user as authenticated
         self.client.force_authenticate(user=self.user)
 
         # create test prefecture choice
@@ -605,9 +705,13 @@ class ProfilesDetailsViewAsStaffGroupTest(TestCase):
 
     # GET - retrieve a student profile
     def test_profiles_details_view_get(self):
+        # sets student profile id
         params = {'profile_id': self.test_profile.id}
 
+        # attempt to retrieve student profile
         response = self.client.get(reverse('student_profiles_details'), params)
+
+        # assertions
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['last_name_romaji'], 'last_name_romaji')
         self.assertEqual(response.data['first_name_romaji'], 'first_name_romaji')
@@ -630,6 +734,7 @@ class ProfilesDetailsViewAsStaffGroupTest(TestCase):
 
     # POST - create a new student profile
     def test_profiles_details_view_post(self):
+        # sets student profile data
         data = {
             'last_name_romaji': 'last_name_romaji',
             'first_name_romaji': 'first_name_romaji',
@@ -650,9 +755,13 @@ class ProfilesDetailsViewAsStaffGroupTest(TestCase):
             'archived': False,
             }
         
+        # converts student profile data to json
         json_data = json.dumps(data)
                     
+        # attempt to create new student profile
         response = self.client.post(reverse('student_profiles_details'), json_data, content_type='application/json')
+        
+        # assertions
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['last_name_romaji'], 'last_name_romaji')
         self.assertEqual(response.data['first_name_romaji'], 'first_name_romaji')
@@ -675,6 +784,7 @@ class ProfilesDetailsViewAsStaffGroupTest(TestCase):
 
     # PUT - update a student profile
     def test_profiles_details_view_put(self):
+        # sets student profile data
         data = {
             'profile_id': self.test_profile.id,
             'last_name_romaji': 'last_name_romaji_updated',
@@ -696,9 +806,13 @@ class ProfilesDetailsViewAsStaffGroupTest(TestCase):
             'archived': True,
             }
         
+        # converts student profile data to json
         json_data = json.dumps(data)
-                    
+
+        # attempt to update student profile     
         response = self.client.put(reverse('student_profiles_details'), json_data, content_type='application/json')
+        
+        # assertions
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['last_name_romaji'], 'last_name_romaji_updated')
         self.assertEqual(response.data['first_name_romaji'], 'first_name_romaji_updated')
@@ -721,9 +835,17 @@ class ProfilesDetailsViewAsStaffGroupTest(TestCase):
 
     # DELETE - delete a student profile
     def test_profiles_details_view_delete(self):
+        # attempt to delete student profile
         response = self.client.delete(f"{reverse('student_profiles_details')}?profile_id={self.test_profile.id}")
+        
+        # assertion
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
+        # attempt to retrieve deleted student profile
         params = {'profile_id': self.test_profile.id}
+
+        # attempt to retrieve student profile
         response = self.client.get(reverse('student_profiles_details'), params)
+
+        # assertion
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
