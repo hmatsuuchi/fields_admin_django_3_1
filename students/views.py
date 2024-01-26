@@ -1,18 +1,16 @@
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-# group permission control
-from authentication.permissions import isInStaffGroup
-
-# importing csv
-import csv
 from django.http import JsonResponse
 from .models import PaymentChoices, Phone, PhoneChoice, GradeChoices, StatusChoices, PrefectureChoices
-
 from .models import Students
 from .serializers import ProfileSerializer
-
+# group permission control
+from authentication.permissions import isInStaffGroup
+# authentication
 from authentication.customAuthentication import CustomAuthentication
+# importing csv
+import csv
 
 # all profiles
 class ProfilesListView(APIView):

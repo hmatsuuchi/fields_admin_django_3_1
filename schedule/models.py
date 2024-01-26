@@ -16,7 +16,7 @@ class Events(models.Model):
         verbose_name_plural = "Events"
 
     def __str__(self):
-        return str(self.event_name)
+        return f"{str(self.primary_instructor)} {str(self.day_of_week)} {str(self.start_time)} {str(self.event_name)}"
 
 class EventType(models.Model):
     name = models.CharField(max_length=100)

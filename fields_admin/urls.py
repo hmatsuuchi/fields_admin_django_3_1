@@ -1,11 +1,11 @@
 from django.contrib import admin
 from django.urls import path, include
-from rest_framework_simplejwt.views import (TokenObtainPairView, TokenRefreshView)
 from .views import LoggedInUserData
+# custom simple jwt authentication
+from authentication.customTokenObtainPair import CustomTokenObtainPairView, CustomTokenRefreshView
 # URLS
 import authentication.urls as AuthenticationUrls
 import students.urls as StudentsUrls
-from authentication.customTokenObtainPair import CustomTokenObtainPairView, CustomTokenRefreshView # custom jwt authentication
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -16,6 +16,7 @@ urlpatterns = [
     path('api/token/refresh/', CustomTokenRefreshView.as_view(), name='token_refresh'),
     path('api/', include(AuthenticationUrls)),
     path('api/students/', include(StudentsUrls)),
+    path('api/schedule/', include('schedule.urls')),
     # logged in user data
     path('api/logged_in_user_data/', LoggedInUserData.as_view(), name='logged_in_user_data'),
 ]
