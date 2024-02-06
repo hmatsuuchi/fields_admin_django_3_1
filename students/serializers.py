@@ -11,6 +11,7 @@ class PhoneSerializer(serializers.ModelSerializer):
 
         
 class ProfileSerializer(serializers.ModelSerializer):
+    profile_full_name = serializers.ReadOnlyField()
     prefecture_verbose = serializers.ReadOnlyField()
     grade_verbose = serializers.ReadOnlyField()
     status_verbose = serializers.ReadOnlyField()

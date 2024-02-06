@@ -33,12 +33,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = env('SECRET_KEY')
 
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [
-    # 'fieldsadmin.dev',
-    # 'www.fieldsadmin.dev',
-    '127.0.0.1',
+    'fieldsadmin.dev',
+    'www.fieldsadmin.dev',
+    # '127.0.0.1',
     ]
 
 INSTALLED_APPS = [
@@ -146,29 +146,29 @@ SIMPLE_JWT = {
     'AUTH_COOKIE_SECURE': True,
     'AUTH_COOKIE_HTTP_ONLY': True,
     'AUTH_COOKIE_PATH': '/',
-    # 'AUTH_COOKIE_SAMESITE': 'Lax',
-    'AUTH_COOKIE_SAMESITE': 'None',
-    # 'AUTH_COOKIE_TRUSTED_ORIGINS': ['https://fieldsadmin.dev'],
-    'AUTH_COOKIE_TRUSTED_ORIGINS': ['http://localhost:3000'],
+    'AUTH_COOKIE_SAMESITE': 'Lax',
+    # 'AUTH_COOKIE_SAMESITE': 'None',
+    'AUTH_COOKIE_TRUSTED_ORIGINS': ['https://fieldsadmin.dev'],
+    # 'AUTH_COOKIE_TRUSTED_ORIGINS': ['http://localhost:3000'],
 
     # refresh cookie settings
     'REFRESH_COOKIE': 'refresh_token',
     'REFRESH_COOKIE_SECURE': True,
     'REFRESH_COOKIE_HTTP_ONLY': True,
-    # 'REFRESH_COOKIE_SAMESITE': 'Lax',
-    'REFRESH_COOKIE_SAMESITE': 'None',
-    # 'REFRESH_COOKIE_TRUSTED_ORIGINS': ['https://fieldsadmin.dev'],
-    'REFRESH_COOKIE_TRUSTED_ORIGINS': ['http://localhost:3000'],
+    'REFRESH_COOKIE_SAMESITE': 'Lax',
+    # 'REFRESH_COOKIE_SAMESITE': 'None',
+    'REFRESH_COOKIE_TRUSTED_ORIGINS': ['https://fieldsadmin.dev'],
+    # 'REFRESH_COOKIE_TRUSTED_ORIGINS': ['http://localhost:3000'],
     'REFRESH_COOKIE_PATH': '/api/token/refresh/',
 
     # logout cookie settings
     'LOGOUT_COOKIE': 'logout_token',
     'LOGOUT_COOKIE_SECURE': True,
     'LOGOUT_COOKIE_HTTP_ONLY': True,
-    # 'LOGOUT_COOKIE_SAMESITE': 'Lax',
-    'LOGOUT_COOKIE_SAMESITE': 'None',
-    # 'LOGOUT_COOKIE_TRUSTED_ORIGINS': ['https://fieldsadmin.dev'],
-    'LOGOUT_COOKIE_TRUSTED_ORIGINS': ['http://localhost:3000'],
+    'LOGOUT_COOKIE_SAMESITE': 'Lax',
+    # 'LOGOUT_COOKIE_SAMESITE': 'None',
+    'LOGOUT_COOKIE_TRUSTED_ORIGINS': ['https://fieldsadmin.dev'],
+    # 'LOGOUT_COOKIE_TRUSTED_ORIGINS': ['http://localhost:3000'],
     'LOGOUT_COOKIE_PATH': '/api/logout/',
 }
 
@@ -177,17 +177,17 @@ CSRF_COOKIE = 'csrftoken'
 CSRF_COOKIE_SECURE = True
 CSRF_COOKIE_HTTPONLY = True
 CSRF_COOKIE_PATH = '/'
-# CSRF_COOKIE_SAMESITE = 'Lax'
-CSRF_COOKIE_SAMESITE = 'None'
-# CSRF_TRUSTED_ORIGINS = ['https://fieldsadmin.dev']
-CSRF_TRUSTED_ORIGINS = ['http://localhost:3000']
+CSRF_COOKIE_SAMESITE = 'Lax'
+# CSRF_COOKIE_SAMESITE = 'None'
+CSRF_TRUSTED_ORIGINS = ['https://fieldsadmin.dev']
+# CSRF_TRUSTED_ORIGINS = ['http://localhost:3000']
 
 
 # cors policy settings
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:3000',
-    'http://127.0.0.1:8000',
-    # 'https://fieldsadmin.dev',
+    # 'http://localhost:3000',
+    # 'http://127.0.0.1:8000',
+    'https://fieldsadmin.dev',
 ]
 
 CORS_ALLOW_CREDENTIALS = True

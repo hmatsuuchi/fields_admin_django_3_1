@@ -56,35 +56,47 @@ class Students(models.Model):
     date_time_created           = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_time_modified          = models.DateTimeField(auto_now=True, blank=True, null=True)
 
-    @cached_property
+    def profile_full_name(self):
+        full_name = "Unknown Student"
+
+        if self.last_name_romaji and self.first_name_romaji:
+            full_name = f"{self.last_name_romaji}, {self.first_name_romaji}"
+        elif self.last_name_romaji:
+            full_name = self.last_name_romaji
+        else:
+            full_name = self.first_name_romaji
+
+        return full_name
+
+    # @cached_property
     def prefecture_verbose(self):
         try:
             return self.prefecture.name
         except:
             return ''
         
-    @cached_property
+    # @cached_property
     def grade_verbose(self):
         try:
             return self.grade.name
         except:
             return ''
         
-    @cached_property
+    # @cached_property
     def status_verbose(self):
         try:
             return self.status.name
         except:
             return ''
         
-    @cached_property
+    # @cached_property
     def payment_method_verbose(self):
         try:
             return self.payment_method.name
         except:
             return ''
 
-    @cached_property
+    # @cached_property
     def age(self):
         if self.birthday:
             now = timezone.now()
@@ -97,6 +109,7 @@ class Students(models.Model):
         return str(age)
 
     class Meta:
+        ordering = ['last_name_romaji']
         verbose_name_plural = "Students"
 
     def __str__(self):
