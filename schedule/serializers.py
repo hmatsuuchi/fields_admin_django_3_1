@@ -10,7 +10,17 @@ class StudentsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Students
-        fields = ['id', 'first_name_romaji', 'profile_full_name']
+        fields = [
+            'id',
+            'last_name_romaji',
+            'first_name_romaji',
+            'last_name_kanji',
+            'first_name_kanji',
+            'last_name_katakana',
+            'first_name_katakana',
+            'profile_full_name',
+            'status',
+            ]
 
 # used to include additional class data in the EventsSerializer
 class EventTypeSerializer(serializers.ModelSerializer):
