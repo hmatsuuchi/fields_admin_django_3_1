@@ -20,6 +20,7 @@ class StudentsSerializer(serializers.ModelSerializer):
             'first_name_katakana',
             'profile_full_name',
             'status',
+            'grade_verbose',
             ]
 
 # used to include additional class data in the EventsSerializer
