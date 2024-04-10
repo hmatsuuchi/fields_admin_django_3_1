@@ -35,6 +35,7 @@ class InstructorSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'username']
 
+# event serializer
 class EventsSerializer(serializers.ModelSerializer):
     students = StudentsSerializer(many=True, required=False)
     event_type = EventTypeSerializer(required=False)

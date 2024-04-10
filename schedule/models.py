@@ -8,8 +8,8 @@ class Events(models.Model):
     primary_instructor = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     day_of_week = models.IntegerField(blank=True, null=True)
     start_time = models.TimeField(blank=True, null=True)
-    start_date = models.DateField(blank=True, null=True)
-    end_date = models.DateField(blank=True, null=True)
+    # start_date = models.DateField(blank=True, null=True)
+    # end_date = models.DateField(blank=True, null=True)
     students = models.ManyToManyField(Students, blank=True)
 
     class Meta:

@@ -113,7 +113,7 @@ class Students(models.Model):
         verbose_name_plural = "Students"
 
     def __str__(self):
-        return f"{self.last_name_romaji} {self.first_name_romaji}"
+        return f"{self.last_name_romaji} {self.first_name_romaji} [{self.id}]"
 
 class PrefectureChoices(models.Model):
     name                        = models.CharField(max_length=35)

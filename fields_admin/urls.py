@@ -9,14 +9,20 @@ import students.urls as StudentsUrls
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+
     # simple jwt authentication
     # path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     # path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/token/refresh/', CustomTokenRefreshView.as_view(), name='token_refresh'),
     path('api/', include(AuthenticationUrls)),
+
+    # student profiles
     path('api/students/', include(StudentsUrls)),
+
+    # schedule data
     path('api/schedule/', include('schedule.urls')),
+
     # logged in user data
     path('api/logged_in_user_data/', LoggedInUserData.as_view(), name='logged_in_user_data'),
 ]

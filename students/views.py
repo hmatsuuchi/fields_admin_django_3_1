@@ -143,6 +143,7 @@ def ProfilesImport(request):
         for row in reader:
             print(row)
             profile = Students()
+            profile.id = row[0]
             profile.last_name_romaji = row[1]
             profile.first_name_romaji = row[2]
             profile.last_name_kanji = row[3]
