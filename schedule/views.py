@@ -1,17 +1,19 @@
-from django.db.models import Q
 from rest_framework import status
-from rest_framework.views import APIView
 from rest_framework.response import Response
-from datetime import datetime
+from rest_framework.views import APIView
 # group permission control
 from authentication.permissions import isInStaffGroup
 # authentication
 from authentication.customAuthentication import CustomAuthentication
 # models
-from .models import Events
+from .models import Events, EventType
 from django.contrib.auth.models import User
 # serializers
 from .serializers import EventsSerializer, InstructorSerializer
+# importing csv
+import csv
+from students.models import Students
+from django.http import JsonResponse
 
 # get all events for single date
 class EventsAllView(APIView):
@@ -21,7 +23,7 @@ class EventsAllView(APIView):
     def get(self, request, format=None):
         try:
             # get all events for date
-            events = Events.objects.all().order_by('day_of_week', 'start_time')
+            events = Events.objects.all().filter(archived=False).exclude(start_time__isnull=True).order_by('day_of_week', 'start_time')
             
             # serialize events
             event_serializer = EventsSerializer(events, many=True)
@@ -42,3 +44,64 @@ class EventsAllView(APIView):
         except Exception as e:
             print(e)
             return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
+        
+# used to import events from CSV     
+def EventsImport(request):
+    print('')
+    print('======= IMPORTING EVENTS =======')
+    print('')
+
+    events_all = Events.objects.all()
+    events_all.delete()
+
+    with open("./static/event_import.csv") as file:
+        reader = csv.reader(file)
+        next(reader)
+
+        for row in reader:
+            print(row)
+
+            event = Events()
+            event.id = row[0]
+            event.event_name = row[1]
+            event.event_type = EventType.objects.get(id=row[6])
+            if row[7] == '2':
+                event.primary_instructor = User.objects.get(id=4)
+            elif row[7] == '4':
+                event.primary_instructor = User.objects.get(id=5)
+            elif row[7] == '3':
+                event.primary_instructor = User.objects.get(id=6)
+            event.day_of_week = int(row[3]) - 1
+            if row[4] != "NULL":
+                event.start_time = row[4]
+            event.archived = row[5]
+
+            event.save()
+
+    print('')
+    print('======= IMPORT EVENTS COMPLETE =======')
+    print('')
+
+    with open("./static/event_student_import.csv") as file:
+        print('')
+        print('======= IMPORTING CLASS LISTS =======')
+        print('')
+
+        reader = csv.reader(file)
+        next(reader)
+
+        for row in reader:
+            print(row)
+
+            event = Events.objects.get(id=row[1])
+            event.students.add(Students.objects.get(id=row[2]))
+
+        print('')
+        print('======= IMPORT CLASS LISTS COMPLETE =======')
+        print('')
+
+    data = {
+        'status': '200 OK',
+    }
+
+    return JsonResponse(data)

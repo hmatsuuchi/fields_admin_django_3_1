@@ -129,7 +129,9 @@ class ProfilesChoicesView(APIView):
 
 # used to import profiles from CSV     
 def ProfilesImport(request):
-    print('IMPORTING PROFILES')
+    print('')
+    print('======= IMPORTING PROFILES =======')
+    print('')
 
     profiles_all = Students.objects.all()
     profiles_all.delete()
@@ -140,6 +142,7 @@ def ProfilesImport(request):
     with open("./static/profile_import.csv") as file:
         reader = csv.reader(file)
         next(reader)
+
         for row in reader:
             print(row)
             profile = Students()
@@ -336,6 +339,10 @@ def ProfilesImport(request):
             profile.archived = row[20]
 
             profile.save()
+
+    print('')
+    print('======= IMPORT PROFILES COMPLETE =======')
+    print('')
 
     data = {
         'status': '200 OK',
