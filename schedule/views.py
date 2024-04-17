@@ -23,14 +23,12 @@ class EventsAllView(APIView):
     def get(self, request, format=None):
         try:
             # get all events for date
-            events = Events.objects.all().filter(archived=False).exclude(start_time__isnull=True).order_by('day_of_week', 'start_time')
-            
+            events = Events.objects.all().filter(archived=False)
             # serialize events
             event_serializer = EventsSerializer(events, many=True)
 
             # get all instructors for events
             instructors = User.objects.filter(events__in=events).distinct().order_by('username')
-
             # serialize instructors
             instructor_serializer = InstructorSerializer(instructors, many=True)
 
