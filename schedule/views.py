@@ -23,7 +23,7 @@ class EventsAllView(APIView):
     def get(self, request, format=None):
         try:
             # get all events for date
-            events = Events.objects.all().filter(archived=False)
+            events = Events.objects.all().filter(archived=False).prefetch_related('students', 'event_type', 'primary_instructor')
             # serialize events
             event_serializer = EventsSerializer(events, many=True)
 
@@ -52,7 +52,7 @@ def EventsImport(request):
     events_all = Events.objects.all()
     events_all.delete()
 
-    with open("./static/event_import.csv") as file:
+    with open("./static/class_list_classlist.csv") as file:
         reader = csv.reader(file)
         next(reader)
 
@@ -80,7 +80,7 @@ def EventsImport(request):
     print('======= IMPORT EVENTS COMPLETE =======')
     print('')
 
-    with open("./static/event_student_import.csv") as file:
+    with open("./static/class_list_classlist_students.csv") as file:
         print('')
         print('======= IMPORTING CLASS LISTS =======')
         print('')

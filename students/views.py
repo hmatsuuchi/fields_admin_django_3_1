@@ -139,7 +139,7 @@ def ProfilesImport(request):
     phone_all = Phone.objects.all()
     phone_all.delete()
 
-    with open("./static/profile_import.csv") as file:
+    with open("./static/customer_customerprofile.csv") as file:
         reader = csv.reader(file)
         next(reader)
 

@@ -1,3 +1,3 @@
-/fields_admin/.env
+/fields_admin/dev.env
+/fields_admin/prod.env
 /static
-settings.py

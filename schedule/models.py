@@ -27,6 +27,7 @@ class EventType(models.Model):
     price = models.IntegerField(blank=True, null=True)
     duration = models.IntegerField(blank=True, null=True)
     order = models.IntegerField(blank=True, null=True)
+    capacity = models.IntegerField(blank=True, null=True)
 
     def __str__(self):
         return f"{str(self.name)} -  {str(self.price)} -  {str(self.duration)} - {str(self.order)}"

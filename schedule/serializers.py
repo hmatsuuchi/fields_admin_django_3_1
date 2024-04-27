@@ -28,7 +28,7 @@ class StudentsSerializer(serializers.ModelSerializer):
 class EventTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = EventType
-        fields = ['id', 'name', 'duration']
+        fields = ['id', 'name', 'duration', 'capacity']
 
 # used to include additional user data in the InstructorSerializer
 class UserProfileSerializer(serializers.ModelSerializer):
