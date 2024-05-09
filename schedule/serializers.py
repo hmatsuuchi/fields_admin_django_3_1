@@ -2,7 +2,7 @@ from rest_framework import serializers
 # models
 from .models import Events, EventType
 from students.models import Students
-from user_profiles.models import UserProfiles
+from user_profiles.models import UserProfilesInstructors
 from django.contrib.auth.models import User
 
 # used to include additional student data in the EventsSerializer
@@ -31,18 +31,18 @@ class EventTypeSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'duration', 'capacity']
 
 # used to include additional user data in the InstructorSerializer
-class UserProfileSerializer(serializers.ModelSerializer):
+class UserProfileInstructorSerializer(serializers.ModelSerializer):
     class Meta:
-        model = UserProfiles
+        model = UserProfilesInstructors
         fields = '__all__'
 
 # used to include additional instructor data in the response
 class InstructorSerializer(serializers.ModelSerializer):
-    userprofiles = UserProfileSerializer(required=False)
+    userprofilesinstructors = UserProfileInstructorSerializer(required=False)
 
     class Meta:
         model = User
-        fields = ['id', 'userprofiles']
+        fields = ['id', 'userprofilesinstructors', 'username']
 
 # event serializer
 class EventsSerializer(serializers.ModelSerializer):

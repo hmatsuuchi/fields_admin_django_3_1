@@ -154,10 +154,10 @@ def ProfilesImport(request):
             profile.last_name_katakana = row[18]
             profile.first_name_katakana = row[17]
 
-            if row[5] == '1':
-                profile.payment_method = PaymentChoices.objects.get(id=1)
-            elif row[5] == '2':
+            if row[5] == '2':
                 profile.payment_method = PaymentChoices.objects.get(id=2)
+            else:
+                profile.payment_method = PaymentChoices.objects.get(id=1)
 
             profile.post_code = row[6]
             profile.address_1 = row[7]
