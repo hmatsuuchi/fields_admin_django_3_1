@@ -22,7 +22,7 @@ def get_tokens_for_user(user):
     }
 
 # this class is used to perform the initial username and password authentication
-# and if the authentication is successful, it returns the JWT tokens in the response
+# and if the authentication is successful, it sets access and refresh cookies and passes the csrf token in the response
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = TokenObtainPairSerializer
 
@@ -58,7 +58,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                     path = settings.SIMPLE_JWT['REFRESH_COOKIE_PATH'],
                 )
 
-                # logout token is set as a cookie
+                # logout token (refresh token) is set as a cookie
                 response.set_cookie(
                     key = settings.SIMPLE_JWT['LOGOUT_COOKIE'],
                     value = data["refresh"],
@@ -69,16 +69,19 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                     path = settings.SIMPLE_JWT['LOGOUT_COOKIE_PATH'],
                 )
 
+                # generate csrf token
+                csrf_token_value = csrf.get_token(request)
+
                 # csrf token is set as a cookie
                 response.set_cookie(
                     key = settings.CSRF_COOKIE,
-                    value = csrf.get_token(request),
+                    value = csrf_token_value,
                     secure = settings.CSRF_COOKIE_SECURE,
                     httponly = settings.CSRF_COOKIE_HTTPONLY,
                     samesite = settings.CSRF_COOKIE_SAMESITE,
                 )
 
-                response.data = {"Success" : "Successfully logged in", "csrftoken" : response.cookies[settings.CSRF_COOKIE].value}
+                response.data = {"Success" : "Successfully logged in", "csrftoken" : csrf_token_value}
 
                 return response
             else:

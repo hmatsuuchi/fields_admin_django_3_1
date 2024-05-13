@@ -3,7 +3,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.authentication import CSRFCheck
 from rest_framework import exceptions
 
-def enforce_csrf(request):    
+def enforce_csrf(request):
     # provides dummy argument to CSRFCheck
     def dummy_get_response(request):
         return None
@@ -17,6 +17,7 @@ def enforce_csrf(request):
 # this class intercepts the request and checks for the presence the JWT token in the cookie and verifies csrf token
 class CustomAuthentication(JWTAuthentication):
     def authenticate(self, request):
+        # get auth cookie from request
         raw_token = request.COOKIES.get(settings.SIMPLE_JWT['AUTH_COOKIE']) or None
 
         if raw_token is None:
