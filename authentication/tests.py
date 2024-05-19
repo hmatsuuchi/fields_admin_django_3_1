@@ -1,19 +1,21 @@
 from django.test import TestCase, Client
 from django.urls import reverse
 from rest_framework import status
+from rest_framework.test import APIClient
 from django.contrib.auth.models import User
 from django.conf import settings
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
-# tests JWT authentication endpoints
-class AuthenticationTest(TestCase):
+# ======= Authentication Tests =======
+
+# valid users CAN log in and obtain access, refresh, logout and csrf tokens
+class LoginAsValidUserTest(TestCase):
     def setUp(self):
         # setup test client
         self.client = Client()
         # create test user
         self.user = User.objects.create_user(username='testuser', password='testpassword')
 
-    # valid users CAN log in and obtain access, refresh, logout and csrf tokens
     def test_login_valid_user(self):
         user = {
             'username': 'testuser',
@@ -28,9 +30,17 @@ class AuthenticationTest(TestCase):
         self.assertGreater(len(response.cookies[settings.SIMPLE_JWT['AUTH_COOKIE']].value), 0)
         self.assertGreater(len(response.cookies[settings.SIMPLE_JWT['REFRESH_COOKIE']].value), 0)
         self.assertGreater(len(response.cookies[settings.SIMPLE_JWT['LOGOUT_COOKIE']].value), 0)
+        self.assertGreater(len(response.cookies[settings.CSRF_COOKIE].value), 0)
         self.assertGreater(len(response.cookies['csrftoken'].value), 0)
 
-    # invalid users CANNOT log in and obtain access and refresh tokens
+# invalid users CANNOT log in and obtain access, refresh, logout and csrf tokens
+class LoginAsInvalidUserTest(TestCase):
+    def setUp(self):
+        # setup test client
+        self.client = Client()
+        # create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
     def test_login_invalid_user(self):
         user = {
             'username': 'testuser',
@@ -43,7 +53,14 @@ class AuthenticationTest(TestCase):
         # assertions
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    # users with valid refresh tokens CAN refresh access, refresh and logout tokens
+# users with valid refresh tokens CAN refresh access, refresh, logout and csrf tokens
+class RefreshAsValidUserTest(TestCase):
+    def setUp(self):
+        # setup test client
+        self.client = Client()
+        # create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
     def test_token_refresh_valid_user(self):
         # get test user
         user = User.objects.get(username='testuser')
@@ -83,7 +100,14 @@ class AuthenticationTest(TestCase):
         self.assertNotEqual(second_stage_refresh_token, response.cookies[settings.SIMPLE_JWT['REFRESH_COOKIE']].value)
         self.assertNotEqual(second_stage_logout_token, response.cookies[settings.SIMPLE_JWT['LOGOUT_COOKIE']].value)
 
-    # users with blacklist refresh tokens CANNOT refresh access and refresh tokens
+# users with blacklist refresh tokens CANNOT refresh access, refresh, logout and csrf tokens
+class RefreshWithBlacklistedRefreshTokenTest(TestCase):
+    def setUp(self):
+        # setup test client
+        self.client = Client()
+        # create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
     def test_token_refresh_invalid_user(self):
         # get test user
         user = User.objects.get(username='testuser')
@@ -117,6 +141,14 @@ class AuthenticationTest(TestCase):
         # assertions
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
+# users with valid refresh tokens CAN log out
+class LogoutWithValidRefreshTokenTest(TestCase):
+    def setUp(self):
+        # setup test client
+        self.client = Client()
+        # create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
     # users with valid refresh tokens CAN log out
     def test_logout_valid_user(self):
         # get test user
@@ -144,7 +176,14 @@ class AuthenticationTest(TestCase):
         #assertion
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    # users with blacklisted refresh tokens CANNOT log out
+# users with blacklisted refresh tokens CANNOT log out
+class LogoutWithBlacklistedRefreshTokenTest(TestCase):
+    def setUp(self):
+        # setup test client
+        self.client = Client()
+        # create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
     def test_logout_invalid_user(self):
         # get test user
         user = User.objects.get(username='testuser')
@@ -177,3 +216,40 @@ class AuthenticationTest(TestCase):
 
         # assertion
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+# ======= CSRF Refresh Tests =======
+
+# authenticated users can refresh csrf token
+class CsrfRefreshViewAsAuthenticatedUserTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        # set test user as authenticated
+        self.client.force_authenticate(user=self.user)
+
+    def test_refresh_csrf_token(self):
+        # get refresh token
+        response = self.client.get(reverse('csrf_refresh'))
+
+        # get new csrf token
+        csrf_token = response.cookies[settings.CSRF_COOKIE].value
+
+        # attempt to refresh csrf token
+        response = self.client.get(reverse('csrf_refresh'))
+
+        # assertion
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertNotEqual(csrf_token, response.cookies[settings.CSRF_COOKIE].value)
+
+# NOT authenticated users can refresh csrf token
+class CsrfRefreshViewAsUnuthenticatedUserTest(TestCase):
+    def test_refresh_csrf_token(self):
+        # get refresh token
+        response = self.client.get(reverse('csrf_refresh'))
+
+        # assertion
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)

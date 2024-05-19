@@ -3,13 +3,12 @@ from django.test import TestCase
 from rest_framework.test import APIClient
 from rest_framework import status
 from django.urls import reverse
-from rest_framework_simplejwt.tokens import RefreshToken
 import json
 from datetime import date, timedelta
 
 from .models import Students, Phone, PhoneChoice, PrefectureChoices, GradeChoices, StatusChoices, PaymentChoices
 
-# ======= Student Profiles List View Tests =======
+# ======= Student Profiles List View Tests (tests access permissions) =======
 
 # users NOT logged in CANNOT access the student profiles list view
 class ProfilesListViewAsUnauthenticatedUserTest(TestCase):
@@ -24,7 +23,7 @@ class ProfilesListViewAsUnauthenticatedUserTest(TestCase):
         # assertion
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-# users NOT in any group CANNOT access the student profiles list view
+# users logged in but NOT in any group CANNOT access the student profiles list view
 class ProfilesListViewAsNoGroupTest(TestCase):
     def setUp(self):
         # create test client
@@ -43,7 +42,7 @@ class ProfilesListViewAsNoGroupTest(TestCase):
         # assertion
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-# users in the 'Customers' group CANNOT access the student profiles list view
+# users logged in but in the 'Customers' group CANNOT access the student profiles list view
 class ProfilesListViewAsCustomerGroupTest(TestCase):
     def setUp(self):
         # create test client
@@ -68,7 +67,7 @@ class ProfilesListViewAsCustomerGroupTest(TestCase):
         # assertion
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-# users in the 'Staff' group CAN access the student profiles list view
+# users logged in and in the 'Staff' group CAN access the student profiles list view
 class ProfilesListViewAsStaffGroupTest(TestCase):
     def setUp(self):
         # create test client
@@ -91,7 +90,7 @@ class ProfilesListViewAsStaffGroupTest(TestCase):
         # assertion
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-# ======= Student Profiles Details View Tests =======
+# ======= Student Profiles Details View Tests (tests access permissions and ability to perform GET, POST, PUT and DELETE actions) =======
         
 # users NOT logged in CANNOT access the student details view using GET, POST, PUT or DELETE
 class ProfilesDetailsViewAsUnauthenticatedUserTest(TestCase):
@@ -259,7 +258,7 @@ class ProfilesDetailsViewAsUnauthenticatedUserTest(TestCase):
         # assertion
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
       
-# users NOT in any group CANNOT access the student details view using GET, POST, PUT or DELETE
+# users logged in but NOT in any group CANNOT access the student details view using GET, POST, PUT or DELETE
 class ProfilesDetailsViewAsNoGroupTest(TestCase):
     def setUp(self):
         # create test client
@@ -431,7 +430,7 @@ class ProfilesDetailsViewAsNoGroupTest(TestCase):
         # assertion
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-# users in the 'Customers' group CANNOT access the student details view using GET, POST, PUT or DELETE
+# users logged in but in the 'Customers' group CANNOT access the student details view using GET, POST, PUT or DELETE
 class ProfilesDetailsViewAsCustomerGroupTest(TestCase):
     def setUp(self):
         # create test client
@@ -609,7 +608,7 @@ class ProfilesDetailsViewAsCustomerGroupTest(TestCase):
         # assertion
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-# users in the 'Staff' group CAN access the student details view using GET, POST, PUT or DELETE
+# users logged in and in the 'Staff' group CAN access the student details view using GET, POST, PUT or DELETE
 class ProfilesDetailsViewAsStaffGroupTest(TestCase):
     def setUp(self):
         # create test client
