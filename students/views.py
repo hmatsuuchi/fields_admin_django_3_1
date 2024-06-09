@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 from django.http import JsonResponse
 from .models import PaymentChoices, Phone, PhoneChoice, GradeChoices, StatusChoices, PrefectureChoices
 from .models import Students
-from .serializers import ProfileSerializer
+from .serializers import ProfileSerializer, ProfileSerializerForSelect
 # group permission control
 from authentication.permissions import isInStaffGroup
 # authentication
@@ -33,7 +33,7 @@ class ProfilesDetailsView(APIView):
     authentication_classes = ([CustomAuthentication])
     permission_classes = ([isInStaffGroup])
 
-    # GET
+    # GET - profile details
     def get(self, request, format=None):
         try:
             profile_id = request.GET.get('profile_id')
@@ -45,7 +45,7 @@ class ProfilesDetailsView(APIView):
         except Exception as e:
             return Response(status=status.HTTP_400_BAD_REQUEST)
         
-    # POST
+    # POST - new profile
     def post(self, request):
         data = request.data.copy()
 
@@ -66,7 +66,7 @@ class ProfilesDetailsView(APIView):
             print(e)
             return Response(status=status.HTTP_400_BAD_REQUEST)
         
-    # PUT
+    # PUT - update profile
     def put(self, request):
         try:            
             # copies the request data so that it can be modified
@@ -91,7 +91,7 @@ class ProfilesDetailsView(APIView):
             print(e)
             return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-    # DELETE
+    # DELETE - delete profile
     def delete(self, request):
         try:
             profile = Students.objects.get(id=request.query_params['profile_id'])
@@ -124,6 +124,23 @@ class ProfilesChoicesView(APIView):
                 'payment_choices': payment_choices.values(),
             }, status=status.HTTP_200_OK)
 
+        except Exception as e:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+# all profiles for student selection
+# response includes a complete profile list with the minimum filds required to generate a student select list
+class ProfilesListForSelectView(APIView):
+    authentication_classes = ([CustomAuthentication])
+    permission_classes = ([isInStaffGroup])
+    
+    def get(self, request, format=None):
+        try:
+            profiles = Students.objects.all().order_by('-id')
+            serializer = ProfileSerializerForSelect(profiles, many=True)
+
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+            
         except Exception as e:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 

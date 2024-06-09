@@ -8,8 +8,7 @@ class PhoneSerializer(serializers.ModelSerializer):
     class Meta:
         model = Phone
         fields = '__all__'
-
-        
+    
 class ProfileSerializer(serializers.ModelSerializer):
     profile_full_name = serializers.ReadOnlyField()
     prefecture_verbose = serializers.ReadOnlyField()
@@ -64,3 +63,10 @@ class ProfileSerializer(serializers.ModelSerializer):
         instance.save()
 
         return instance
+    
+class ProfileSerializerForSelect(serializers.ModelSerializer):
+    grade_verbose = serializers.ReadOnlyField()
+
+    class Meta:
+        model = Students
+        fields = ['id', 'last_name_romaji', 'first_name_romaji', 'last_name_kanji', 'first_name_kanji', 'last_name_katakana', 'first_name_katakana', 'grade_verbose', 'status']

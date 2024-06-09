@@ -43,6 +43,30 @@ class EventsAllView(APIView):
             print(e)
             return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
         
+class EventsDetailsView(APIView):
+    authentication_classes = ([CustomAuthentication])
+    permission_classes = ([isInStaffGroup])
+
+    # GET event details
+    def get(self, request, format=None):
+        try:
+            # get event_id from request
+            event_id = request.GET.get('event_id')
+            # get event
+            event = Events.objects.get(id=event_id)
+            # serialize event
+            event_serializer = EventsSerializer(event)
+
+            data = {
+                'event': event_serializer.data,
+            }
+
+            return Response(data, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            print(e)
+            return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
+
 # used to import events from CSV     
 def EventsImport(request):
     print('')
