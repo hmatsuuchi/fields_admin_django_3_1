@@ -4,10 +4,10 @@ from students.models import Students
 
 class Events(models.Model):
     event_name                  = models.CharField(max_length=100)
-    event_type                  = models.ForeignKey('EventType', on_delete=models.CASCADE, blank=True, null=True)
-    primary_instructor          = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
-    day_of_week                 = models.IntegerField(blank=True, null=True)
-    start_time                  = models.TimeField(blank=True, null=True)
+    event_type                  = models.ForeignKey('EventType', on_delete=models.CASCADE, blank=False, null=False)
+    primary_instructor          = models.ForeignKey(User, on_delete=models.CASCADE, blank=False, null=False)
+    day_of_week                 = models.IntegerField(blank=False, null=False)
+    start_time                  = models.TimeField(blank=False, null=False)
 
     students                    = models.ManyToManyField(Students, blank=True)
     
