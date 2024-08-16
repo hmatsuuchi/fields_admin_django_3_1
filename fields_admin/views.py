@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 
 from .serializers import LoggedInUserDataSerializer
 
-class LoggedInUserData(APIView):
+class LoggedInUserDataView(APIView):
     permission_classes = (IsAuthenticated, )
 
     def get(self, request, format=None):

@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path, include
-from .views import LoggedInUserData
+from .views import LoggedInUserDataView
 # custom simple jwt authentication
 from authentication.customTokenObtainPair import CustomTokenObtainPairView, CustomTokenRefreshView
 # URLS
@@ -24,5 +24,5 @@ urlpatterns = [
     path('api/schedule/', include('schedule.urls')),
 
     # logged in user data
-    path('api/logged_in_user_data/', LoggedInUserData.as_view(), name='logged_in_user_data'),
+    path('api/logged_in_user_data/', LoggedInUserDataView.as_view(), name='logged_in_user_data'),
 ]

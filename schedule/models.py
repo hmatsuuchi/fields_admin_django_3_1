@@ -11,7 +11,7 @@ class Events(models.Model):
 
     students                    = models.ManyToManyField(Students, blank=True)
     
-    archived                    = models.BooleanField(default=False)
+    archived                    = models.BooleanField(default=False, db_index=True)
 
     date_time_created           = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_time_modified          = models.DateTimeField(auto_now=True, blank=True, null=True)

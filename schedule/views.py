@@ -10,6 +10,8 @@ from .models import Events, EventType
 from django.contrib.auth.models import User
 # serializers
 from .serializers import EventsSerializer, EventCreateSerialzizer, InstructorSerializer
+# cache
+from django.core.cache import cache
 # importing csv
 import csv
 from students.models import Students
@@ -22,14 +24,43 @@ class EventsListView(APIView):
 
     def get(self, request, format=None):
         try:
-            # get all events for date
-            events = Events.objects.all().filter(archived=False).select_related('event_type', 'primary_instructor').prefetch_related('students')
+            # ------- get all events for date -------
+            # cache parameters
+            events_cache_key = 'events_queryset'
+            events_cache_time = 86400 # 24 hours
+
+            # try to get events from cache
+            events = cache.get(events_cache_key)
+
+            # if cache miss, query db cache result
+            if not events:
+                print('----------------')
+                print("Events Cache Miss")
+                print('----------------')
+
+                events = Events.objects.all().filter(archived=False).select_related('event_type', 'primary_instructor', 'primary_instructor__userprofilesinstructors').prefetch_related('students')
+                cache.set(events_cache_key, events, events_cache_time)            
             # serialize events
             event_serializer = EventsSerializer(events, many=True)
 
-            # get all instructors for events
-            # instructors = User.objects.filter(events__in=events).distinct().order_by('username')
-            instructors = User.objects.filter(userprofilesinstructors__archived=False).order_by('username')
+            # ------- get all instructors for events -------
+            # cache parameters
+            instructors_cache_key = 'instructors_queryset'
+            instructors_cache_time = 86400 # 24 hours
+
+            # try to get instructors from cache
+            instructors = cache.get(instructors_cache_key)
+
+            # if cache miss, query db cache result
+            if not instructors:
+                print('----------------')
+                print("Instructors Cache Miss")
+                print('----------------')
+
+                # instructors = User.objects.filter(events__in=events).distinct().order_by('username')
+                instructors = User.objects.filter(userprofilesinstructors__archived=False).order_by('username').select_related('userprofilesinstructors')
+                cache.set(instructors_cache_key, instructors, instructors_cache_time)
+
             # serialize instructors
             instructor_serializer = InstructorSerializer(instructors, many=True)
 
@@ -72,6 +103,14 @@ class EventsDetailsView(APIView):
                 data = {
                     "eventId": serializer.data['id'],
                 }
+
+                # clear events cache
+                events_cache_key = 'events_queryset'
+                cache.delete(events_cache_key)
+                print('----------------')
+                print("Clearing Events Cache (EventsDetailsView - POST)")
+                print('----------------')
+
                 return Response(data, status=status.HTTP_201_CREATED)
             else:
                 return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
@@ -103,7 +142,7 @@ class EventChoicesView(APIView):
             return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
 
 # remove student from event        
-class RemoveStudentFromEvent(APIView):
+class RemoveStudentFromEventView(APIView):
     authentication_classes = ([CustomAuthentication])
     permission_classes = ([isInStaffGroup])
 
@@ -127,6 +166,13 @@ class RemoveStudentFromEvent(APIView):
                 'status': '200 OK',
             }
 
+            # clear events cache
+            events_cache_key = 'events_queryset'
+            cache.delete(events_cache_key)
+            print('----------------')
+            print("Clearing Events Cache (RemoveStudentFromEvent - PUT)")
+            print('----------------')
+
             return Response(data, status=status.HTTP_200_OK)
         
         except Exception as e:
@@ -134,7 +180,7 @@ class RemoveStudentFromEvent(APIView):
             return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
         
 # add student to event       
-class AddStudentToEvent(APIView):
+class AddStudentToEventView(APIView):
     authentication_classes = ([CustomAuthentication])
     permission_classes = ([isInStaffGroup])
 
@@ -158,6 +204,13 @@ class AddStudentToEvent(APIView):
                 'status': '200 OK',
             }
 
+            # clear events cache
+            events_cache_key = 'events_queryset'
+            cache.delete(events_cache_key)
+            print('----------------')
+            print("Clearing Events Cache (AddStudentToEvent - PUT)")
+            print('----------------')
+
             return Response(data, status=status.HTTP_200_OK)
         
         except Exception as e:
@@ -165,7 +218,7 @@ class AddStudentToEvent(APIView):
             return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
         
 # archive event       
-class ArchiveEvent(APIView):
+class ArchiveEventView(APIView):
     authentication_classes = ([CustomAuthentication])
     permission_classes = ([isInStaffGroup])
 
@@ -184,6 +237,13 @@ class ArchiveEvent(APIView):
             data = {
                 'status': '200 OK',
             }
+
+            # clear events cache
+            events_cache_key = 'events_queryset'
+            cache.delete(events_cache_key)
+            print('----------------')
+            print("Clearing Events Cache (ArchiveEvent - PUT)")
+            print('----------------')
 
             return Response(data, status=status.HTTP_200_OK)
         
