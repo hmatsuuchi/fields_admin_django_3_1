@@ -147,7 +147,7 @@ class RemoveStudentFromEventView(APIView):
     permission_classes = ([isInStaffGroup])
 
     # PUT - remove student from event
-    def put(self, request):
+    def put(self, request):        
         try:
             # get event_id from request
             event_id = request.data['event_id']

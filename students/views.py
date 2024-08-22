@@ -9,6 +9,8 @@ from .serializers import ProfileSerializer, ProfileSerializerForSelect
 from authentication.permissions import isInStaffGroup
 # authentication
 from authentication.customAuthentication import CustomAuthentication
+# cache
+from django.core.cache import cache
 # importing csv
 import csv
 
@@ -56,7 +58,15 @@ class ProfilesDetailsView(APIView):
 
             serializer = ProfileSerializer(data=data)
             if serializer.is_valid():
+                # clear events cache
+                events_cache_key = 'events_queryset'
+                cache.delete(events_cache_key)
+                print('----------------')
+                print("Clearing Events Cache (ProfilesDetailsView - POST)")
+                print('----------------')
+
                 serializer.save()
+                
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             
             print(serializer.errors)
@@ -81,6 +91,13 @@ class ProfilesDetailsView(APIView):
 
             serializer = ProfileSerializer(profile, data=data, partial=True)
             if serializer.is_valid():
+                # clear events cache
+                events_cache_key = 'events_queryset'
+                cache.delete(events_cache_key)
+                print('----------------')
+                print("Clearing Events Cache (ProfilesDetailsView - PUT)")
+                print('----------------')
+
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -94,6 +111,13 @@ class ProfilesDetailsView(APIView):
     # DELETE - delete profile
     def delete(self, request):
         try:
+            # clear events cache
+            events_cache_key = 'events_queryset'
+            cache.delete(events_cache_key)
+            print('----------------')
+            print("Clearing Events Cache (ProfilesDetailsView - DELETE)")
+            print('----------------')
+
             profile = Students.objects.get(id=request.query_params['profile_id'])
             profile.delete()
 
