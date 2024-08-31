@@ -34,10 +34,6 @@ class EventsListView(APIView):
 
             # if cache miss, query db cache result
             if not events:
-                print('----------------')
-                print("Events Cache Miss")
-                print('----------------')
-
                 events = Events.objects.all().filter(archived=False).select_related('event_type', 'primary_instructor', 'primary_instructor__userprofilesinstructors').prefetch_related('students')
                 cache.set(events_cache_key, events, events_cache_time)            
             # serialize events
@@ -53,10 +49,6 @@ class EventsListView(APIView):
 
             # if cache miss, query db cache result
             if not instructors:
-                print('----------------')
-                print("Instructors Cache Miss")
-                print('----------------')
-
                 # instructors = User.objects.filter(events__in=events).distinct().order_by('username')
                 instructors = User.objects.filter(userprofilesinstructors__archived=False).order_by('username').select_related('userprofilesinstructors')
                 cache.set(instructors_cache_key, instructors, instructors_cache_time)
@@ -107,9 +99,6 @@ class EventsDetailsView(APIView):
                 # clear events cache
                 events_cache_key = 'events_queryset'
                 cache.delete(events_cache_key)
-                print('----------------')
-                print("Clearing Events Cache (EventsDetailsView - POST)")
-                print('----------------')
 
                 return Response(data, status=status.HTTP_201_CREATED)
             else:
@@ -169,9 +158,6 @@ class RemoveStudentFromEventView(APIView):
             # clear events cache
             events_cache_key = 'events_queryset'
             cache.delete(events_cache_key)
-            print('----------------')
-            print("Clearing Events Cache (RemoveStudentFromEvent - PUT)")
-            print('----------------')
 
             return Response(data, status=status.HTTP_200_OK)
         
@@ -207,9 +193,6 @@ class AddStudentToEventView(APIView):
             # clear events cache
             events_cache_key = 'events_queryset'
             cache.delete(events_cache_key)
-            print('----------------')
-            print("Clearing Events Cache (AddStudentToEvent - PUT)")
-            print('----------------')
 
             return Response(data, status=status.HTTP_200_OK)
         
@@ -241,9 +224,6 @@ class ArchiveEventView(APIView):
             # clear events cache
             events_cache_key = 'events_queryset'
             cache.delete(events_cache_key)
-            print('----------------')
-            print("Clearing Events Cache (ArchiveEvent - PUT)")
-            print('----------------')
 
             return Response(data, status=status.HTTP_200_OK)
         
@@ -280,6 +260,8 @@ def EventsImport(request):
             event.day_of_week = int(row[3]) - 1
             if row[4] != "NULL":
                 event.start_time = row[4]
+            else:
+                event.start_time = "00:00:00"
             event.archived = row[5]
 
             event.save()

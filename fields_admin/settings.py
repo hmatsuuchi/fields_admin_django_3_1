@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     'authentication', # Authentication App
     'students', # Students App
     'schedule', # Schedule App
+    'attendance', # Attendance App
     'user_profiles', # User Profiles App
     'django.contrib.admin',
     'django.contrib.auth',

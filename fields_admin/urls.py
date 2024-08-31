@@ -6,6 +6,8 @@ from authentication.customTokenObtainPair import CustomTokenObtainPairView, Cust
 # URLS
 import authentication.urls as AuthenticationUrls
 import students.urls as StudentsUrls
+import schedule.urls as ScheduleUrls
+import attendance.urls as AttendanceUrls
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -20,8 +22,11 @@ urlpatterns = [
     # student profiles
     path('api/students/', include(StudentsUrls)),
 
-    # schedule data
-    path('api/schedule/', include('schedule.urls')),
+    # schedule
+    path('api/schedule/', include(ScheduleUrls)),
+
+    # attendance
+    path('api/attendance/', include(AttendanceUrls)),
 
     # logged in user data
     path('api/logged_in_user_data/', LoggedInUserDataView.as_view(), name='logged_in_user_data'),
