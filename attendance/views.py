@@ -1,10 +1,20 @@
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-# group permission control
-from authentication.permissions import isInStaffGroup
+from django.contrib.auth.models import User
 # authentication
 from authentication.customAuthentication import CustomAuthentication
+# group permission control
+from authentication.permissions import isInStaffGroup
+# models
+from .models import Attendance, AttendanceRecord, AttendanceRecordStatus
+from schedule.models import Events
+from students.models import Students
+# serializers
+from .serializers import AttendanceSerializer
+# importing csv
+import csv
+from django.http import JsonResponse
 
 # get all attendance records for single date
 class AttendanceForDateView(APIView):
@@ -15,9 +25,16 @@ class AttendanceForDateView(APIView):
         try:
             # get date parameter from request
             date = request.GET.get('date')
+            instructor_id = request.GET.get('instructor_id')
+
+            # get all attendance records for date
+            attendance = Attendance.objects.filter(date=date, instructor=instructor_id).order_by('start_time')
+
+            # serialize attendance
+            attendance_serialzer = AttendanceSerializer(attendance, many=True)
 
             data = {
-                'date from request': date,
+                'attendance': attendance_serialzer.data,
             }
 
             return Response(data, status=status.HTTP_200_OK)
@@ -25,3 +42,73 @@ class AttendanceForDateView(APIView):
         except Exception as e:
             print(e)
             return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
+        
+# used to import attendance records from CSV
+def AttendanceImport(request):
+    print('')
+    print('======= IMPORTING ATTENDANCE & ATTENDANCE RECORDS =======')
+    print('')
+
+    # delete all attendance
+    Attendance.objects.all().delete()
+    # delete all attendance records
+    AttendanceRecord.objects.all().delete()
+
+    # import attendance CSV
+    with open('./static/attendance_attendance.csv') as file:
+        attendance_reader = csv.reader(file)
+        next(attendance_reader)
+
+        for row in attendance_reader:
+            if row[1] != 'NULL':
+                print(row)
+
+                attendance = Attendance()
+                attendance.id = row[0]
+                attendance.linked_class = Events.objects.get(id=row[1])
+                attendance.date = row[2]
+                attendance.start_time = row[3]
+
+                # translates csv values to instructor IDs
+                def instructor_id(csv_id):
+                    if csv_id == 2:
+                        return 4
+                    if csv_id == 3:
+                        return 6
+                    if csv_id == 4:
+                        return 5
+                    
+                attendance.instructor = User.objects.get(id=instructor_id(int(row[4])))
+
+                attendance.save()
+
+    # import attendance records CSV
+    with open('./static/attendance_studentattendance.csv') as file:
+        attendance_record_reader = csv.reader(file)
+        next(attendance_record_reader)
+
+        for row in attendance_record_reader:
+            print(row)
+
+            attendance_record = AttendanceRecord()
+            attendance_record.id = row[0]
+            
+            # translates csv values to attendance status IDs
+            def record_status(csv_status):
+                if csv_status == 0:
+                    return 2
+                if csv_status == 1:
+                    return 3
+                if csv_status == 2:
+                    return 4
+                
+            attendance_record.status = AttendanceRecordStatus.objects.get(id=record_status(int(row[1])))
+            attendance_record.student = Students.objects.get(id=row[2])
+
+            attendance_record.save()
+
+            attendance = Attendance.objects.get(id=row[3])
+            attendance.attendance_records.add(attendance_record)
+            attendance.save()
+
+    return JsonResponse({'status': '200 OK'})

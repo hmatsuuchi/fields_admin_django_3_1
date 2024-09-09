@@ -23,11 +23,14 @@ class Events(models.Model):
         return f"{str(self.primary_instructor)} {str(self.day_of_week)} {str(self.start_time)} {str(self.event_name)} [{str(self.id)}]"
 
 class EventType(models.Model):
-    name = models.CharField(max_length=100)
-    price = models.IntegerField(blank=True, null=True)
-    duration = models.IntegerField(blank=True, null=True)
-    order = models.IntegerField(blank=True, null=True)
-    capacity = models.IntegerField(blank=True, null=True)
+    name                        = models.CharField(max_length=100)
+    price                       = models.IntegerField(blank=True, null=True)
+    duration                    = models.IntegerField(blank=True, null=True)
+    order                       = models.IntegerField(blank=True, null=True)
+    capacity                    = models.IntegerField(blank=True, null=True)
+
+    date_time_created           = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    date_time_modified          = models.DateTimeField(auto_now=True, blank=True, null=True)
 
     def __str__(self):
         return f"{str(self.name)} -  {str(self.price)} -  {str(self.duration)} - {str(self.order)}"
