@@ -11,7 +11,7 @@ from .models import Attendance, AttendanceRecord, AttendanceRecordStatus
 from schedule.models import Events
 from students.models import Students
 # serializers
-from .serializers import AttendanceSerializer
+from .serializers import AttendanceSerializer, UserInstructorSerializer, UserInstructorPreferenceSerializer
 # importing csv
 import csv
 from django.http import JsonResponse
@@ -28,13 +28,95 @@ class AttendanceForDateView(APIView):
             instructor_id = request.GET.get('instructor_id')
 
             # get all attendance records for date
-            attendance = Attendance.objects.filter(date=date, instructor=instructor_id).order_by('start_time')
+            attendance = Attendance.objects.filter(date=date, instructor=instructor_id).order_by('start_time').prefetch_related('attendance_records')
 
             # serialize attendance
             attendance_serialzer = AttendanceSerializer(attendance, many=True)
 
+            # set instructor preference if logged in user has instructor profile
+            if hasattr(request.user, 'userprofilesinstructors'):
+                request.user.userprofilesinstructors.pref_attendance_selected_instructor = User.objects.get(id=instructor_id)
+                request.user.userprofilesinstructors.save()
+
             data = {
                 'attendance': attendance_serialzer.data,
+            }
+
+            return Response(data, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            print(e)
+            return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
+        
+# update attendance record status
+class UpdateAttendanceRecordStatusView(APIView):
+    authentication_classes = ([CustomAuthentication])
+    permission_classes = ([isInStaffGroup])
+
+    # PUT - update attendance record status
+    def put(self, request, format=None):
+        try:
+            # get request data
+            attendance_record_id = request.data['attendance_record_id']
+            attendance_record_status_id = request.data['attendance_record_status_id']
+
+            # get attendance record
+            attendance_record = AttendanceRecord.objects.get(id=attendance_record_id)
+
+            # update attendance record status
+            attendance_record.status = AttendanceRecordStatus.objects.get(id=attendance_record_status_id)
+            attendance_record.save()
+
+            return Response({
+                'status': '200 OK',
+                'attendance_record_id': attendance_record.id,
+                'attendance_reecord_status': attendance_record.status.id
+                }, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            print(e)
+            return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
+        
+# primary instructor choice list
+class AttendanceChoicesView(APIView):
+    authentication_classes = ([CustomAuthentication])
+    permission_classes = ([isInStaffGroup])
+
+    # GET - attendance choice list
+    def get(self, request, format=None):
+        try:
+            # get all primary instructors
+            primary_instructor_choices = User.objects.filter(groups__name='Instructors').order_by('username')
+
+            # serialize primary instructors
+            primary_instructor_choices_serializer = UserInstructorSerializer(primary_instructor_choices, many=True)
+
+            data = {
+                'primary_instructor_choices': primary_instructor_choices_serializer.data,
+            }
+
+            return Response(data, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            print(e)
+            return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
+
+# gets user preferences for attendance app
+class AttendanceUserPreferencesView(APIView):
+    authentication_classes = ([CustomAuthentication])
+    permission_classes = ([isInStaffGroup])
+
+    # GET - get user preferences
+    def get(self, request, format=None):
+        try:
+            # get user preferences
+            user_preferences = request.user.userprofilesinstructors
+
+            # serialize user preferences
+            user_preferences_serializer = UserInstructorPreferenceSerializer(user_preferences)
+
+            data = {
+                'user_preferences': user_preferences_serializer.data,
             }
 
             return Response(data, status=status.HTTP_200_OK)

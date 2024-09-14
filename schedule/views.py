@@ -108,7 +108,7 @@ class EventsDetailsView(APIView):
             print(e)
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-# event type choice list
+# event type & primary instructor choice list
 class EventChoicesView(APIView):
     authentication_classes = ([CustomAuthentication])
     permission_classes = ([isInStaffGroup])

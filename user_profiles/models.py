@@ -15,5 +15,8 @@ class UserProfilesInstructors(models.Model):
 
     archived            = models.BooleanField(default=False)
 
+    # PREFERENCES - ATTENDANCE
+    pref_attendance_selected_instructor = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, related_name='pref_attendance_selected_instructor')
+
     def __str__(self):
         return f"{self.last_name_romaji} {self.first_name_romaji} [{self.id}]"

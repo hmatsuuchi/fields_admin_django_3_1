@@ -57,6 +57,7 @@ class UserProfileInstructorSerializer(serializers.ModelSerializer):
         fields = [
             'last_name_romaji',
             'first_name_romaji',
+            'icon_stub',
         ]
 
 # Instructor Serializer
@@ -76,3 +77,24 @@ class AttendanceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Attendance
         fields = '__all__'
+
+# Instructor Profile Choice List Serializer
+class UserInstructorProfileChoiceListSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = UserProfilesInstructors
+        fields = ['id', 'icon_stub']
+
+# Instructor Choice List Serializer
+class UserInstructorSerializer(serializers.ModelSerializer):
+    userprofilesinstructors = UserInstructorProfileChoiceListSerializer(required=False)
+
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'userprofilesinstructors']
+
+# Instructor Preferences Serializer
+class UserInstructorPreferenceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfilesInstructors
+        fields = ['pref_attendance_selected_instructor']
