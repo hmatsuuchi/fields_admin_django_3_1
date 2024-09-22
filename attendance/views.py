@@ -11,7 +11,7 @@ from .models import Attendance, AttendanceRecord, AttendanceRecordStatus
 from schedule.models import Events
 from students.models import Students
 # serializers
-from .serializers import AttendanceSerializer, UserInstructorSerializer, UserInstructorPreferenceSerializer
+from .serializers import AttendanceSerializer, UserInstructorSerializer, UserInstructorPreferenceSerializer, EventsChoiceListSerializer
 # importing csv
 import csv
 from django.http import JsonResponse
@@ -77,7 +77,7 @@ class UpdateAttendanceRecordStatusView(APIView):
             print(e)
             return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
         
-# primary instructor choice list
+# primary instructor, events choice list
 class AttendanceChoicesView(APIView):
     authentication_classes = ([CustomAuthentication])
     permission_classes = ([isInStaffGroup])
@@ -88,11 +88,18 @@ class AttendanceChoicesView(APIView):
             # get all primary instructors
             primary_instructor_choices = User.objects.filter(groups__name='Instructors').order_by('username')
 
+            # get all events
+            event_choices = Events.objects.all().filter(archived=False).prefetch_related('primary_instructor', 'students')
+
             # serialize primary instructors
             primary_instructor_choices_serializer = UserInstructorSerializer(primary_instructor_choices, many=True)
 
+            # serialize events
+            event_choices_serializer = EventsChoiceListSerializer(event_choices, many=True)
+
             data = {
                 'primary_instructor_choices': primary_instructor_choices_serializer.data,
+                'event_choices': event_choices_serializer.data,
             }
 
             return Response(data, status=status.HTTP_200_OK)

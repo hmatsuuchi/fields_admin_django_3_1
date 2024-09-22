@@ -13,6 +13,9 @@ class Attendance(models.Model):
     date                = models.DateField(blank=False, null=False)
     start_time          = models.TimeField(blank=False, null=False)
 
+    date_time_created           = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    date_time_modified          = models.DateTimeField(auto_now=True, blank=True, null=True)
+
     class Meta:
         verbose_name_plural = "Attendance"
 
@@ -23,6 +26,9 @@ class Attendance(models.Model):
 class AttendanceRecord(models.Model):
     student             = models.ForeignKey(Students, on_delete=models.CASCADE, blank=False, null=False)
     status              = models.ForeignKey('AttendanceRecordStatus', on_delete=models.CASCADE, blank=False, null=False)
+
+    date_time_created           = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    date_time_modified          = models.DateTimeField(auto_now=True, blank=True, null=True)
 
     class Meta:
         verbose_name_plural = "Attendance Records"

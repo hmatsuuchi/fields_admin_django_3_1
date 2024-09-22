@@ -78,6 +78,8 @@ class AttendanceSerializer(serializers.ModelSerializer):
         model = Attendance
         fields = '__all__'
 
+# ======= ATTENDANCE CHOICE LIST SERIALIZERS =======
+
 # Instructor Profile Choice List Serializer
 class UserInstructorProfileChoiceListSerializer(serializers.ModelSerializer):
 
@@ -98,3 +100,13 @@ class UserInstructorPreferenceSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfilesInstructors
         fields = ['pref_attendance_selected_instructor']
+
+# ======= EVENTS CHOICE LIST SERIALIZERS =======
+
+# Events Choice List Serializer
+class EventsChoiceListSerializer(serializers.ModelSerializer):
+    primary_instructor = InstructorSerializer(required=False)
+
+    class Meta:
+        model = Events
+        fields = '__all__'
