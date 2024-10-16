@@ -11,7 +11,7 @@ from .models import Attendance, AttendanceRecord, AttendanceRecordStatus
 from schedule.models import Events
 from students.models import Students
 # serializers
-from .serializers import AttendanceSerializer, UserInstructorSerializer, UserInstructorPreferenceSerializer, EventsChoiceListSerializer
+from .serializers import AttendanceSerializer, UserInstructorSerializer, UserInstructorPreferenceSerializer, EventsChoiceListSerializer, StudentsChoiceListSerializer
 # importing csv
 import csv
 from django.http import JsonResponse
@@ -33,11 +33,6 @@ class AttendanceForDateView(APIView):
             # serialize attendance
             attendance_serialzer = AttendanceSerializer(attendance, many=True)
 
-            # set instructor preference if logged in user has instructor profile
-            if hasattr(request.user, 'userprofilesinstructors'):
-                request.user.userprofilesinstructors.pref_attendance_selected_instructor = User.objects.get(id=instructor_id)
-                request.user.userprofilesinstructors.save()
-
             data = {
                 'attendance': attendance_serialzer.data,
             }
@@ -47,7 +42,7 @@ class AttendanceForDateView(APIView):
         except Exception as e:
             print(e)
             return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
-        
+
 # update attendance record status
 class UpdateAttendanceRecordStatusView(APIView):
     authentication_classes = ([CustomAuthentication])
@@ -77,29 +72,70 @@ class UpdateAttendanceRecordStatusView(APIView):
             print(e)
             return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
         
-# primary instructor, events choice list
-class AttendanceChoicesView(APIView):
+# primary instructor choice list
+class InstructorChoicesView(APIView):
     authentication_classes = ([CustomAuthentication])
     permission_classes = ([isInStaffGroup])
 
-    # GET - attendance choice list
+    # GET - instructor choice list
     def get(self, request, format=None):
         try:
             # get all primary instructors
             primary_instructor_choices = User.objects.filter(groups__name='Instructors').order_by('username')
 
-            # get all events
-            event_choices = Events.objects.all().filter(archived=False).prefetch_related('primary_instructor', 'students')
-
             # serialize primary instructors
             primary_instructor_choices_serializer = UserInstructorSerializer(primary_instructor_choices, many=True)
+
+            data = {
+                'primary_instructor_choices': primary_instructor_choices_serializer.data,
+            }
+
+            return Response(data, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            print(e)
+            return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
+        
+# event choice list
+class EventChoicesView(APIView):
+    authentication_classes = ([CustomAuthentication])
+    permission_classes = ([isInStaffGroup])
+
+    # GET - events choice list
+    def get(self, request, format=None):
+        try:
+            # get all events
+            event_choices = Events.objects.all().filter(archived=False).prefetch_related('primary_instructor', 'event_type', 'students')
 
             # serialize events
             event_choices_serializer = EventsChoiceListSerializer(event_choices, many=True)
 
             data = {
-                'primary_instructor_choices': primary_instructor_choices_serializer.data,
                 'event_choices': event_choices_serializer.data,
+            }
+
+            return Response(data, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            print(e)
+            return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
+
+# student choice list
+class StudentChoicesView(APIView):
+    authentication_classes = ([CustomAuthentication])
+    permission_classes = ([isInStaffGroup])
+
+    # GET - student choice list
+    def get(self, request, format=None):
+        try:
+            # get all students
+            student_choices = Students.objects.all().filter(archived=False)
+
+            # serialize students
+            student_choices_serializer = StudentsChoiceListSerializer(student_choices, many=True)
+
+            data = {
+                'student_choices': student_choices_serializer.data,
             }
 
             return Response(data, status=status.HTTP_200_OK)
@@ -115,6 +151,9 @@ class AttendanceUserPreferencesView(APIView):
 
     # GET - get user preferences
     def get(self, request, format=None):
+        print('====================================')
+        print('AttendanceUserPreferencesView - GET')
+        print('====================================')
         try:
             # get user preferences
             user_preferences = request.user.userprofilesinstructors
@@ -127,6 +166,44 @@ class AttendanceUserPreferencesView(APIView):
             }
 
             return Response(data, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            print(e)
+            return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
+        
+    # PUT - update user preferences
+    def put(self, request, format=None):
+        print('====================================')
+        print('AttendanceUserPreferencesView - PUT')
+        print('====================================')
+
+        try:
+            # get request data arguments
+            user_preferences = request.data
+
+            print(user_preferences)
+
+            # check for instructor preference
+            if 'pref_attendance_selected_instructor' in user_preferences and hasattr(request.user, 'userprofilesinstructors'):
+                print("updating instructor preference")
+                # get instructor id
+                instructor_id = user_preferences.get('pref_attendance_selected_instructor')
+                # set instructor preference if logged in user has instructor profile
+                request.user.userprofilesinstructors.pref_attendance_selected_instructor = User.objects.get(id=instructor_id)
+                request.user.userprofilesinstructors.save()
+
+            # check for date preference
+            if 'pref_attendance_selected_date' in user_preferences and hasattr(request.user, 'userprofilesinstructors'):
+                print("updating date preference")
+                # get date
+                date = user_preferences.get('pref_attendance_selected_date')
+                # set date preference if logged in user has instructor profile
+                request.user.userprofilesinstructors.pref_attendance_selected_date = date
+                request.user.userprofilesinstructors.save()
+
+            return Response({
+                'status': '200 OK',
+                }, status=status.HTTP_200_OK)
         
         except Exception as e:
             print(e)

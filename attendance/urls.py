@@ -5,7 +5,9 @@ from . import views
 urlpatterns = [
     path('attendance/single_date/', views.AttendanceForDateView.as_view(), name='attendance_for_date'),
     path('attendance/update_attendance_record_status/', views.UpdateAttendanceRecordStatusView.as_view(), name='attendance_update_attendance_record_status'),
-    path('attendance/attendance_choices/', views.AttendanceChoicesView.as_view(), name='attendance_choices'),
+    path('attendance/instructor_choices/', views.InstructorChoicesView.as_view(), name='instructor_choices'),
+    path('attendance/event_choices/', views.EventChoicesView.as_view(), name='event_choices'),
+    path('attendance/student_choices/', views.StudentChoicesView.as_view(), name='student_choices'),
     path('attendance/user_preferences/', views.AttendanceUserPreferencesView.as_view(), name='attendance_user_preferences'),
 
     # visit this path to import attendance and attendance records from CSV

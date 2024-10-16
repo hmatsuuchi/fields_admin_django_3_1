@@ -85,7 +85,7 @@ class UserInstructorProfileChoiceListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserProfilesInstructors
-        fields = ['id', 'icon_stub']
+        fields = ['id', 'icon_stub', 'last_name_kanji', 'first_name_kanji']
 
 # Instructor Choice List Serializer
 class UserInstructorSerializer(serializers.ModelSerializer):
@@ -99,14 +99,56 @@ class UserInstructorSerializer(serializers.ModelSerializer):
 class UserInstructorPreferenceSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfilesInstructors
-        fields = ['pref_attendance_selected_instructor']
+        fields = ['pref_attendance_selected_instructor', 'pref_attendance_selected_date',]
 
 # ======= EVENTS CHOICE LIST SERIALIZERS =======
+
+# Students for Events Choice List Serializer
+class StudentsForEventsChoiceListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Students
+        fields = [
+            'id',
+            'last_name_romaji',
+            'first_name_romaji',
+            'last_name_katakana',
+            'first_name_katakana',
+            'last_name_kanji',
+            'first_name_kanji',
+            'grade_verbose',
+            'status',
+        ]
+
+# Event Type For Events Choice List Serializer
+class EventTypeForEventsChoiceListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EventType
+        fields = ['name', 'capacity']
 
 # Events Choice List Serializer
 class EventsChoiceListSerializer(serializers.ModelSerializer):
     primary_instructor = InstructorSerializer(required=False)
+    event_type = EventTypeForEventsChoiceListSerializer(required=False)
+    students = StudentsForEventsChoiceListSerializer(many=True, required=False)
 
     class Meta:
         model = Events
         fields = '__all__'
+
+# ======= STUDENT CHOICE LIST SERIALIZERS =======
+
+# Student Choice Serializer
+class StudentsChoiceListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Students
+        fields = [
+            'id',
+            'last_name_romaji',
+            'first_name_romaji',
+            'last_name_kanji',
+            'first_name_kanji',
+            'last_name_katakana',
+            'first_name_katakana',
+            'grade_verbose',
+            'status',
+        ]

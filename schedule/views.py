@@ -7,7 +7,7 @@ from authentication.permissions import isInStaffGroup
 from authentication.customAuthentication import CustomAuthentication
 # models
 from .models import Events, EventType
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 # serializers
 from .serializers import EventsSerializer, EventCreateSerialzizer, InstructorSerializer
 # cache
@@ -50,7 +50,8 @@ class EventsListView(APIView):
             # if cache miss, query db cache result
             if not instructors:
                 # instructors = User.objects.filter(events__in=events).distinct().order_by('username')
-                instructors = User.objects.filter(userprofilesinstructors__archived=False).order_by('username').select_related('userprofilesinstructors')
+                instructor_group = Group.objects.get(name='Instructors')
+                instructors = User.objects.filter(groups=instructor_group, userprofilesinstructors__archived=False).order_by('username').select_related('userprofilesinstructors')
                 cache.set(instructors_cache_key, instructors, instructors_cache_time)
 
             # serialize instructors
@@ -205,7 +206,7 @@ class ArchiveEventView(APIView):
     authentication_classes = ([CustomAuthentication])
     permission_classes = ([isInStaffGroup])
 
-    # PUT - add student to event
+    # PUT - archive event
     def put(self, request):
         try:
             # get event_id from request
