@@ -152,3 +152,37 @@ class StudentsChoiceListSerializer(serializers.ModelSerializer):
             'grade_verbose',
             'status',
         ]
+
+# ======= ATTENDANCE DETAILS SERIALIZERS =======
+
+# Attendance Record Serializer for Details View
+class AttendanceRecordForDetailsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AttendanceRecord
+        fields = '__all__'
+
+# Attendance Details Serializer
+class AttendanceDetailsSerializer(serializers.ModelSerializer):
+    attendance_records = AttendanceRecordForDetailsSerializer(many=True, required=False)
+
+    def create(self, validated_data):
+        # extract attendance records data
+        attendance_records_data = validated_data.pop('attendance_records')
+
+        # create attendance
+        attendance = Attendance.objects.create(**validated_data)
+
+        # create attendance records and add to list
+        new_attendance_records = []
+        for attendance_record_data in attendance_records_data:
+            attendance_record = AttendanceRecord.objects.create(attendance=attendance, **attendance_record_data)
+            new_attendance_records.append(attendance_record)
+
+        # add attendance records to attendance
+        attendance.attendance_records.add(*new_attendance_records)
+
+        return attendance
+
+    class Meta:
+        model = Attendance
+        fields = '__all__'

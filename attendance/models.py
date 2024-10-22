@@ -6,12 +6,12 @@ from django.contrib.auth.models import User
 
 # attendance record
 class Attendance(models.Model):
-    linked_class        = models.ForeignKey(Events, on_delete=models.CASCADE, blank=False, null=False)
-    instructor          = models.ForeignKey(User, on_delete=models.CASCADE, blank=False, null=False)
+    linked_class        = models.ForeignKey(Events, on_delete=models.CASCADE)
+    instructor          = models.ForeignKey(User, on_delete=models.CASCADE)
     attendance_records  = models.ManyToManyField('AttendanceRecord', blank=True)
 
-    date                = models.DateField(blank=False, null=False)
-    start_time          = models.TimeField(blank=False, null=False)
+    date                = models.DateField()
+    start_time          = models.TimeField()
 
     date_time_created           = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_time_modified          = models.DateTimeField(auto_now=True, blank=True, null=True)

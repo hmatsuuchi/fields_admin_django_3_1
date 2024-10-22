@@ -11,7 +11,7 @@ from .models import Attendance, AttendanceRecord, AttendanceRecordStatus
 from schedule.models import Events
 from students.models import Students
 # serializers
-from .serializers import AttendanceSerializer, UserInstructorSerializer, UserInstructorPreferenceSerializer, EventsChoiceListSerializer, StudentsChoiceListSerializer
+from .serializers import AttendanceSerializer, AttendanceDetailsSerializer, UserInstructorSerializer, UserInstructorPreferenceSerializer, EventsChoiceListSerializer, StudentsChoiceListSerializer
 # importing csv
 import csv
 from django.http import JsonResponse
@@ -38,6 +38,32 @@ class AttendanceForDateView(APIView):
             }
 
             return Response(data, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            print(e)
+            return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
+        
+# attendance record details
+class AttendanceDetailsView(APIView):
+    authentication_classes = ([CustomAuthentication])
+    permission_classes = ([isInStaffGroup])
+
+    def post(self, request, format=None):
+        try:
+            # get request data
+            attendance_data = request.data
+
+            print(attendance_data)
+
+            # create new attendance record
+            attendance_serializer = AttendanceDetailsSerializer(data=attendance_data)
+
+            if attendance_serializer.is_valid():
+                attendance_serializer.save()
+
+                return Response(attendance_serializer.data, status=status.HTTP_201_CREATED)
+            else:
+                return Response(attendance_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
         except Exception as e:
             print(e)
@@ -151,9 +177,6 @@ class AttendanceUserPreferencesView(APIView):
 
     # GET - get user preferences
     def get(self, request, format=None):
-        print('====================================')
-        print('AttendanceUserPreferencesView - GET')
-        print('====================================')
         try:
             # get user preferences
             user_preferences = request.user.userprofilesinstructors
@@ -173,19 +196,13 @@ class AttendanceUserPreferencesView(APIView):
         
     # PUT - update user preferences
     def put(self, request, format=None):
-        print('====================================')
-        print('AttendanceUserPreferencesView - PUT')
-        print('====================================')
 
         try:
             # get request data arguments
             user_preferences = request.data
 
-            print(user_preferences)
-
             # check for instructor preference
             if 'pref_attendance_selected_instructor' in user_preferences and hasattr(request.user, 'userprofilesinstructors'):
-                print("updating instructor preference")
                 # get instructor id
                 instructor_id = user_preferences.get('pref_attendance_selected_instructor')
                 # set instructor preference if logged in user has instructor profile
@@ -194,7 +211,6 @@ class AttendanceUserPreferencesView(APIView):
 
             # check for date preference
             if 'pref_attendance_selected_date' in user_preferences and hasattr(request.user, 'userprofilesinstructors'):
-                print("updating date preference")
                 # get date
                 date = user_preferences.get('pref_attendance_selected_date')
                 # set date preference if logged in user has instructor profile
