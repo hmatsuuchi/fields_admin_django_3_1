@@ -11,7 +11,7 @@ from .models import Attendance, AttendanceRecord, AttendanceRecordStatus
 from schedule.models import Events
 from students.models import Students
 # serializers
-from .serializers import AttendanceSerializer, AttendanceDetailsSerializer, UserInstructorSerializer, UserInstructorPreferenceSerializer, EventsChoiceListSerializer, StudentsChoiceListSerializer
+from .serializers import AttendanceSerializer, AttendanceDetailsSerializer, AttendanceRecordDetailsSerializer, UserInstructorSerializer, UserInstructorPreferenceSerializer, EventsChoiceListSerializer, StudentsChoiceListSerializer
 # importing csv
 import csv
 from django.http import JsonResponse
@@ -43,7 +43,7 @@ class AttendanceForDateView(APIView):
             print(e)
             return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
         
-# attendance record details
+# attendance details
 class AttendanceDetailsView(APIView):
     authentication_classes = ([CustomAuthentication])
     permission_classes = ([isInStaffGroup])
@@ -52,8 +52,6 @@ class AttendanceDetailsView(APIView):
         try:
             # get request data
             attendance_data = request.data
-
-            print(attendance_data)
 
             # create new attendance record
             attendance_serializer = AttendanceDetailsSerializer(data=attendance_data)
@@ -68,6 +66,31 @@ class AttendanceDetailsView(APIView):
         except Exception as e:
             print(e)
             return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
+        
+    def put(self, request, format=None):
+        try:
+            # get request data
+            data = request.data
+            attendance_record_id = data.get('attendance_id')
+
+            # get attendance record
+            attendance_record = Attendance.objects.get(id=attendance_record_id)
+
+            # update attendance record with new data
+            attendance_serializer = AttendanceDetailsSerializer(attendance_record, data=data, partial=True)
+
+            if attendance_serializer.is_valid():
+                attendance_serializer.save()
+
+                return Response(attendance_serializer.data, status=status.HTTP_200_OK)
+
+            return Response(attendance_record_id, status=status.HTTP_406_NOT_ACCEPTABLE)
+
+        except Attendance.DoesNotExist:
+            return Response({'error': 'Attendance record not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 # update attendance record status
 class UpdateAttendanceRecordStatusView(APIView):
@@ -225,6 +248,62 @@ class AttendanceUserPreferencesView(APIView):
             print(e)
             return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
         
+# attendance record details
+class AttendanceRecordDetailsView(APIView):
+    authentication_classes = ([CustomAuthentication])
+    permission_classes = ([isInStaffGroup])
+
+    # POST - create attendance record
+    def post(self, request, format=None):
+        try:
+            # get request data
+            data = request.data
+
+            # create new attendance record
+            attendance_record_serializer = AttendanceRecordDetailsSerializer(data=data)
+
+            if attendance_record_serializer.is_valid():
+                created_attendance_record = attendance_record_serializer.save()
+
+                # add attendance record to attendance
+                attendance = Attendance.objects.get(id=data['attendance_id'])
+                attendance.attendance_records.add(created_attendance_record)
+
+                return Response(attendance_record_serializer.data, status=status.HTTP_201_CREATED)
+            else:
+                return Response(attendance_record_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        except Exception as e:
+            print(e)
+            return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
+        
+    # DELETE - delete attendance record
+    def put(self, request, format=None):
+        try:
+            # get request data
+            data = request.data
+            attendance_id = data.get('attendance_id')
+            student_id = data.get('student_id')
+
+            # get attendance record
+            attendance = Attendance.objects.get(id=attendance_id)
+
+            # delete attendance record
+            attendance_record = attendance.attendance_records.filter(student=student_id)
+
+            attendance_record.delete()
+
+            return Response({
+                'status': '200 OK',
+                }, status=status.HTTP_200_OK)
+        
+        except AttendanceRecord.DoesNotExist:
+            return Response({'error': 'Attendance record not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        except Exception as e:
+            print(e)
+            return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
+
 # used to import attendance records from CSV
 def AttendanceImport(request):
     print('')

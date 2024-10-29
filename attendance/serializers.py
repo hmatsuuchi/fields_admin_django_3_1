@@ -36,6 +36,7 @@ class EventTypeSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'duration',
+            'capacity',
         ]
 
 # Linked Class Serializer
@@ -185,4 +186,12 @@ class AttendanceDetailsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Attendance
+        fields = '__all__'
+
+# ======= ATTENDANCE RECORD DETAILS SERIALIZERS =======
+
+# Attendance Record Details Serializer
+class AttendanceRecordDetailsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AttendanceRecord
         fields = '__all__'

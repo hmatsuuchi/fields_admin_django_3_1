@@ -20,7 +20,7 @@ class Attendance(models.Model):
         verbose_name_plural = "Attendance"
 
     def __str__(self):
-        return str(self.id) + " - " + str(self.date)
+        return str(self.id) + " - " + str(self.date) + ": " + str(self.start_time)
     
 # attendance records for students
 class AttendanceRecord(models.Model):
