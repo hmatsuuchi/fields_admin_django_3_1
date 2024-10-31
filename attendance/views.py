@@ -48,6 +48,7 @@ class AttendanceDetailsView(APIView):
     authentication_classes = ([CustomAuthentication])
     permission_classes = ([isInStaffGroup])
 
+    # POST - create attendance record
     def post(self, request, format=None):
         try:
             # get request data
@@ -67,6 +68,7 @@ class AttendanceDetailsView(APIView):
             print(e)
             return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
         
+    # PUT - update attendance record
     def put(self, request, format=None):
         try:
             # get request data
@@ -91,6 +93,29 @@ class AttendanceDetailsView(APIView):
         
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+    # DELETE - delete attendance record
+    def delete(self, request, format=None):
+        try:
+            # get request data
+            data = request.data
+            attendance_id = data.get('attendance_id')
+
+            # get attendance
+            attendance = Attendance.objects.get(id=attendance_id)
+
+            attendance.delete()
+
+            return Response({
+                'status': '200 OK',
+                }, status=status.HTTP_200_OK)
+        
+        except AttendanceRecord.DoesNotExist:
+            return Response({'error': 'Attendance not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        except Exception as e:
+            print(e)
+            return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
 
 # update attendance record status
 class UpdateAttendanceRecordStatusView(APIView):
@@ -278,7 +303,7 @@ class AttendanceRecordDetailsView(APIView):
             return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
         
     # DELETE - delete attendance record
-    def put(self, request, format=None):
+    def delete(self, request, format=None):
         try:
             # get request data
             data = request.data
