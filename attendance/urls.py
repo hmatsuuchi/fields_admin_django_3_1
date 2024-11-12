@@ -11,6 +11,7 @@ urlpatterns = [
     path('attendance/event_choices/', views.EventChoicesView.as_view(), name='event_choices'),
     path('attendance/student_choices/', views.StudentChoicesView.as_view(), name='student_choices'),
     path('attendance/user_preferences/', views.AttendanceUserPreferencesView.as_view(), name='attendance_user_preferences'),
+    path('attendance/auto_generate_attendance_records/', views.AutoGenerateAttendanceRecordsView.as_view(), name='auto_generate_attendance_records'),
 
     # visit this path to import attendance and attendance records from CSV
     # be sure to disable this path when not in use

@@ -1,3 +1,4 @@
+import datetime
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -104,6 +105,14 @@ class AttendanceDetailsView(APIView):
             # get attendance
             attendance = Attendance.objects.get(id=attendance_id)
 
+            # get attendance records
+            attendance_records = attendance.attendance_records.all()
+
+            # delete attendance records
+            for record in attendance_records:
+                record.delete()
+
+            # delete attendance
             attendance.delete()
 
             return Response({
@@ -324,6 +333,66 @@ class AttendanceRecordDetailsView(APIView):
         
         except AttendanceRecord.DoesNotExist:
             return Response({'error': 'Attendance record not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        except Exception as e:
+            print(e)
+            return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
+
+# auto generate attendance records for date and instructor
+class AutoGenerateAttendanceRecordsView(APIView):
+    authentication_classes = ([CustomAuthentication])
+    permission_classes = ([isInStaffGroup])
+
+    # POST - auto generate attendance records
+    def post(self, request, format=None):
+        try:
+            # get request data
+            data = request.data
+
+            # get date and instructor id from data payload
+            date = data.get('date')
+            instructor_id = data.get('instructor_id')
+
+            # get convert date string to day of week integer
+            def get_day_of_week(date_string):
+                date_object = datetime.datetime.strptime(date_string, "%Y-%m-%d")
+                day_of_week = date_object.weekday()
+
+                return day_of_week
+    
+            # get instructor and day of week
+            instructor = User.objects.get(id=instructor_id)
+            day_of_week = get_day_of_week(date)
+
+            # get all events from schedule for instructor and day of week
+            schedule_events = Events.objects.filter(primary_instructor=instructor, day_of_week=day_of_week, archived=False).order_by("start_time").prefetch_related('students')
+
+            # get all existing attendances for date and instructor
+            existing_attendances = Attendance.objects.filter(date=date, instructor=instructor_id)
+            existing_attendances_event_id_list = existing_attendances.values_list('linked_class', flat=True)
+
+            # create new attendance records for events that do not have attendance records
+            for event in schedule_events:
+                if event.id not in existing_attendances_event_id_list:
+                    attendance = Attendance()
+                    attendance.linked_class = event
+                    attendance.instructor = instructor
+                    attendance.date = date
+                    attendance.start_time = event.start_time
+                    attendance.save()
+
+                    for students in event.students.all():
+                        attendance_record = AttendanceRecord()
+                        attendance_record.student = students
+                        attendance_record.status = AttendanceRecordStatus.objects.get(id=2)
+                        attendance_record.grade = students.grade
+                        attendance_record.save()
+
+                        attendance.attendance_records.add(attendance_record)
+
+            return Response({
+                'status': '200 OK',
+                }, status=status.HTTP_200_OK)
         
         except Exception as e:
             print(e)

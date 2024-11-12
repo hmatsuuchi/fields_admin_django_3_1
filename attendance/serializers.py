@@ -116,6 +116,7 @@ class StudentsForEventsChoiceListSerializer(serializers.ModelSerializer):
             'first_name_katakana',
             'last_name_kanji',
             'first_name_kanji',
+            'grade',
             'grade_verbose',
             'status',
         ]
