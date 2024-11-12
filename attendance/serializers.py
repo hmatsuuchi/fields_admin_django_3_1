@@ -19,6 +19,7 @@ class StudentSerializer(serializers.ModelSerializer):
             'last_name_katakana',
             'first_name_katakana',
             'grade_verbose',
+            'status',
         ]
 
 # Attendance Record Serializer
