@@ -47,7 +47,7 @@ class EventsAllViewAsNoGroupTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 # users logged in but in the 'Customers' group CANNOT access the events all view
-class EventsAllViewAsCustomerGroupTest(TestCase):
+class EventsAllViewAsCustomersGroupTest(TestCase):
     def setUp(self):
         # create test client
         self.client = APIClient()
@@ -78,13 +78,62 @@ class EventsAllViewAsStaffGroupTest(TestCase):
         # create test user
         self.user = User.objects.create_user(username='testuser', password='testpassword')
 
+        # create test user profile
+        self.user_profile = UserProfilesInstructors()
+        self.user_profile.user = self.user
+        self.user_profile.last_name_romaji = 'Test'
+        self.user_profile.first_name_romaji = 'User'
+        self.user_profile.last_name_katakana = 'テスト'
+        self.user_profile.first_name_katakana = 'ユーザー'
+        self.user_profile.last_name_kanji = '試験'
+        self.user_profile.first_name_kanji = 'ユーザー'
+        self.user_profile.icon_stub = 'test_user_icon_stub'
+        self.user_profile.archived = False
+
+        self.user_profile.save()
+
         # add test user to 'Staff' group
         staff_group = Group.objects.create(name='Staff')
         self.user.groups.add(staff_group)
 
+        # add test user to 'Instructors' group
+        instructor_group = Group.objects.create(name='Instructors')
+        self.user.groups.add(instructor_group)
+
         # set test user as authenticated
         self.client.force_authenticate(user=self.user)
 
+        # create event types
+        event_type_1 = EventType.objects.create(name='Test Event Type 1', price=999, duration=60, order=1, capacity=6)
+        event_type_2 = EventType.objects.create(name='Test Event Type 2', price=999, duration=60, order=2, capacity=6)
+        event_type_3 = EventType.objects.create(name='Test Event Type 3', price=999, duration=60, order=3, capacity=6)
+
+        # create test events
+        event_1 = Events.objects.create(
+            event_name='Test Event 1',
+            event_type=event_type_1,
+            primary_instructor=self.user,
+            day_of_week=1,
+            start_time='12:00:00',
+        )
+        event_2 = Events.objects.create(
+            event_name='Test Event 2',
+            event_type=event_type_2,
+            primary_instructor=self.user,
+            day_of_week=2,
+            start_time='12:00:00',
+        )
+        event_3 = Events.objects.create(
+            event_name='Test Event 3',
+            event_type=event_type_3,
+            primary_instructor=self.user,
+            day_of_week=3,
+            start_time='12:00:00',
+        )
+        event_1.save()
+        event_2.save()
+        event_3.save()
+        
     def test_events_all_view(self):
         # attempt to access events all view
         response = self.client.get('/api/schedule/events/')
