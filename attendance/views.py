@@ -3,6 +3,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.contrib.auth.models import User
+from django.db.models import Prefetch
 # authentication
 from authentication.customAuthentication import CustomAuthentication
 # group permission control
@@ -12,7 +13,7 @@ from .models import Attendance, AttendanceRecord, AttendanceRecordStatus
 from schedule.models import Events
 from students.models import Students
 # serializers
-from .serializers import AttendanceSerializer, AttendanceDetailsSerializer, AttendanceRecordDetailsSerializer, UserInstructorSerializer, UserInstructorPreferenceSerializer, EventsChoiceListSerializer, StudentsChoiceListSerializer
+from .serializers import AttendanceSerializer, AttendanceDetailsSerializer, AttendanceRecordDetailsSerializer, UserInstructorSerializer, UserInstructorPreferenceSerializer, EventsChoiceListSerializer, StudentsChoiceListSerializer, AttendanceForProfileDetailsSerializer
 # importing csv
 import csv
 from django.http import JsonResponse
@@ -393,6 +394,36 @@ class AutoGenerateAttendanceRecordsView(APIView):
             return Response({
                 'status': '200 OK',
                 }, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            print(e)
+            return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
+
+# get attendance for profile
+class GetAttendanceForProfileView(APIView):
+    authentication_classes = ([CustomAuthentication])
+    permission_classes = ([isInStaffGroup])
+
+    # GET - get attendance for profile
+    def get(self, request, format=None):
+        try:
+            # get request data
+            profile_id = request.GET.get('profile_id')
+
+            # attendance records filtered for only the student
+            attendance_records = AttendanceRecord.objects.filter(student=profile_id).prefetch_related('grade')
+
+            # get all attendance for student
+            attendance = Attendance.objects.filter(attendance_records__student=profile_id).order_by('-id').prefetch_related('linked_class', 'instructor', 'instructor__userprofilesinstructors', Prefetch('attendance_records', queryset=attendance_records))
+
+            # serialize attendance
+            attendance_serialzer = AttendanceForProfileDetailsSerializer(attendance, many=True)
+
+            data = {
+                'attendance': attendance_serialzer.data,
+            }
+
+            return Response(data, status=status.HTTP_200_OK)
         
         except Exception as e:
             print(e)

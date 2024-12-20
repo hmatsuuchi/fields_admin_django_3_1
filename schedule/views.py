@@ -9,7 +9,7 @@ from authentication.customAuthentication import CustomAuthentication
 from .models import Events, EventType
 from django.contrib.auth.models import User, Group
 # serializers
-from .serializers import EventsSerializer, EventCreateSerialzizer, InstructorSerializer
+from .serializers import EventsSerializer, EventCreateSerialzizer, InstructorSerializer, EventsSerializerForStudentProfilePage
 # cache
 from django.core.cache import cache
 # importing csv
@@ -230,6 +230,28 @@ class ArchiveEventView(APIView):
         
         except Exception as e:
             print(e)
+            return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
+
+# get events for profile
+class GetEventsForProfileView(APIView):
+    authentication_classes = ([CustomAuthentication])
+    permission_classes = ([isInStaffGroup])
+
+    # GET - get events for student
+    def get(self, request, format=None):
+        try:
+            profile_id = request.GET.get('profile_id')
+            student = Students.objects.get(id=profile_id)
+            events = Events.objects.filter(students=student).filter(archived=False).select_related('event_type', 'primary_instructor', 'primary_instructor__userprofilesinstructors').prefetch_related('students')
+            serializer = EventsSerializerForStudentProfilePage(events, many=True)
+
+            data = {
+                'events': serializer.data,
+            }
+
+            return Response(data, status=status.HTTP_200_OK)
+
+        except Exception as e:
             return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
 
 # used to import events from CSV     

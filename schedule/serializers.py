@@ -58,3 +58,28 @@ class EventCreateSerialzizer(serializers.ModelSerializer):
     class Meta:
         model = Events
         fields = '__all__'
+
+# ======= Serializers for displaying events in student profile details page =======
+# User Profile Instructor Serializer for Profile Page
+class UserProfileInstructorSerializerForStudentProfilePage(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfilesInstructors
+        fields = '__all__'
+
+# Instructor Serializer for Profile Page
+class InstructorSerializerForStudentProfilePage(serializers.ModelSerializer):
+    userprofilesinstructors = UserProfileInstructorSerializerForStudentProfilePage(required=False)
+
+    class Meta:
+        model = User
+        fields = ['id', 'userprofilesinstructors', 'username']
+
+# Event Serializer for Profile Page
+class EventsSerializerForStudentProfilePage(serializers.ModelSerializer):
+    students = StudentsSerializer(many=True, required=False)
+    event_type = EventTypeSerializer(required=False)
+    primary_instructor = InstructorSerializerForStudentProfilePage(required=False)
+
+    class Meta:
+        model = Events
+        fields = '__all__'
