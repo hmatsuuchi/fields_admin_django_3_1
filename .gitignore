@@ -1,3 +1,4 @@
 /fields_admin/dev.env
 /fields_admin/prod.env
 /static
+/env
