@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd ~/Projects/fields_admin_django_3_1/
+cd ~/Coding/fields_admin_django_3_1/
 
 source env/bin/activate
 

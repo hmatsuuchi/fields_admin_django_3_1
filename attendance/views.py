@@ -228,7 +228,7 @@ class StudentChoicesView(APIView):
             print(e)
             return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
 
-# gets user preferences for attendance app
+# gets & updates user preferences for attendance app
 class AttendanceUserPreferencesView(APIView):
     authentication_classes = ([CustomAuthentication])
     permission_classes = ([isInStaffGroup])
