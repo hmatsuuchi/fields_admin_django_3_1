@@ -11,7 +11,7 @@ from students.models import Students, PrefectureChoices, PhoneChoice, Phone, Gra
 from .models import Events, EventType
 
 
-# ======= Events All View Tests =======
+# ===================== Events All View Tests =====================
 # ------- tests access permissions -------
 
 # users NOT logged in CANNOT access the events all view
@@ -203,7 +203,7 @@ class EventsAllViewContentRetrievalTest(TestCase):
         # response content contains event data
         self.assertEqual(len(response.data['events']), 3) # should fetch all three previously created events
 
-# ======= Events Details View Tests =======
+# ===================== Events Details View Tests =====================
 # ------- tests access permissions -------
 
 # users NOT logged in CANNOT access the events details view
@@ -357,7 +357,7 @@ class EventsDetailsViewContentRetrievalTest(TestCase):
         self.assertEqual(response.data['day_of_week'], 1)
         self.assertEqual(response.data['start_time'], '12:00:00')
 
-# ======= Event Choices View Tests =======
+# ===================== Event Choices View Tests =====================
 # ------- tests access permissions -------
 
 # users NOT logged in CANNOT access the event choices view
@@ -486,7 +486,7 @@ class EventChoicesViewContentRetrievalTest(TestCase):
         self.assertEqual(response.data['primary_instructor_choices'][0]['userprofilesinstructors__last_name_kanji'], self.user_profile.last_name_kanji)
         self.assertEqual(response.data['primary_instructor_choices'][0]['userprofilesinstructors__first_name_kanji'], self.user_profile.first_name_kanji)
 
-# ======= Remove Student from Event View Tests =======
+# ===================== Remove Student from Event View Tests =====================
 # ------- tests access permissions -------
 
 # users NOT logged in CANNOT access the remove student from event view
@@ -790,7 +790,7 @@ class RemoveStudentFromEventViewActionTest(TestCase):
         # confirm test profile is NOT in event
         self.assertEqual(self.event.students.count(), 0)
 
-# ======= Add Student to Event View Tests =======
+# ===================== Add Student to Event View Tests =====================
 # ------- tests access permissions -------
 
 # users NOT logged in CANNOT access the add student to event view
@@ -1091,7 +1091,7 @@ class AddStudentToEventViewActionTest(TestCase):
         # confirm test profile is NOT in event
         self.assertEqual(self.event.students.count(), 1)
 
-# ======= Archive Event View Tests =======
+# ===================== Archive Event View Tests =====================
 # ------- tests access permissions -------
 
 # users NOT logged in CANNOT access the archive event view
@@ -1243,3 +1243,321 @@ class ArchiveEventViewActionTest(TestCase):
 
         # test event is archived
         self.assertTrue(event_from_db.archived)
+
+# ===================== Get Events for Profile Tests =====================
+# ------- tests access permissions -------
+
+# users NOT logged in CANNOT access the get events for profile view
+class GetEventsForProfileViewAsUnauthenticatedUserTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+    def test_get_events_for_profile_view_get(self):
+        # attempt to access get events for profile view
+        response = self.client.get('/api/schedule/events/get_events_for_profile/')
+
+        # response status code is 401 UNAUTHORIZED
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+# user logged in but NOT in any group CANNOT access the get events for profile view
+class GetEventsForProfileViewAsNoGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        # set test user as authenticated
+        self.client.force_authenticate(user=self.user)
+
+    def test_get_events_for_profile_view_get(self):
+        # attempt to access get events for profile view
+        response = self.client.get('/api/schedule/events/get_events_for_profile/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in and in the 'Customers' group CANNOT access the get events for profile view
+class GetEventsForProfileViewAsCustomerGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        # add test user to 'Customers' group
+        customers_group = Group.objects.create(name='Customers')
+        self.user.groups.add(customers_group)
+
+        # set test user as authenticated
+        self.client.force_authenticate(user=self.user)
+
+    def test_get_events_for_profile_view_get(self):
+        # attempt to access get events for profile view
+        response = self.client.get('/api/schedule/events/get_events_for_profile/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in and in the 'Staff' group CAN access the get events for profile view
+class GetEventsForProfileViewAsStaffGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        # create test user profile
+        self.user_profile = UserProfilesInstructors.objects.create(user=self.user, last_name_romaji='Test', first_name_romaji='User', last_name_katakana='テスト', first_name_katakana='ユーザー', last_name_kanji='試験', first_name_kanji='ユーザー', icon_stub='test_user_icon_stub', archived=False)
+
+        # add test user to 'Staff' group
+        staff_group = Group.objects.create(name='Staff')
+        instructor_group = Group.objects.create(name='Instructors')
+        self.user.groups.add(staff_group)
+        self.user.groups.add(instructor_group)
+
+        # set test user as authenticated
+        self.client.force_authenticate(user=self.user)
+
+        # create new event type
+        event_type = EventType.objects.create(name='Test Event Type', price=999, duration=60, order=1, capacity=6)
+
+        # create new event
+        self.event = Events.objects.create(
+            event_name='Test Event',
+            event_type=event_type,
+            primary_instructor=self.user,
+            day_of_week=1,
+            start_time='12:00:00',
+        )
+
+        # save event
+        self.event.save()
+
+        # create test prefecture choice
+        self.test_prefecture_choice = PrefectureChoices()
+        self.test_prefecture_choice.name = 'test_prefecture_choice'
+        self.test_prefecture_choice.order = 1
+        self.test_prefecture_choice.save()
+        self.test_prefecture_choice_updated = PrefectureChoices()
+        self.test_prefecture_choice_updated.name = 'test_prefecture_choice_updated'
+        self.test_prefecture_choice_updated.order = 2
+        self.test_prefecture_choice_updated.save()
+        # create test phone choice
+        self.test_phone_choice = PhoneChoice()
+        self.test_phone_choice.name = 'test_phone_choice'
+        self.test_phone_choice.order = 1
+        self.test_phone_choice.save()
+        self.test_phone_choice_updated = PhoneChoice()
+        self.test_phone_choice_updated.name = 'test_phone_choice_updated'
+        self.test_phone_choice_updated.order = 2
+        self.test_phone_choice_updated.save()
+        # create test phone
+        self.test_phone = Phone()
+        self.test_phone.number = '123-456-7890'
+        self.test_phone.number_type = self.test_phone_choice
+        self.test_phone.save()
+        self.test_phone_updated = Phone()
+        self.test_phone_updated.number = '098-765-4321'
+        self.test_phone_updated.number_type = self.test_phone_choice_updated
+        self.test_phone_updated.save()
+        # create test grade choice
+        self.test_grade_choice = GradeChoices()
+        self.test_grade_choice.name = 'test_grade_choice'
+        self.test_grade_choice.order = 1
+        self.test_grade_choice.save()
+        self.test_grade_choice_updated = GradeChoices()
+        self.test_grade_choice_updated.name = 'test_grade_choice_updated'
+        self.test_grade_choice_updated.order = 2
+        self.test_grade_choice_updated.save()
+        # create test status choice
+        self.test_status_choice = StatusChoices()
+        self.test_status_choice.name = 'test_status_choice'
+        self.test_status_choice.order = 1
+        self.test_status_choice.save()
+        self.test_status_choice_updated = StatusChoices()
+        self.test_status_choice_updated.name = 'test_status_choice_updated'
+        self.test_status_choice_updated.order = 2
+        self.test_status_choice_updated.save()
+        # create test payment choice
+        self.test_payment_choice = PaymentChoices()
+        self.test_payment_choice.name = 'test_payment_choice'
+        self.test_payment_choice.order = 1
+        self.test_payment_choice.save()
+        self.test_payment_choice_updated = PaymentChoices()
+        self.test_payment_choice_updated.name = 'test_payment_choice_updated'
+        self.test_payment_choice_updated.order = 1
+        self.test_payment_choice_updated.save()
+        # creates test profile
+        self.test_profile = Students()
+        self.test_profile.save()
+        self.test_profile.last_name_romaji = 'last_name_romaji'
+        self.test_profile.first_name_romaji = 'first_name_romaji'
+        self.test_profile.last_name_kanji = 'last_name_kanji'
+        self.test_profile.first_name_kanji = 'first_name_kanji'
+        self.test_profile.last_name_katakana = 'last_name_katakana'
+        self.test_profile.first_name_katakana = 'first_name_katakana'
+        self.test_profile.post_code = '123-4567'
+        self.test_profile.prefecture = self.test_prefecture_choice
+        self.test_profile.city = 'city'
+        self.test_profile.address_1 = 'address_1'
+        self.test_profile.address_2 = 'address_2'
+        self.test_profile.phone.add(self.test_phone)
+        self.test_profile.birthday = (date.today() - timedelta(days=(365*9))).strftime('%Y-%m-%d')
+        self.test_profile.grade = self.test_grade_choice
+        self.test_profile.status = self.test_status_choice
+        self.test_profile.payment_method = self.test_payment_choice
+        self.test_profile.archived = False
+        self.test_profile.save()
+
+        # add student profile to test event
+        self.event.students.add(self.test_profile)
+
+    def test_get_events_for_profile_view_get(self):
+        # set data payload
+        params = {'profile_id': self.test_profile.id}
+
+        # attempt to access get events for profile view
+        response = self.client.get('/api/schedule/events/get_events_for_profile/', params)
+
+        # response status code is 200 OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+# ------- tests get events for profile view action -------
+class GetEventsForProfileViewActionTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        # create test user profile
+        self.user_profile = UserProfilesInstructors.objects.create(user=self.user, last_name_romaji='Test', first_name_romaji='User', last_name_katakana='テスト', first_name_katakana='ユーザー', last_name_kanji='試験', first_name_kanji='ユーザー', icon_stub='test_user_icon_stub', archived=False)
+
+        # add test user to 'Staff' group
+        staff_group = Group.objects.create(name='Staff')
+        instructor_group = Group.objects.create(name='Instructors')
+        self.user.groups.add(staff_group)
+        self.user.groups.add(instructor_group)
+
+        # set test user as authenticated
+        self.client.force_authenticate(user=self.user)
+
+        # create new event type
+        event_type = EventType.objects.create(name='Test Event Type', price=999, duration=60, order=1, capacity=6)
+
+        # create new event
+        self.event = Events.objects.create(
+            event_name='Test Event',
+            event_type=event_type,
+            primary_instructor=self.user,
+            day_of_week=1,
+            start_time='12:00:00',
+        )
+
+        # save event
+        self.event.save()
+
+        # create test prefecture choice
+        self.test_prefecture_choice = PrefectureChoices()
+        self.test_prefecture_choice.name = 'test_prefecture_choice'
+        self.test_prefecture_choice.order = 1
+        self.test_prefecture_choice.save()
+        self.test_prefecture_choice_updated = PrefectureChoices()
+        self.test_prefecture_choice_updated.name = 'test_prefecture_choice_updated'
+        self.test_prefecture_choice_updated.order = 2
+        self.test_prefecture_choice_updated.save()
+        # create test phone choice
+        self.test_phone_choice = PhoneChoice()
+        self.test_phone_choice.name = 'test_phone_choice'
+        self.test_phone_choice.order = 1
+        self.test_phone_choice.save()
+        self.test_phone_choice_updated = PhoneChoice()
+        self.test_phone_choice_updated.name = 'test_phone_choice_updated'
+        self.test_phone_choice_updated.order = 2
+        self.test_phone_choice_updated.save()
+        # create test phone
+        self.test_phone = Phone()
+        self.test_phone.number = '123-456-7890'
+        self.test_phone.number_type = self.test_phone_choice
+        self.test_phone.save()
+        self.test_phone_updated = Phone()
+        self.test_phone_updated.number = '098-765-4321'
+        self.test_phone_updated.number_type = self.test_phone_choice_updated
+        self.test_phone_updated.save()
+        # create test grade choice
+        self.test_grade_choice = GradeChoices()
+        self.test_grade_choice.name = 'test_grade_choice'
+        self.test_grade_choice.order = 1
+        self.test_grade_choice.save()
+        self.test_grade_choice_updated = GradeChoices()
+        self.test_grade_choice_updated.name = 'test_grade_choice_updated'
+        self.test_grade_choice_updated.order = 2
+        self.test_grade_choice_updated.save()
+        # create test status choice
+        self.test_status_choice = StatusChoices()
+        self.test_status_choice.name = 'test_status_choice'
+        self.test_status_choice.order = 1
+        self.test_status_choice.save()
+        self.test_status_choice_updated = StatusChoices()
+        self.test_status_choice_updated.name = 'test_status_choice_updated'
+        self.test_status_choice_updated.order = 2
+        self.test_status_choice_updated.save()
+        # create test payment choice
+        self.test_payment_choice = PaymentChoices()
+        self.test_payment_choice.name = 'test_payment_choice'
+        self.test_payment_choice.order = 1
+        self.test_payment_choice.save()
+        self.test_payment_choice_updated = PaymentChoices()
+        self.test_payment_choice_updated.name = 'test_payment_choice_updated'
+        self.test_payment_choice_updated.order = 1
+        self.test_payment_choice_updated.save()
+        # creates test profile
+        self.test_profile = Students()
+        self.test_profile.save()
+        self.test_profile.last_name_romaji = 'last_name_romaji'
+        self.test_profile.first_name_romaji = 'first_name_romaji'
+        self.test_profile.last_name_kanji = 'last_name_kanji'
+        self.test_profile.first_name_kanji = 'first_name_kanji'
+        self.test_profile.last_name_katakana = 'last_name_katakana'
+        self.test_profile.first_name_katakana = 'first_name_katakana'
+        self.test_profile.post_code = '123-4567'
+        self.test_profile.prefecture = self.test_prefecture_choice
+        self.test_profile.city = 'city'
+        self.test_profile.address_1 = 'address_1'
+        self.test_profile.address_2 = 'address_2'
+        self.test_profile.phone.add(self.test_phone)
+        self.test_profile.birthday = (date.today() - timedelta(days=(365*9))).strftime('%Y-%m-%d')
+        self.test_profile.grade = self.test_grade_choice
+        self.test_profile.status = self.test_status_choice
+        self.test_profile.payment_method = self.test_payment_choice
+        self.test_profile.archived = False
+        self.test_profile.save()
+
+        # add student profile to test event
+        self.event.students.add(self.test_profile)
+
+    def test_get_events_for_profile_view_get(self):
+        # set data payload
+        params = {'profile_id': self.test_profile.id}
+
+        # attempt to access get events for profile view
+        response = self.client.get('/api/schedule/events/get_events_for_profile/', params)
+
+        # response status code is 200 OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # response content is JSON
+        self.assertEqual(response['content-type'], 'application/json')
+
+        # response content contains event data
+        self.assertEqual(response.data['events'][0]['event_name'], self.event.event_name)
+        self.assertEqual(response.data['events'][0]['event_type']['id'], self.event.event_type.id)
+        self.assertEqual(response.data['events'][0]['primary_instructor']['id'], self.event.primary_instructor.id)
+        self.assertEqual(response.data['events'][0]['day_of_week'], self.event.day_of_week)
+        self.assertEqual(response.data['events'][0]['start_time'], self.event.start_time)

@@ -10,6 +10,7 @@ from schedule.models import Events, EventType
 from students.models import Students, GradeChoices
 
 # ======= Attendance For Date View Tests =======
+
 # ------- tests access permissions -------
 
 # users NOT logged in CANNOT access the attendance for date view
@@ -203,3 +204,20 @@ class AttendanceForDateViewAContentRetrievalTest(TestCase):
 
         self.assertEqual(response_data['attendance_records'][0]['student']['last_name_romaji'], 'Test Student Last')
         self.assertEqual(response_data['attendance_records'][0]['student']['first_name_romaji'], 'Test Student First')
+
+# ======= Attendance Details View Tests =======
+
+# ------- tests access permissions -------
+
+# users NOT logged in CANNOT access the attendance details view
+class AttendanceDetailsViewAsUnauthenticatedUserTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+    def test_events_all_view(self):
+        # attempt to access events all view
+        response = self.client.get('/api/attendance/attendance/attendance_details/')
+
+        # response status code is 401 UNAUTHORIZED
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)

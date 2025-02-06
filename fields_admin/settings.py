@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     'schedule', # Schedule App
     'attendance', # Attendance App
     'user_profiles', # User Profiles App
+    'journal', # Journal App
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

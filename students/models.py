@@ -68,35 +68,35 @@ class Students(models.Model):
 
         return full_name
 
-    # @cached_property
+    @cached_property
     def prefecture_verbose(self):
         try:
             return self.prefecture.name
         except:
             return ''
         
-    # @cached_property
+    @cached_property
     def grade_verbose(self):
         try:
             return self.grade.name
         except:
             return ''
         
-    # @cached_property
+    @cached_property
     def status_verbose(self):
         try:
             return self.status.name
         except:
             return ''
         
-    # @cached_property
+    @cached_property
     def payment_method_verbose(self):
         try:
             return self.payment_method.name
         except:
             return ''
 
-    # @cached_property
+    @cached_property
     def age(self):
         if self.birthday:
             now = timezone.now()

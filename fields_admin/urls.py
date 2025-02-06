@@ -8,6 +8,7 @@ import authentication.urls as AuthenticationUrls
 import students.urls as StudentsUrls
 import schedule.urls as ScheduleUrls
 import attendance.urls as AttendanceUrls
+import journal.urls as JournalUrls
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -27,6 +28,9 @@ urlpatterns = [
 
     # attendance
     path('api/attendance/', include(AttendanceUrls)),
+
+    # journal
+    path('api/journal/', include(JournalUrls)),
 
     # logged in user data
     path('api/logged_in_user_data/', LoggedInUserDataView.as_view(), name='logged_in_user_data'),
