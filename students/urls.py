@@ -12,4 +12,9 @@ urlpatterns = [
      # be sure to disable this path when not in use
      # 127.0.0.1:8000/api/students/profiles_import/
      # path('profiles_import/', views.ProfilesImport, name='profiles_import'),
+
+     # visit this path to increment student grades by one year
+     # be sure to disable this path when not in use
+     # 127.0.0.1:8000/api/students/increment_student_grades/
+     # path('increment_student_grades/', views.IncrementStudentGrades, name='increment_student_grades'),
 ]

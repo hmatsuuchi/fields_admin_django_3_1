@@ -25,17 +25,8 @@ class EventsListView(APIView):
     def get(self, request, format=None):
         try:
             # ------- get all events for date -------
-            # cache parameters
-            events_cache_key = 'events_queryset'
-            events_cache_time = 86400 # 24 hours
-
-            # try to get events from cache
-            events = cache.get(events_cache_key)
-
-            # if cache miss, query db cache result
-            if not events:
-                events = Events.objects.all().filter(archived=False).select_related('event_type', 'primary_instructor', 'primary_instructor__userprofilesinstructors').prefetch_related('students')
-                cache.set(events_cache_key, events, events_cache_time)            
+            events = Events.objects.all().filter(archived=False).select_related('event_type', 'primary_instructor', 'primary_instructor__userprofilesinstructors').prefetch_related('students')    
+            
             # serialize events
             event_serializer = EventsSerializer(events, many=True)
 
@@ -97,10 +88,6 @@ class EventsDetailsView(APIView):
                     "eventId": serializer.data['id'],
                 }
 
-                # clear events cache
-                events_cache_key = 'events_queryset'
-                cache.delete(events_cache_key)
-
                 return Response(data, status=status.HTTP_201_CREATED)
             else:
                 return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
@@ -156,10 +143,6 @@ class RemoveStudentFromEventView(APIView):
                 'status': '200 OK',
             }
 
-            # clear events cache
-            events_cache_key = 'events_queryset'
-            cache.delete(events_cache_key)
-
             return Response(data, status=status.HTTP_200_OK)
         
         except Exception as e:
@@ -191,10 +174,6 @@ class AddStudentToEventView(APIView):
                 'status': '200 OK',
             }
 
-            # clear events cache
-            events_cache_key = 'events_queryset'
-            cache.delete(events_cache_key)
-
             return Response(data, status=status.HTTP_200_OK)
         
         except Exception as e:
@@ -221,10 +200,6 @@ class ArchiveEventView(APIView):
             data = {
                 'status': '200 OK',
             }
-
-            # clear events cache
-            events_cache_key = 'events_queryset'
-            cache.delete(events_cache_key)
 
             return Response(data, status=status.HTTP_200_OK)
         

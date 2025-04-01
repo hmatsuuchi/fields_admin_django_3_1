@@ -390,3 +390,32 @@ def ProfilesImport(request):
     }
 
     return JsonResponse(data)
+
+# used to increment student grades by one year  
+def IncrementStudentGrades(request):
+    print('')
+    print('======= INCREMENTING STUDENT GRADES =======')
+    print('')
+
+    profiles_all = Students.objects.all()
+
+    for profile in profiles_all:
+        print(profile.grade)
+
+        if profile.grade != None:
+            if profile.grade.id < 20:
+                profile.grade = GradeChoices.objects.get(id=profile.grade.id + 1)
+
+        print(profile.grade)
+        print('-----------------')
+        profile.save()
+
+    print('')
+    print('======= INCREMENTING STUDENT GRADES COMPLETE =======')
+    print('')
+
+    data = {
+        'status': '200 OK',
+    }
+
+    return JsonResponse(data)

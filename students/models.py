@@ -133,7 +133,7 @@ class GradeChoices(models.Model):
         verbose_name_plural = "Grade Choices"
 
     def __str__(self):
-        return f"{self.name} [{self.order}]"
+        return f"{self.id} - {self.name} [{self.order}]"
 
 class StatusChoices(models.Model):
     name                        = models.CharField(max_length=35)
