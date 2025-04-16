@@ -9,6 +9,7 @@ import students.urls as StudentsUrls
 import schedule.urls as ScheduleUrls
 import attendance.urls as AttendanceUrls
 import journal.urls as JournalUrls
+import dashboard.urls as DashboardUrls
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -34,4 +35,7 @@ urlpatterns = [
 
     # logged in user data
     path('api/logged_in_user_data/', LoggedInUserDataView.as_view(), name='logged_in_user_data'),
+
+    # dashboard
+    path('api/dashboard/', include(DashboardUrls)),
 ]
