@@ -294,6 +294,9 @@ class AttendanceRecordDetailsView(APIView):
             # get request data
             data = request.data
 
+            # add current student grade to attendance record data
+            data['grade'] = Students.objects.get(id=data['student']).grade.id
+
             # create new attendance record
             attendance_record_serializer = AttendanceRecordDetailsSerializer(data=data)
 
