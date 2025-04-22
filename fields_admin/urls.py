@@ -10,6 +10,7 @@ import schedule.urls as ScheduleUrls
 import attendance.urls as AttendanceUrls
 import journal.urls as JournalUrls
 import dashboard.urls as DashboardUrls
+import game.urls as GameUrls
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -38,4 +39,7 @@ urlpatterns = [
 
     # dashboard
     path('api/dashboard/', include(DashboardUrls)),
+
+    # game
+    path('api/game/', include(GameUrls)),
 ]

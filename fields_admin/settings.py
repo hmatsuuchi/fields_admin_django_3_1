@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     'user_profiles', # User Profiles App
     'journal', # Journal App
     'dashboard', # Dashboard App
+    'game', # Game App
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
