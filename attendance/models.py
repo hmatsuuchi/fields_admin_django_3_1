@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 class Attendance(models.Model):
     linked_class        = models.ForeignKey(Events, on_delete=models.CASCADE)
     instructor          = models.ForeignKey(User, on_delete=models.CASCADE)
-    attendance_records  = models.ManyToManyField('AttendanceRecord', blank=True)
+    attendance_records  = models.ManyToManyField('AttendanceRecord', blank=True, related_name='attendance_reverse_relationship')
 
     date                = models.DateField()
     start_time          = models.TimeField()

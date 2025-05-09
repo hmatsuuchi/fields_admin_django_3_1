@@ -22,10 +22,10 @@ class IncompleteAttendanceForInstructor(APIView):
             current_user = request.user
 
             # get all records for the instructor for the past month
-            past_month = AttendanceRecord.objects.filter(attendance__instructor=current_user, attendance__date__gte=datetime.now() - timedelta(days=30), attendance__date__lte=datetime.now())
+            past_month = AttendanceRecord.objects.filter(attendance_reverse_relationship__instructor=current_user, attendance_reverse_relationship__date__gte=datetime.now() - timedelta(days=30), attendance_reverse_relationship__date__lte=datetime.now())
 
             # group the records by date
-            past_month_by_date = past_month.order_by('-attendance__date').values('attendance__date')
+            past_month_by_date = past_month.order_by('-attendance_reverse_relationship__date').values('attendance_reverse_relationship__date')
 
             # annotate records with attendance status counts
             past_month_by_date_annotated = past_month_by_date.annotate(record_count_all=Count('id'), record_count_incomplete=Count('id', filter=Q(status=2)), record_count_present=Count('id', filter=Q(status=3)), record_count_absent=Count('id', filter=Q(status=4)))
