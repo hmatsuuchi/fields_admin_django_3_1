@@ -1,4 +1,5 @@
-
+from datetime import date
+from django.db.models import Count, Q
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.response import Response
@@ -12,7 +13,7 @@ from .models import CardUUID
 from students.models import Students
 from attendance.models import AttendanceRecord
 # serializers
-from .serializers import AttendanceRecordSerializer
+from .serializers import AttendanceRecordSerializer, AllPresentAttendanceRecordsForCurrentDaySerializer
 # importing csv
 import csv
 
@@ -56,6 +57,29 @@ class DisplayOne(APIView):
             print(e)
             return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
 
+
+# all present attendance records for current day
+class AllPresentAttendanceRecordsForCurrentDay(APIView):
+    authentication_classes = ([CustomAuthentication])
+    permission_classes = ([isInDisplaysGroup])
+
+    def get(self, request, format=None):
+        try:
+            # get current date
+            date_today = date.today()
+            
+            # get all attendance records for current date
+            attendance_records = AttendanceRecord.objects.filter(status=3, attendance_reverse_relationship__date=date_today).annotate(present_attendance_records_count = Count('student__attendancerecord', filter=Q(student__attendancerecord__status=3)))
+
+            # serialize attendance records
+            attendance_records_serialzer = AllPresentAttendanceRecordsForCurrentDaySerializer(attendance_records, many=True)
+
+            return Response(attendance_records_serialzer.data, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            print(e)
+            return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
+        
 # used to import attendance records from CSV
 def ImportCardUUID(request):
     print('')
