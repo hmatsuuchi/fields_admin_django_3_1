@@ -1,5 +1,6 @@
 from rest_framework import serializers
 # models
+from .models import CheckIn
 from attendance.models import Attendance, AttendanceRecord
 from students.models import Students
 
@@ -20,7 +21,7 @@ class AttendanceRecordSerializer(serializers.ModelSerializer):
         model = AttendanceRecord
         fields = ['id', 'status', 'attendance']
 
-# ======= ALL PRESENT ATTENDANCE RECORDS FOR CURRENT DAY SERIALIZERS =======
+# ======= RECENT CHECKINS SERIALIZERS =======
 
 # Student Serializer
 class StudentSerializer(serializers.ModelSerializer):
@@ -28,11 +29,10 @@ class StudentSerializer(serializers.ModelSerializer):
         model = Students
         fields = ['id', 'first_name_romaji']
 
-# Attendance Record Serializer
-class AllPresentAttendanceRecordsForCurrentDaySerializer(serializers.ModelSerializer):
+# Checkin Serializer
+class CheckInSerializer(serializers.ModelSerializer):
     student = StudentSerializer(many=False)
-    present_attendance_records_count = serializers.IntegerField(read_only=True)
 
     class Meta:
-        model = AttendanceRecord
-        fields = ['id', 'student', 'present_attendance_records_count']
+        model = CheckIn
+        fields = ['id', 'student', 'date_time_created', 'attendance_present_count']

@@ -1,6 +1,7 @@
-from datetime import date
-from django.db.models import Count, Q
+from datetime import timedelta
+from django.db.models import OuterRef, Subquery
 from django.http import JsonResponse
+from django.utils.timezone import now
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -9,15 +10,15 @@ from authentication.customAuthentication import CustomAuthentication
 # group permission control
 from authentication.permissions import isInDisplaysGroup
 # models
-from .models import CardUUID
+from .models import CardUUID, CheckIn
 from students.models import Students
 from attendance.models import AttendanceRecord
 # serializers
-from .serializers import AttendanceRecordSerializer, AllPresentAttendanceRecordsForCurrentDaySerializer
+from .serializers import AttendanceRecordSerializer, CheckInSerializer
 # importing csv
 import csv
 
-class DisplayOne(APIView):
+class GetStudentDataView(APIView):
     authentication_classes = ([CustomAuthentication])
     permission_classes = ([isInDisplaysGroup])
 
@@ -41,6 +42,12 @@ class DisplayOne(APIView):
             # serialize attendance records
             attendance_records_serialzer = AttendanceRecordSerializer(attendance_records, many=True)
 
+            # create checkin record
+            CheckIn.objects.create(
+                student=student,
+                attendance_present_count=attendance_present_count,
+            )
+
             data = {
                 'card_uuid': card_uuid,
                 'student_last_name_romaji': student.last_name_romaji,
@@ -58,23 +65,29 @@ class DisplayOne(APIView):
             return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
 
 
-# all present attendance records for current day
-class AllPresentAttendanceRecordsForCurrentDay(APIView):
+# get recent checkins
+class GetRecentCheckinsView(APIView):
     authentication_classes = ([CustomAuthentication])
     permission_classes = ([isInDisplaysGroup])
 
     def get(self, request, format=None):
         try:
-            # get current date
-            date_today = date.today()
-            
-            # get all attendance records for current date
-            attendance_records = AttendanceRecord.objects.filter(status=3, attendance_reverse_relationship__date=date_today).annotate(present_attendance_records_count = Count('student__attendancerecord', filter=Q(student__attendancerecord__status=3)))
+            # Subquery to get the most recent check-in for each student
+            latest_checkins = CheckIn.objects.filter(
+                date_time_created__gte=now() - timedelta(hours=24),
+                student=OuterRef('student'),
+            ).order_by('-date_time_created')
 
-            # serialize attendance records
-            attendance_records_serialzer = AllPresentAttendanceRecordsForCurrentDaySerializer(attendance_records, many=True)
+            # Filter the queryset to include only the most recent check-ins
+            checkins = CheckIn.objects.filter(
+                id=Subquery(latest_checkins.values('id')[:1])
+            ).order_by('-date_time_created'
+            ).prefetch_related('student')
 
-            return Response(attendance_records_serialzer.data, status=status.HTTP_200_OK)
+            # Serialize the queryset
+            checkins_serializer = CheckInSerializer(checkins, many=True)
+
+            return Response(checkins_serializer.data, status=status.HTTP_200_OK)
         
         except Exception as e:
             print(e)
