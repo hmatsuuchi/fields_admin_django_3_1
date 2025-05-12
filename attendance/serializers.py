@@ -178,7 +178,7 @@ class AttendanceDetailsSerializer(serializers.ModelSerializer):
         # create attendance records and add to list
         new_attendance_records = []
         for attendance_record_data in attendance_records_data:
-            attendance_record = AttendanceRecord.objects.create(attendance=attendance, **attendance_record_data)
+            attendance_record = AttendanceRecord.objects.create(**attendance_record_data)
             new_attendance_records.append(attendance_record)
 
         # add attendance records to attendance
