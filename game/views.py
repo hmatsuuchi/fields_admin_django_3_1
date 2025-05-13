@@ -74,7 +74,7 @@ class GetRecentCheckinsView(APIView):
         try:
             # Subquery to get the most recent check-in for each student
             latest_checkins = CheckIn.objects.filter(
-                date_time_created__gte=now() - timedelta(hours=24),
+                date_time_created__gte=now() - timedelta(hours=72),
                 student=OuterRef('student'),
             ).order_by('-date_time_created')
 
