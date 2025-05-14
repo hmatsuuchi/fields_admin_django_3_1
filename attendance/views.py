@@ -13,7 +13,7 @@ from .models import Attendance, AttendanceRecord, AttendanceRecordStatus
 from schedule.models import Events
 from students.models import Students
 # serializers
-from .serializers import AttendanceSerializer, AttendanceDetailsSerializer, AttendanceRecordDetailsSerializer, UserInstructorSerializer, UserInstructorPreferenceSerializer, EventsChoiceListSerializer, StudentsChoiceListSerializer, AttendanceForProfileDetailsSerializer
+from .serializers import AttendanceSerializer, AttendanceDetailsSerializer, AttendanceRecordDetailsSerializer, UserInstructorSerializer, UserInstructorPreferenceSerializer, EventsChoiceListSerializer, StudentsChoiceListSerializer, AttendanceRecordForProfileDetailsSerializer
 # importing csv
 import csv
 from django.http import JsonResponse
@@ -413,21 +413,16 @@ class GetAttendanceForProfileView(APIView):
             # get request data
             profile_id = request.GET.get('profile_id')
 
-            # get all attendance for student
-            attendance = Attendance.objects.filter(
-                attendance_records__student=profile_id
-            ).order_by('-date').prefetch_related(
-                'linked_class',
-                'instructor',
-                'instructor__userprofilesinstructors',
-                'attendance_records__grade',
-            )
+            # get all attendance records for student
+            attendance_records = AttendanceRecord.objects.filter(student=profile_id).order_by('-attendance_reverse_relationship__date').prefetch_related(
+                'attendance_reverse_relationship',
+            ).prefetch_related('attendance_reverse_relationship', 'attendance_reverse_relationship__linked_class', 'attendance_reverse_relationship__instructor', 'attendance_reverse_relationship__instructor__userprofilesinstructors', 'grade')
 
-            # serialize attendance
-            attendance_serialzer = AttendanceForProfileDetailsSerializer(attendance, many=True)
+            # serialize attendance records
+            attendance_records_serializer = AttendanceRecordForProfileDetailsSerializer(attendance_records, many=True)
 
             data = {
-                'attendance': attendance_serialzer.data,
+                'attendance_records': attendance_records_serializer.data,
             }
 
             return Response(data, status=status.HTTP_200_OK)

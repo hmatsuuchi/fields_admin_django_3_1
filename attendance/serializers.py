@@ -238,20 +238,22 @@ class InstructorForProfileDetailsSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'userprofilesinstructors']
 
-# attendance record serializer for use in the profile details page
-class AttendanceRecordForProfileDetailsSerializer(serializers.ModelSerializer):
-    grade = GradeChoicesForProfileDetailsSerializer(required=False)
-
-    class Meta:
-        model = AttendanceRecord
-        fields = ['id', 'status', 'grade']
-
 # attendance serializer for us in the profile details page
 class AttendanceForProfileDetailsSerializer(serializers.ModelSerializer):
     linked_class = LinkedClassForProfileDetailsSerializer(required=False)
     instructor = InstructorForProfileDetailsSerializer(required=False)
-    attendance_records = AttendanceRecordForProfileDetailsSerializer(many=True, required=False)
 
     class Meta:
         model = Attendance
-        fields = ['id', 'date', 'start_time', 'linked_class', 'instructor', 'attendance_records']
+        fields = ['id', 'linked_class', 'instructor', 'date', 'start_time']
+
+# attendance record serializer for use in the profile details page
+class AttendanceRecordForProfileDetailsSerializer(serializers.ModelSerializer):
+    attendance_reverse_relationship = AttendanceForProfileDetailsSerializer(
+        many=True, read_only=True
+    )
+    grade = GradeChoicesForProfileDetailsSerializer(required=False)
+
+    class Meta:
+        model = AttendanceRecord
+        fields = ['id', 'status', 'grade', 'attendance_reverse_relationship']

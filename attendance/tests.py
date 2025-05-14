@@ -373,3 +373,6 @@ class AttendanceDetailsViewAsStaffGroupTest(TestCase):
 
         # response status code is 201 CREATED
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+# ------- tests data retrieval -------
+# properly authenticated users CAN retrieve data from the attendance details view
