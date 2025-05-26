@@ -3,7 +3,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.contrib.auth.models import User
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Count
 # authentication
 from authentication.customAuthentication import CustomAuthentication
 # group permission control
@@ -414,9 +414,7 @@ class GetAttendanceForProfileView(APIView):
             profile_id = request.GET.get('profile_id')
 
             # get all attendance records for student
-            attendance_records = AttendanceRecord.objects.filter(student=profile_id).order_by('-attendance_reverse_relationship__date', '-attendance_reverse_relationship__start_time').prefetch_related(
-                'attendance_reverse_relationship',
-            ).prefetch_related('attendance_reverse_relationship', 'attendance_reverse_relationship__linked_class', 'attendance_reverse_relationship__instructor', 'attendance_reverse_relationship__instructor__userprofilesinstructors', 'grade')
+            attendance_records = AttendanceRecord.objects.filter(student=profile_id).order_by('-attendance_reverse_relationship__date', '-attendance_reverse_relationship__start_time').prefetch_related('attendance_reverse_relationship', 'attendance_reverse_relationship__linked_class', 'attendance_reverse_relationship__instructor', 'attendance_reverse_relationship__instructor__userprofilesinstructors', 'grade')
 
             # serialize attendance records
             attendance_records_serializer = AttendanceRecordForProfileDetailsSerializer(attendance_records, many=True)

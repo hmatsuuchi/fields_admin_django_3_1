@@ -1,6 +1,7 @@
 from django.test import TestCase
 # django imports
 from django.contrib.auth.models import User, Group
+from django.urls import reverse
 # drf imports
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -12,9 +13,7 @@ from schedule.models import Events, EventType
 from students.models import Students, GradeChoices, StatusChoices
 from user_profiles.models import UserProfilesInstructors
 
-# ======= Attendance For Date View Tests =======
-
-# ------- tests access permissions -------
+# ======= Attendance For Date View Tests - ACCESS PERMISSIONS =======
 
 # users NOT logged in CANNOT access the attendance for date view
 class AttendanceForDateViewAsUnauthenticatedUserTest(TestCase):
@@ -102,7 +101,7 @@ class AttendanceForDateViewAsStaffGroupTest(TestCase):
         # response status code is 200 OK
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-# ------- tests data retrieval -------
+# ======= Attendance For Date View Tests - DATA RETRIEVAL =======
 
 # properly authenticated users CAN retrieve data from the attendance for date view
 class AttendanceForDateViewAContentRetrievalTest(TestCase):
@@ -122,59 +121,59 @@ class AttendanceForDateViewAContentRetrievalTest(TestCase):
         self.client.force_authenticate(user=self.user)
 
         # create student
-        student = Students()
-        student.last_name_romaji = 'Test Student Last'
-        student.first_name_romaji = 'Test Student First'
-        student.save()
+        self.student = Students()
+        self.student.last_name_romaji = 'Test Student Last'
+        self.student.first_name_romaji = 'Test Student First'
+        self.student.save()
 
         # create event type
-        event_type = EventType()
-        event_type.name = 'Test Event Type'
-        event_type.price = 9999
-        event_type.duration = 99
-        event_type.order = 99
-        event_type.capacity = 9
-        event_type.save()
+        self.event_type = EventType()
+        self.event_type.name = 'Test Event Type'
+        self.event_type.price = 9999
+        self.event_type.duration = 99
+        self.event_type.order = 99
+        self.event_type.capacity = 9
+        self.event_type.save()
 
         # create events
-        event = Events()
-        event.event_name = 'Test Event'
-        event.event_type = event_type
-        event.primary_instructor = self.user
-        event.day_of_week = 1
-        event.start_time = '01:01:01'
-        event.archived = False
-        event.save()
+        self.event = Events()
+        self.event.event_name = 'Test Event'
+        self.event.event_type = self.event_type
+        self.event.primary_instructor = self.user
+        self.event.day_of_week = 1
+        self.event.start_time = '01:01:01'
+        self.event.archived = False
+        self.event.save()
 
-        event.students.add(student)
+        self.event.students.add(self.student)
 
         # create attendance records status
-        attendance_record_status = AttendanceRecordStatus()
-        attendance_record_status.status_name = 'Test Status'
-        attendance_record_status.save()
+        self.attendance_record_status = AttendanceRecordStatus()
+        self.attendance_record_status.status_name = 'Test Status'
+        self.attendance_record_status.save()
 
         # create grade choices
-        grade_choice = GradeChoices()
-        grade_choice.name = 'Test Grade'
-        grade_choice.order = 99
-        grade_choice.save()
+        self.grade_choice = GradeChoices()
+        self.grade_choice.name = 'Test Grade'
+        self.grade_choice.order = 99
+        self.grade_choice.save()
 
         # create attendance records
-        attendance_record = AttendanceRecord()
-        attendance_record.student = student
-        attendance_record.status = attendance_record_status
-        attendance_record.grade = grade_choice
-        attendance_record.save()
+        self.attendance_record = AttendanceRecord()
+        self.attendance_record.student = self.student
+        self.attendance_record.status = self.attendance_record_status
+        self.attendance_record.grade = self.grade_choice
+        self.attendance_record.save()
 
         # create attendances
-        attendance = Attendance()
-        attendance.linked_class = event
-        attendance.instructor = self.user
-        attendance.date = '2022-01-01'
-        attendance.start_time = '01:01:01'
-        attendance.save()
+        self.attendance = Attendance()
+        self.attendance.linked_class = self.event
+        self.attendance.instructor = self.user
+        self.attendance.date = '2022-01-01'
+        self.attendance.start_time = '01:01:01'
+        self.attendance.save()
 
-        attendance.attendance_records.add(attendance_record)
+        self.attendance.attendance_records.add(self.attendance_record)
 
     def test_attendance_for_date_view_get(self):
         params = {
@@ -208,9 +207,7 @@ class AttendanceForDateViewAContentRetrievalTest(TestCase):
         self.assertEqual(response_data['attendance_records'][0]['student']['last_name_romaji'], 'Test Student Last')
         self.assertEqual(response_data['attendance_records'][0]['student']['first_name_romaji'], 'Test Student First')
 
-# ======= Attendance Details View Tests =======
-
-# ------- tests access permissions -------
+# ======= Attendance Details View Tests - ACCESS PERMISSIONS =======
 
 # users NOT logged in CANNOT access the attendance details view
 class AttendanceDetailsViewAsUnauthenticatedUserTest(TestCase):
@@ -362,7 +359,7 @@ class AttendanceDetailsViewAsStaffGroupTest(TestCase):
             'attendance_records':
             [{
                     'student': self.student.id,
-                    'status': self.status_choice.id,
+                    'status': self.attendance_record_status.id,
                     'grade': self.grade_choice.id,
                 },
             ],
@@ -374,5 +371,115 @@ class AttendanceDetailsViewAsStaffGroupTest(TestCase):
         # response status code is 201 CREATED
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-# ------- tests data retrieval -------
-# properly authenticated users CAN retrieve data from the attendance details view
+# ======= Attendance Details View Tests - DATA CREATION/UPDATE/DELETION =======
+
+# properly authenticated users CAN create/update/delete data from the attendance details view
+class AttendanceDetailsViewContentRetrievalTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create user
+        self.user = User.objects.create_user(
+            username='testuser', password='testpassword')
+
+        # add user to 'Staff' group
+        self.staff_group = Group.objects.create(name='Staff')
+        self.user.groups.add(self.staff_group)
+
+        # authenticate user
+        self.client.force_authenticate(user=self.user)
+
+        # create grade
+        self.grade = GradeChoices.objects.create(name='Test Grade', order=99)
+
+        # create student
+        self.student = Students()
+        self.student.last_name_romaji = 'Test Student Last'
+        self.student.first_name_romaji = 'Test Student First'
+        self.student.grade = self.grade
+        self.student.save()
+
+        # create event type
+        self.event_type = EventType()
+        self.event_type.name = 'Test Event Type'
+        self.event_type.price = 9999
+        self.event_type.duration = 99
+        self.event_type.order = 99
+        self.event_type.capacity = 9
+        self.event_type.save()
+
+        # create events
+        self.event = Events()
+        self.event.event_name = 'Test Event'
+        self.event.event_type = self.event_type
+        self.event.primary_instructor = self.user
+        self.event.day_of_week = 1
+        self.event.start_time = '01:01:01'
+        self.event.archived = False
+        self.event.save()
+
+        self.event.students.add(self.student)
+
+        # create attendance records status
+        self.attendance_record_status = AttendanceRecordStatus()
+        self.attendance_record_status.status_name = 'Test Status'
+        self.attendance_record_status.save()
+
+        # create grade choices
+        self.grade_choice = GradeChoices()
+        self.grade_choice.name = 'Test Grade'
+        self.grade_choice.order = 99
+        self.grade_choice.save()
+
+        # create attendance records
+        self.attendance_record = AttendanceRecord()
+        self.attendance_record.student = self.student
+        self.attendance_record.status = self.attendance_record_status
+        self.attendance_record.grade = self.grade_choice
+        self.attendance_record.save()
+
+        # create attendances
+        self.attendance = Attendance()
+        self.attendance.linked_class = self.event
+        self.attendance.instructor = self.user
+        self.attendance.date = '2022-01-01'
+        self.attendance.start_time = '01:01:01'
+        self.attendance.save()
+
+        self.attendance.attendance_records.add(self.attendance_record)
+
+    def test_post_attendance_details_view_post(self):
+        url = reverse('attendance_details')
+
+        payload = {
+            "linked_class": self.event.id,
+            "instructor": self.event.primary_instructor.id,
+            "date": "2025-05-15",
+            "start_time": "09:00:00",
+            "attendance_records": [
+                {
+                    "student": self.student.id,
+                    "status": self.attendance_record_status.id,
+                    "grade": self.grade.id
+                }
+            ]
+        }
+
+        response = self.client.post(url, payload, format='json')
+
+        # check to make sure record was created
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # check to make sure response data is correct
+        response_data = response.data
+
+        self.assertEqual(response_data['date'], '2025-05-15')
+        self.assertEqual(response_data['start_time'], '09:00:00')
+        self.assertEqual(response_data['linked_class'], self.event.id)
+        self.assertEqual(response_data['instructor'], self.user.id)
+
+        self.assertEqual(len(response_data['attendance_records']), 1)
+        self.assertEqual(response_data['attendance_records'][0]['student'], self.student.id)
+        self.assertEqual(response_data['attendance_records'][0]['status'], self.attendance_record_status.id)
+        self.assertEqual(response_data['attendance_records'][0]['grade'], self.grade.id)
