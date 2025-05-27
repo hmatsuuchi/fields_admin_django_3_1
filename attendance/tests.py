@@ -13,7 +13,7 @@ from schedule.models import Events, EventType
 from students.models import Students, GradeChoices, StatusChoices
 from user_profiles.models import UserProfilesInstructors
 
-# ======= Attendance For Date View Tests - ACCESS PERMISSIONS =======
+# ======= ATTENDANCE FOR DATE VIEW TESTS - ACCESS PERMISSIONS =======
 
 # users NOT logged in CANNOT access the attendance for date view
 class AttendanceForDateViewAsUnauthenticatedUserTest(TestCase):
@@ -101,7 +101,7 @@ class AttendanceForDateViewAsStaffGroupTest(TestCase):
         # response status code is 200 OK
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-# ======= Attendance For Date View Tests - DATA RETRIEVAL =======
+# ======= ATTENDANCE FOR DATE VIEW TESTS - DATA RETRIEVAL =======
 
 # properly authenticated users CAN retrieve data from the attendance for date view
 class AttendanceForDateViewAContentRetrievalTest(TestCase):
@@ -207,7 +207,7 @@ class AttendanceForDateViewAContentRetrievalTest(TestCase):
         self.assertEqual(response_data['attendance_records'][0]['student']['last_name_romaji'], 'Test Student Last')
         self.assertEqual(response_data['attendance_records'][0]['student']['first_name_romaji'], 'Test Student First')
 
-# ======= Attendance Details View Tests - ACCESS PERMISSIONS =======
+# ======= ATTENDANCE DETAILS VIEW TESTS - ACCESS PERMISSIONS =======
 
 # users NOT logged in CANNOT access the attendance details view
 class AttendanceDetailsViewAsUnauthenticatedUserTest(TestCase):
@@ -371,7 +371,7 @@ class AttendanceDetailsViewAsStaffGroupTest(TestCase):
         # response status code is 201 CREATED
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-# ======= Attendance Details View Tests - DATA CREATION/UPDATE/DELETION =======
+# ======= ATTENDANCE DETAILS VIEW TESTS - DATA CREATION/UPDATE/DELETION =======
 
 # properly authenticated users CAN create/update/delete data from the attendance details view
 class AttendanceDetailsViewContentRetrievalTest(TestCase):
@@ -449,7 +449,8 @@ class AttendanceDetailsViewContentRetrievalTest(TestCase):
 
         self.attendance.attendance_records.add(self.attendance_record)
 
-    def test_post_attendance_details_view_post(self):
+    # test creation of attendance and attendance record
+    def test_attendance_details_view_post(self):
         url = reverse('attendance_details')
 
         payload = {
@@ -483,3 +484,50 @@ class AttendanceDetailsViewContentRetrievalTest(TestCase):
         self.assertEqual(response_data['attendance_records'][0]['student'], self.student.id)
         self.assertEqual(response_data['attendance_records'][0]['status'], self.attendance_record_status.id)
         self.assertEqual(response_data['attendance_records'][0]['grade'], self.grade.id)
+
+    # test updating an existing attendance and attendance record
+    def test_attendance_details_view_put(self):
+        url = reverse('attendance_details')
+
+        payload = {
+            "attendance_id": self.attendance.id,
+            "start_time": "12:12:12",
+        }
+
+        response = self.client.put(url, payload, format='json')
+
+        # check to make sure record was updated
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # check to make sure time was updated and other data is intact
+        response_data = response.data
+
+        self.assertEqual(response_data['date'], '2022-01-01')
+        self.assertEqual(response_data['start_time'], '12:12:12')
+        self.assertEqual(response_data['linked_class'], self.event.id)
+        self.assertEqual(response_data['instructor'], self.user.id)
+
+        self.assertEqual(len(response_data['attendance_records']), 1)
+        self.assertEqual(response_data['attendance_records'][0]['student'], self.student.id)
+        self.assertEqual(response_data['attendance_records'][0]['status'], self.attendance_record_status.id)
+        self.assertEqual(response_data['attendance_records'][0]['grade'], self.attendance_record.grade.id)
+
+    # test deleting an existing attendance and attendance record
+    def test_attendance_details_view_delete(self):
+        # check to make sure attendance exists before deletion
+        self.assertTrue(Attendance.objects.filter(id=self.attendance.id).exists())
+
+        url = reverse('attendance_details')
+
+        payload = {
+            "attendance_id": self.attendance.id,
+        }
+
+        response = self.client.delete(url, payload, format='json')
+
+        # check to make sure record was deleted
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # check to make sure attendance no longer exists
+        with self.assertRaises(Attendance.DoesNotExist):
+            Attendance.objects.get(id=self.attendance.id)
