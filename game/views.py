@@ -1,7 +1,5 @@
-from datetime import timedelta
 from django.db.models import OuterRef, Subquery
 from django.http import JsonResponse
-from django.utils.timezone import now
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -74,7 +72,6 @@ class GetRecentCheckinsView(APIView):
         try:
             # Subquery to get the most recent check-in for each student
             latest_checkins = CheckIn.objects.filter(
-                date_time_created__gte=now() - timedelta(hours=72),
                 student=OuterRef('student'),
             ).order_by('-date_time_created')
 
@@ -82,7 +79,7 @@ class GetRecentCheckinsView(APIView):
             checkins = CheckIn.objects.filter(
                 id=Subquery(latest_checkins.values('id')[:1])
             ).order_by('-date_time_created'
-            ).prefetch_related('student')
+            ).prefetch_related('student')[:15]
 
             # Serialize the queryset
             checkins_serializer = CheckInSerializer(checkins, many=True)
