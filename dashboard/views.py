@@ -65,13 +65,10 @@ class StudentChurn(APIView):
                 .order_by('earliest_present')
             )
 
-            # for student in students_with_attendance:
-            #     print(f"{student.last_name_romaji}, {student.first_name_romaji} - {student.present_count} [{student.earliest_present} ~ {student.latest_present}]")
-
             # create a list of years, months, starting students, ending students
             churn_data = []
-            start_date = date(2022, 9, 1)
             today = date.today()
+            start_date = today - timedelta(days=365 * 2)  # 2 years ago
             current_date = start_date
 
             # iterate through each month from start_date to today
@@ -94,7 +91,7 @@ class StudentChurn(APIView):
                     if month_start <= student.latest_present <= month_end and (today - student.latest_present).days > 28
                 ]
 
-                churn_data.insert(0, {
+                churn_data.append({
                     'year': month_start.year,
                     'month': month_start.month,
                     'starting_students_count': len(starting_students),
