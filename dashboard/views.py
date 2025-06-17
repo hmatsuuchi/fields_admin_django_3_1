@@ -124,3 +124,35 @@ class StudentChurn(APIView):
         except Exception as e:
             print(e)
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+# get total active students data
+class TotalActiveStudents(APIView):
+    authentication_classes = ([CustomAuthentication])
+    permission_classes = ([isInStaffGroup])
+
+    def get(self, request, format=None):        
+        try:
+            cutoff_date = date.today() - timedelta(days=28)
+
+            active_students = (
+                Students.objects
+                .annotate(
+                    attendance_count=Count('attendancerecord'),
+                    most_recent=Max('attendancerecord__attendance_reverse_relationship__date')
+                )
+                .filter(
+                    attendance_count__gte=2,
+                    most_recent__gte=cutoff_date
+                )
+                .distinct()
+            )
+
+            data = {
+                'total_active_students_count': active_students.count(),
+            }
+
+            return Response(data, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            print(e)
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
