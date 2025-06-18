@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     'journal', # Journal App
     'dashboard', # Dashboard App
     'game', # Game App
+    'analytics', # Analytics App
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

@@ -11,6 +11,7 @@ from authentication.permissions import isInStaffGroup
 from user_profiles.models import UserProfilesInstructors
 from attendance.models import AttendanceRecord
 from students.models import Students
+from analytics.models import HighestActiveStudentCount
 
 # get all attendance records for single date
 class IncompleteAttendanceForInstructor(APIView):
@@ -134,11 +135,12 @@ class TotalActiveStudents(APIView):
         try:
             cutoff_date = date.today() - timedelta(days=28)
 
+            # active students are those with at least two present (status=3) attendance records, and at least one of those records is within the last 28 days
             active_students = (
                 Students.objects
                 .annotate(
-                    attendance_count=Count('attendancerecord'),
-                    most_recent=Max('attendancerecord__attendance_reverse_relationship__date')
+                    attendance_count=Count('attendancerecord', filter=Q(attendancerecord__status=3)),
+                    most_recent=Max('attendancerecord__attendance_reverse_relationship__date', filter=Q(attendancerecord__status=3))
                 )
                 .filter(
                     attendance_count__gte=2,
@@ -147,8 +149,27 @@ class TotalActiveStudents(APIView):
                 .distinct()
             )
 
+            # gets the highest active student count
+            highest_active_student_count = HighestActiveStudentCount.objects.order_by('-active_student_count').first()
+
+            if not highest_active_student_count:
+                # if no records exist, create a new record with the current count
+                highest_active_student_count = HighestActiveStudentCount.objects.create(
+                    active_student_count=active_students.count()
+                )
+            elif highest_active_student_count.active_student_count < active_students.count():
+                # if the current count is higher than the stored count, create a new record with the current count
+                highest_active_student_count = HighestActiveStudentCount.objects.create(
+                    active_student_count=active_students.count()
+                )
+
+
             data = {
                 'total_active_students_count': active_students.count(),
+                'highest_active_student_count': {
+                    'count': highest_active_student_count.active_student_count,
+                    'date': highest_active_student_count.date_time_created,
+                },
             }
 
             return Response(data, status=status.HTTP_200_OK)
