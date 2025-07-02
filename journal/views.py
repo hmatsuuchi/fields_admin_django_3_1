@@ -3,6 +3,43 @@ from .models import Journal, JournalType
 from students.models import Students
 from django.contrib.auth.models import User
 import csv
+from rest_framework.views import APIView
+# models
+from .models import Journal
+# authentication
+from authentication.customAuthentication import CustomAuthentication
+# group permission control
+from authentication.permissions import isInStaffGroup
+# serializers
+from .serializers import GetJournalForProfileSerializer
+
+
+# get journal entries for a specific profile
+class GetJournalForProfileView(APIView):
+    authentication_classes = ([CustomAuthentication])
+    permission_classes = ([isInStaffGroup])
+
+    def get(self, request, *args, **kwargs):
+        profile_id = request.GET.get('profile_id')
+
+        if not profile_id:
+            return JsonResponse({'error': 'Profile ID is required'}, status=400)
+
+        try:
+            # get journal entries for the student
+            journal_entries = Journal.objects.filter(student__id=profile_id).order_by('-date', '-time')
+
+            # serialize the journal entries
+            journal_entries_serializer = GetJournalForProfileSerializer(journal_entries, many=True)
+
+            data = {
+                'journal_entries': journal_entries_serializer.data
+            }
+            
+            return JsonResponse(data, safe=False)
+        
+        except Students.DoesNotExist:
+            return JsonResponse({'error': 'Student not found'}, status=404)
 
 # used to journal events from CSV     
 def JournalImport(request):
