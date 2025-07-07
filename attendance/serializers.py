@@ -25,6 +25,8 @@ class StudentSerializer(serializers.ModelSerializer):
 # Attendance Record Serializer
 class AttendanceRecordSerializer(serializers.ModelSerializer):
     student = StudentSerializer(required=False)
+    grade_verbose = serializers.CharField(source='grade.name', read_only=True)
+
 
     class Meta:
         model = AttendanceRecord
