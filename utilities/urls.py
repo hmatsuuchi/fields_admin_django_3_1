@@ -6,7 +6,7 @@ from game.views import ImportCardUUID
 from journal.views import JournalImport
 from schedule.views import EventsImport
 from students.views import ProfilesImport, IncrementStudentGrades
-from . views import AdjustStudentAttendanceStatus, CleanAttendance
+from . views import AdjustStudentAttendanceStatus, CleanAttendance, EnumerateAttendance
 
 urlpatterns = [
     # ========== ANALYTICS ==========
@@ -76,4 +76,7 @@ urlpatterns = [
 
     # removes attendance that does not have any associated attendance records
     # path('utilities/clean_attendance/', CleanAttendance, name='clean_attendance'),
+
+    # prints attendance for each instructor for each day between current date and cutoff date
+    # path('utilities/enumerate_attendance/', EnumerateAttendance, name='enumerate_attendance'),
 ]

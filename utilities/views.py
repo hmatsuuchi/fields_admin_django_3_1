@@ -72,3 +72,55 @@ def CleanAttendance(request):
         x.delete()
 
     return JsonResponse({'status': '200 OK'})
+
+# prints attendance for each instructor for each day between current date and cutoff date
+def EnumerateAttendance(request):
+    # set cutoff date
+    cutoff_date = date.today() - timedelta(days=28)
+
+    # get all attendance since the cutoff date
+    attendance = Attendance.objects.filter(date__gte=cutoff_date).order_by('date', 'instructor')
+
+    # iterate through dates and print attendance details for each instructor
+    current_date = cutoff_date
+    while current_date <= date.today():
+        print("")
+        print( f"================ {current_date} ================" )
+        print("")
+
+        # get attendance for the current date
+        attendance_for_date = attendance.filter(date=current_date)
+
+        # attendance for Hiroki (id=4)
+        attendance_hiroki = attendance_for_date.filter(instructor__id=4)
+
+        # attendance for David (id=5)
+        attendance_david = attendance_for_date.filter(instructor__id=5)
+
+        # attendance for Lauren (id=8)
+        attendance_lauren = attendance_for_date.filter(instructor__id=8)
+
+        # attendance for Motoyo (id=6)
+        attendance_motoyo = attendance_for_date.filter(instructor__id=6)
+
+        # print attendance details
+        for x in attendance_hiroki:
+            print(x.linked_class)
+        print("-" * 30)
+
+        for x in attendance_david:
+            print(x.linked_class)
+        print("-" * 30)
+
+        for x in attendance_lauren:
+            print(x.linked_class)
+        print("-" * 30)
+
+        for x in attendance_motoyo:
+            print(x.linked_class)
+        print("-" * 30)
+
+        # increment current date
+        current_date += timedelta(days=1)
+
+    return JsonResponse({'status': '200 OK'})
