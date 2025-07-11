@@ -4,6 +4,7 @@ from django.http import JsonResponse
 # models
 from students.models import Students, StatusChoices
 from analytics.models import AtRiskStudents
+from attendance.models import Attendance
 
 # adjust student attendance status depending on their attendance records
 # also removes students who have quite from the AtRiskStudents list
@@ -51,5 +52,23 @@ def AdjustStudentAttendanceStatus(request):
         if at_risk_students.filter(student=student).exists():
             print(f"Removing {student.last_name_romaji}, {student.first_name_romaji} from AtRiskStudents")
             at_risk_students.filter(student=student).delete()
+
+    return JsonResponse({'status': '200 OK'})
+
+# removes attendance that does not have any associated attendance records
+def CleanAttendance(request):
+    # get all attendance and annotate with the count of associated attendance records
+    attendance = Attendance.objects.annotate(
+        attendance_record_count=Count('attendance_records')
+    ).filter(attendance_record_count=0)
+
+    for x in attendance:
+        print(x.linked_class)
+        print(x.instructor)
+        print(x.attendance_records.all())
+        print(x.date)
+        print(x.start_time)
+        print("=" * 50)
+        x.delete()
 
     return JsonResponse({'status': '200 OK'})
