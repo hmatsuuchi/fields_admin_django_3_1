@@ -10,9 +10,4 @@ urlpatterns = [
     path('events/archive_event/', views.ArchiveEventView.as_view(), name='archive_event'),
     path('events/choices/', views.EventChoicesView.as_view(), name='event_choices'),
     path('events/get_events_for_profile/', views.GetEventsForProfileView.as_view(), name='get_events_for_profile'),
-
-    # visit this path to import events from CSV
-    # be sure to disable this path when not in use
-    # 127.0.0.1:8000/api/schedule/events_import/
-    # path('events_import/', views.EventsImport, name='events_import'),
 ]

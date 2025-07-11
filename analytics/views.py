@@ -1,5 +1,6 @@
 from datetime import date, timedelta
 from django.db.models import Count, Max, Q
+from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -7,16 +8,18 @@ import os
 # models
 from attendance.models import AttendanceRecord
 from students.models import Students
-from analytics.models import AtRiskStudents
+from analytics.models import AtRiskStudents, StudentChurnModelTrainingHistory
 # machine learning imports
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import f1_score, precision_score, recall_score
 import joblib
 
 # ========================== FUNCTIONS ==========================
-# converts attendance records to binary data and normalizes the length of list
 def clean_normalize_data(student):
+    # ============ ATTENDANCE / IS ACTIVE ============
+    # converts attendance records to binary data and normalizes the length of list
     # students without present attendance in the last 28 days are considdered as having quit
     cutoff_date = date.today() - timedelta(days=28)
 
@@ -48,10 +51,88 @@ def clean_normalize_data(student):
         padding = [0] * (normalized_attendance_record_length - len(attendance_data))
         attendance_data = padding + attendance_data
 
+    # ============ AGE AT TIME OF MOST RECENT PRESENT ATTENDANCE RECORD ============
+    age_at_most_recent_present = 999
+
+    if student.birthday:
+        # calculates age in years at the time of most recent present attendance record
+        birthday = student.birthday
+        present_date = student.most_recent_present
+        years = present_date.year - birthday.year
+        # Adjust if the birthday hasn't occurred yet this year
+        if (present_date.month, present_date.day) < (birthday.month, birthday.day):
+            years -= 1
+        age_at_most_recent_present = years
+
+    print(f"{student.first_name_romaji}, {student.last_name_romaji}")
+    print(student.birthday)
+    print(f"Age at Most Recent Present: {age_at_most_recent_present}")
+    print(f"Attendance Record Length: {len(attendance_data)}")
+    print("-" * 50)
+
     return {
             'attendance': attendance_data,
+            'age_at_most_recent_present': age_at_most_recent_present,
             'currently_active': 1 if currently_active else 0,
         }
+
+# LOOP THROUGH STUDENTS AND PRINT DATA (FOR TESTING PURPOSES)
+def loop_through_students(request):
+    # cutoff date of 28 days ago
+    cutoff_date = date.today() - timedelta(days=28)
+
+    # get students
+    students = Students.objects.annotate(
+        attendance_record_count=Count('attendancerecord',
+        filter=Q(attendancerecord__status=3) | Q(attendancerecord__status=4),
+        ),
+        most_recent_present=Max(
+            'attendancerecord__attendance_reverse_relationship__date',
+            filter=Q(attendancerecord__status=3)
+        ),
+    ).filter(attendance_record_count__gte=2)
+
+    # get students without birthday data
+    students_without_birthday = students.filter(birthday__isnull=True)
+
+    # get students with status=3 (present) attendance in the last 28 days
+    students_with_recent_attendance = students.filter(most_recent_present__gte=cutoff_date)
+
+    for student in students:
+        age_at_most_recent_present = None
+        if student.birthday:
+            # calculates age in years at the time of most recent present attendance record
+            birthday = student.birthday
+            present_date = student.most_recent_present
+            years = present_date.year - birthday.year
+            # Adjust if the birthday hasn't occurred yet this year
+            if (present_date.month, present_date.day) < (birthday.month, birthday.day):
+                years -= 1
+            age_at_most_recent_present = years
+
+            # creates a list of binary values for student age at most recent present attendance
+            age_binary = [0] * 22 # 0 - 20 and over 20
+            if age_at_most_recent_present is not None:
+                if age_at_most_recent_present < 20:
+                    age_binary[age_at_most_recent_present] = 1
+                else:
+                    age_binary[20] = 1
+
+        print(f"{student.first_name_romaji} {student.last_name_romaji}")
+        print(student.birthday)
+        print(age_at_most_recent_present)
+        print(age_binary)
+        print("-" * 50)
+
+    print("")
+    print("=" * 50)
+    print(f"Student Count: {students.count()}")
+    print(f"Students Without Birthday Data Count: {students_without_birthday.count()}")
+    print(f"Students Recent Attendance Count: {students_with_recent_attendance.count()}")
+    print("=" * 50)
+    print("")
+
+    return JsonResponse({'status': '200 OK'})
 
 # TRAIN RANDOM FOREST CLASSIFIER ON STUDENT ATTENDANCE DATA (STUDENT CHURN)
 class StudentChurnModelTrain(APIView): 
@@ -74,11 +155,10 @@ class StudentChurnModelTrain(APIView):
 
 
 
-
             # ============================ NUMPY ============================
             # extract features (X) and labels (y)
-            X = [entry['attendance'] for entry in cleaned_data]
-            y = [entry['currently_active'] for entry in cleaned_data]
+            X = [data['attendance'] + [data['age_at_most_recent_present']] for data in cleaned_data]
+            y = [data['currently_active'] for data in cleaned_data]
 
             # convert to numpy arrays
             X = np.array(X)
@@ -92,7 +172,7 @@ class StudentChurnModelTrain(APIView):
             X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
             # Create and train the classifier
-            clf = RandomForestClassifier(n_estimators=100, random_state=42)
+            clf = RandomForestClassifier(n_estimators=500, random_state=42)
             clf.fit(X_train, y_train)
 
             # Predict on test set
@@ -100,8 +180,16 @@ class StudentChurnModelTrain(APIView):
 
             # Evaluate accuracy
             from sklearn.metrics import accuracy_score
-            print("Accuracy:", accuracy_score(y_test, y_pred))
 
+            # Save model training history
+            training_history = StudentChurnModelTrainingHistory(
+                model_name='Second Generation',
+                model_accuracy=accuracy_score(y_test, y_pred),
+                model_f1_score=f1_score(y_test, y_pred, average='weighted'),
+                model_precision=precision_score(y_test, y_pred, average='weighted'),
+                model_recall=recall_score(y_test, y_pred, average='weighted'),
+            )
+            training_history.save()
 
 
             # ================== SCIKIT-LEARN - SAVE MODEL ==================
@@ -121,55 +209,6 @@ class StudentChurnModelTrain(APIView):
 
             return Response(data, status=status.HTTP_200_OK)
         
-        except Exception as e:
-            print(e)
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        
-# PREDICT STUDENT CHURN USING RANDOM FOREST CLASSIFIER FOR SINGLE STUDENT
-class StudentChurnModelPredictForSingleStudent(APIView):
-    def get(self, request, student_id, format=None):
-        try:
-            # Load the trained model
-            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            model_filename = os.path.join(base_dir, 'analytics/ml_models/student_churn_model.pkl')
-            clf = joblib.load(model_filename)
-
-            # get student by id
-            student = Students.objects.annotate(
-                most_recent_present=Max(
-                    'attendancerecord__attendance_reverse_relationship__date',
-                    filter=Q(attendancerecord__status=3)
-                )
-                ).get(id=student_id)
-
-            # clean and normalize the data for the student
-            cleaned_normalized_data = clean_normalize_data(student)['attendance']
-
-            # convert to numpy array and reshape for prediction
-            attendance_data = np.array(cleaned_normalized_data).reshape(1, -1)  # Reshape for a single sample
-
-            # make prediction
-            prediction = clf.predict(attendance_data)
-
-            # add student to AtRiskStudents if prediction is 0 (predicted to quit)
-            if prediction[0] == 0:
-                # check if student is already in AtRiskStudents
-                at_risk_student, created = AtRiskStudents.objects.get_or_create(student=student)
-            else:
-                # remove student from AtRiskStudents if prediction is 1 (predicted to be active)
-                AtRiskStudents.objects.filter(student=student).delete()
-
-            data = {
-                'status': 'HTTP_200_OK',
-                # 'student_id': student.id,
-                # 'last_name': student.last_name_romaji,
-                # 'first_name': student.first_name_romaji,
-                # 'prediction': prediction[0],
-                # 'attendance_data': attendance_data,
-            }
-
-            return Response(data, status=status.HTTP_200_OK)
-
         except Exception as e:
             print(e)
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
@@ -195,10 +234,11 @@ class StudentChurnModelPredictForAttendanceRecord(APIView):
                 ).get(id=student_id)
 
             # clean and normalize the data for the student
-            cleaned_normalized_data = clean_normalize_data(student)['attendance']
+            cleaned_normalized_data = clean_normalize_data(student)
+            combined_data = cleaned_normalized_data['attendance'] + [cleaned_normalized_data['age_at_most_recent_present']]
 
             # convert to numpy array and reshape for prediction
-            attendance_data = np.array(cleaned_normalized_data).reshape(1, -1)  # Reshape for a single sample
+            attendance_data = np.array(combined_data).reshape(1, -1)  # Reshape for a single sample
 
             # make prediction
             prediction = clf.predict(attendance_data)
@@ -226,101 +266,3 @@ class StudentChurnModelPredictForAttendanceRecord(APIView):
             print(e)
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
-# PREDICT STUDENT CHURN USING RANDOM FOREST CLASSIFIER FOR ACTIVE STUDENTS
-class StudentChurnModelPredictForActiveStudents(APIView):
-    def get(self, request, format=None):
-        try:
-            # Load the trained model
-            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            model_filename = os.path.join(base_dir, 'analytics/ml_models/student_churn_model.pkl')
-            clf = joblib.load(model_filename)
-
-            # get cutoff date of 28 days ago
-            cutoff_date = date.today() - timedelta(days=28)
-
-            # get all students with more than 2 present attendance records and at least one present record within the last 28 days
-            students = (
-                Students.objects
-                .annotate(
-                    present_count=Count(
-                        'attendancerecord',
-                        filter=Q(attendancerecord__status=3)
-                    ),
-                    latest_present_record=Max(
-                        'attendancerecord__attendance_reverse_relationship__date',
-                        filter=Q(attendancerecord__status=3)
-                    )
-                )
-                .filter(
-                    present_count__gte=2,
-                    latest_present_record__gte=cutoff_date
-                )
-            )
-
-            # Prepare data for prediction
-            attendance_data_list = [] # list to hold attendance data for each student
-            student_data_list = [] # list to hold student data
-            for student in students:
-
-                # get all attendance records for the student
-                attendance_records = (
-                    AttendanceRecord.objects
-                    .filter(student=student)
-                    .order_by('attendance_reverse_relationship__date')
-                    .select_related('status')
-                    .prefetch_related('attendance_reverse_relationship')
-                )
-
-                attendance_data = [] # list to hold attendance data for the student
-                for record in attendance_records:
-                    if record.status.id == 3:
-                        attendance_data.append(1)
-                    else:
-                        attendance_data.append(0)
-
-                # normalize the length of attendance records
-                normalized_attendance_record_length = 300
-                if len(attendance_data) < normalized_attendance_record_length:
-                    padding = [0] * (normalized_attendance_record_length - len(attendance_data))
-                    attendance_data = padding + attendance_data
-
-                # append the attendance data to the list
-                attendance_data_list.append(attendance_data)
-
-                # append student data to the list
-                student_data_list.append({
-                    'student_id': student.id,
-                    'last_name_romaji': student.last_name_romaji,
-                    'first_name_romaji': student.first_name_romaji,
-                    'present_count': student.present_count,
-                })
-
-            # Convert to numpy array
-            X = np.array(attendance_data_list)
-            # Reshape for prediction
-            X = X.reshape(X.shape[0], -1)  # Reshape to (n_samples, n_features)
-
-            # Make predictions
-            predictions = clf.predict(X)
-
-            # combinge predictions with student data
-            results = [
-                {
-                    'student_id': student_data['student_id'],
-                    'last_name_romaji': student_data['last_name_romaji'],
-                    'first_name_romaji': student_data['first_name_romaji'],
-                    'present_count': student_data['present_count'],
-                    'prediction': int(prediction),  # Convert to int for JSON serialization
-                }
-                for student_data, prediction in zip(student_data_list, predictions)
-            ]
-
-            data = {
-                'results': results,
-            }
-
-            return Response(data, status=status.HTTP_200_OK)
-
-        except Exception as e:
-            print(e)
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

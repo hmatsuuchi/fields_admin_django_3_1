@@ -11,10 +11,12 @@ from authentication.permissions import isInStaffGroup
 from user_profiles.models import UserProfilesInstructors
 from attendance.models import AttendanceRecord
 from students.models import Students
-from analytics.models import HighestActiveStudentCount
+from analytics.models import HighestActiveStudentCount, AtRiskStudents
+# serializers
+from dashboard.serializers import AtRiskStudentSerializer
 
 # get all attendance records for single date
-class IncompleteAttendanceForInstructor(APIView):
+class IncompleteAttendanceForInstructorView(APIView):
     authentication_classes = ([CustomAuthentication])
     permission_classes = ([isInStaffGroup])
 
@@ -48,7 +50,7 @@ class IncompleteAttendanceForInstructor(APIView):
             return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
         
 # get student churn data
-class StudentChurn(APIView):
+class StudentChurnView(APIView):
     authentication_classes = ([CustomAuthentication])
     permission_classes = ([isInStaffGroup])
 
@@ -127,7 +129,7 @@ class StudentChurn(APIView):
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
 # get total active students data
-class TotalActiveStudents(APIView):
+class TotalActiveStudentsView(APIView):
     authentication_classes = ([CustomAuthentication])
     permission_classes = ([isInStaffGroup])
 
@@ -170,6 +172,30 @@ class TotalActiveStudents(APIView):
                     'count': highest_active_student_count.active_student_count,
                     'date': highest_active_student_count.date_time_created,
                 },
+            }
+
+            return Response(data, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            print(e)
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+# get list of students at risk of churn
+class AtRiskStudentsView(APIView):
+    authentication_classes = ([CustomAuthentication])
+    permission_classes = ([isInStaffGroup])
+
+    def get(self, request, format=None):        
+        try:
+
+            # get at risk student list
+            at_risk_students = AtRiskStudents.objects.all().order_by('-date_time_created')
+
+            # serialize student list
+            serializer = AtRiskStudentSerializer(at_risk_students, many=True)
+
+            data = {
+                'at_risk_students': serializer.data,
             }
 
             return Response(data, status=status.HTTP_200_OK)

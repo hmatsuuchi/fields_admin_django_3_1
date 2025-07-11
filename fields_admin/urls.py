@@ -12,6 +12,7 @@ import journal.urls as JournalUrls
 import dashboard.urls as DashboardUrls
 import game.urls as GameUrls
 import analytics.urls as AnalyticsUrls
+import utilities.urls as UtilitiesUrls
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -44,4 +45,7 @@ urlpatterns = [
 
     # analytics
     path('api/analytics/', include(AnalyticsUrls)),
+
+    # utilities
+    path('api/utilities/', include(UtilitiesUrls)),
 ]
