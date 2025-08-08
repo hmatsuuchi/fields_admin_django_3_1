@@ -62,8 +62,8 @@ class GetActiveInstructorsView(APIView):
     permission_classes = ([isInStaffGroup])
 
     def get(self, request):
-        # get the instructor group
-        instructor_group = Group.objects.get(name='Instructors')
+        # get the instructor_staff group
+        instructor_group = Group.objects.get(name='Instructors_Staff')
 
         active_instructors = User.objects.filter(is_active=True, groups=instructor_group).order_by('username')
         instructors_serializer = InstructorSerializer(active_instructors, many=True)
