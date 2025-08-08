@@ -1,7 +1,7 @@
 from django.http import JsonResponse
 from .models import Journal, JournalType
 from students.models import Students
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 import csv
 from rest_framework.views import APIView
 # models
@@ -11,7 +11,7 @@ from authentication.customAuthentication import CustomAuthentication
 # group permission control
 from authentication.permissions import isInStaffGroup
 # serializers
-from .serializers import GetJournalForProfileSerializer
+from .serializers import GetJournalForProfileSerializer, JournalTypeSerializer, InstructorSerializer, CreateJournalEntrySerializer, GetProfileDataSerializer
 
 
 # get journal entries for a specific profile
@@ -40,7 +40,87 @@ class GetJournalForProfileView(APIView):
         
         except Students.DoesNotExist:
             return JsonResponse({'error': 'Student not found'}, status=404)
+        
+# get journal types
+class GetJournalTypesView(APIView):
+    authentication_classes = ([CustomAuthentication])
+    permission_classes = ([isInStaffGroup])
 
+    def get(self, request):
+        journal_types = JournalType.objects.all().order_by('order')
+        journal_types_serializer = JournalTypeSerializer(journal_types, many=True)
+
+        data = {
+            'journal_types': journal_types_serializer.data
+        }
+
+        return JsonResponse(data, safe=False)
+    
+# get active instructors
+class GetActiveInstructorsView(APIView):
+    authentication_classes = ([CustomAuthentication])
+    permission_classes = ([isInStaffGroup])
+
+    def get(self, request):
+        # get the instructor group
+        instructor_group = Group.objects.get(name='Instructors')
+
+        active_instructors = User.objects.filter(is_active=True, groups=instructor_group).order_by('username')
+        instructors_serializer = InstructorSerializer(active_instructors, many=True)
+
+        data = {
+            'active_instructors': instructors_serializer.data
+        }
+
+        return JsonResponse(data, safe=False)
+
+# create a journal entry
+class CreateJournalEntryView(APIView):
+    authentication_classes = ([CustomAuthentication])
+    permission_classes = ([isInStaffGroup])
+
+    def post(self, request):
+        # gets data from the request
+        data = request.data
+
+        # checks for blank time field and sets it to None if empty
+        if data.get('time') == '':
+            data['time'] = None
+
+        serializer = CreateJournalEntrySerializer(data=data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse({'status': 'Journal entry created successfully'}, status=201)
+        else:
+            print(serializer.errors)
+            return JsonResponse(serializer.errors, status=400)
+        
+# get profile data
+class GetProfileDataView(APIView):
+    authentication_classes = ([CustomAuthentication])
+    permission_classes = ([isInStaffGroup])
+
+    def get(self, request):
+        profile_id = request.GET.get('profile_id')
+
+        print(profile_id)
+
+        if not profile_id:
+            return JsonResponse({'error': 'Profile ID is required'}, status=400)
+
+        try:
+            # get the student profile data
+            student = Students.objects.get(id=profile_id)
+
+            # serialize the student data
+            serializer = GetProfileDataSerializer(student)
+
+            return JsonResponse(serializer.data, status=200)
+        
+        except Students.DoesNotExist:
+            return JsonResponse({'error': 'Student not found'}, status=404)
+        
 # used to journal events from CSV     
 def JournalImport(request):
     print('')

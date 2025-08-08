@@ -3,6 +3,7 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import Journal, JournalType
 from user_profiles.models import UserProfilesInstructors
+from students.models import Students
 
 # ======= JOURNAL FOR STUDENT PROFILE SERIALIZERS =======
 
@@ -10,7 +11,7 @@ from user_profiles.models import UserProfilesInstructors
 class JournalTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = JournalType
-        fields = ['id', 'name']
+        fields = '__all__'
 
 # User Profile Instructor Serializer
 class UserProfileInstructorSerializer(serializers.ModelSerializer):
@@ -40,3 +41,19 @@ class GetJournalForProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Journal
         fields = ['id', 'date', 'time', 'type', 'instructor', 'text']
+
+# ======= CREATE/UPDATE/DELETE JOURNAL ENTRY =======
+
+# Create Journal Entry Serializer
+class CreateJournalEntrySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Journal
+        fields = "__all__"
+
+# Get Profile Data Serializer
+class GetProfileDataSerializer(serializers.ModelSerializer):
+    status_verbose = serializers.ReadOnlyField()
+
+    class Meta:
+        model = Students
+        fields = "__all__"
