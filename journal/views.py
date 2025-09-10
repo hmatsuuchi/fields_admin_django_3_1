@@ -27,7 +27,7 @@ class GetJournalForProfileView(APIView):
 
         try:
             # get journal entries for the student
-            journal_entries = Journal.objects.filter(student__id=profile_id).order_by('-date', '-time')
+            journal_entries = Journal.objects.filter(student__id=profile_id, archived=False).order_by('-date', '-time')
 
             # serialize the journal entries
             journal_entries_serializer = GetJournalForProfileSerializer(journal_entries, many=True)
@@ -120,7 +120,28 @@ class GetProfileDataView(APIView):
         
         except Students.DoesNotExist:
             return JsonResponse({'error': 'Student not found'}, status=404)
-        
+
+# archive a journal entry
+class ArchiveJournalEntryView(APIView):
+    authentication_classes = ([CustomAuthentication])
+    permission_classes = ([isInStaffGroup])
+
+    def post(self, request):
+        journal_id = request.data.get('journal_id')
+
+        if not journal_id:
+            return JsonResponse({'error': 'Journal ID is required'}, status=400)
+
+        try:
+            journal = Journal.objects.get(id=journal_id)
+            journal.archived = True
+            journal.save()
+
+            return JsonResponse({'status': 'Journal entry archived successfully'}, status=200)
+
+        except Journal.DoesNotExist:
+            return JsonResponse({'error': 'Journal entry not found'}, status=404)
+
 # used to journal events from CSV     
 def JournalImport(request):
     print('')

@@ -9,6 +9,7 @@ class Journal(models.Model):
     type            = models.ForeignKey('JournalType', on_delete=models.CASCADE)
     instructor      = models.ManyToManyField(User)
     text            = models.TextField(null=True, blank=True)
+    archived        = models.BooleanField(default=False)
 
 class JournalType(models.Model):
     name            = models.CharField(max_length=100)
