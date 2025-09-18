@@ -5,6 +5,10 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 import os
+# authentication
+from authentication.customAuthentication import CustomAuthentication
+# group permission control
+from authentication.permissions import isInStaffGroup
 # models
 from attendance.models import AttendanceRecord
 from students.models import Students
@@ -64,11 +68,11 @@ def clean_normalize_data(student):
             years -= 1
         age_at_most_recent_present = years
 
-    print(f"{student.first_name_romaji}, {student.last_name_romaji}")
-    print(student.birthday)
-    print(f"Age at Most Recent Present: {age_at_most_recent_present}")
-    print(f"Attendance Record Length: {len(attendance_data)}")
-    print("-" * 50)
+    # print(f"{student.first_name_romaji}, {student.last_name_romaji}")
+    # print(student.birthday)
+    # print(f"Age at Most Recent Present: {age_at_most_recent_present}")
+    # print(f"Attendance Record Length: {len(attendance_data)}")
+    # print("-" * 50)
 
     return {
             'attendance': attendance_data,
@@ -215,6 +219,9 @@ class StudentChurnModelTrain(APIView):
         
 # PREDICT STUDENT CHURN USING RANDOM FOREST CLASSIFIER FOR ATTENDANCE RECORD
 class StudentChurnModelPredictForAttendanceRecord(APIView):
+    authentication_classes = ([CustomAuthentication])
+    permission_classes = ([isInStaffGroup])
+
     def get(self, request, attendance_record_id, format=None):
         try:
             # Load the trained model
