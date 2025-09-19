@@ -203,3 +203,20 @@ class AtRiskStudentsView(APIView):
         except Exception as e:
             print(e)
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+# get list of students with upcoming birthdays
+class UpcomingBirthdaysView(APIView):
+    authentication_classes = ([CustomAuthentication])
+    permission_classes = ([isInStaffGroup])
+
+    def get(self, request, format=None):        
+        try:
+            print("Fetching upcoming birthdays...")
+
+            birthday_data = [{'placeholder_data': 'This is placeholder data for testing.'}]  # Placeholder data for testing
+
+            return Response(birthday_data, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            print(e)
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
