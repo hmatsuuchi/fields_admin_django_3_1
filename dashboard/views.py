@@ -2,7 +2,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from datetime import date, datetime, timedelta
-from django.db.models import Count, Q, Min, Max
+from django.db.models import Count, Q, Min, Max, Prefetch
 # authentication
 from authentication.customAuthentication import CustomAuthentication
 # group permission control
@@ -12,8 +12,10 @@ from user_profiles.models import UserProfilesInstructors
 from attendance.models import AttendanceRecord
 from students.models import Students
 from analytics.models import HighestActiveStudentCount, AtRiskStudents
+from schedule.models import Events
 # serializers
 from dashboard.serializers import AtRiskStudentSerializer
+from dashboard.serializers import UpcomingBirthdayStudentSerializer
 
 # get all attendance records for single date
 class IncompleteAttendanceForInstructorView(APIView):
@@ -211,9 +213,46 @@ class UpcomingBirthdaysView(APIView):
 
     def get(self, request, format=None):        
         try:
-            print("Fetching upcoming birthdays...")
+            start_date          = datetime.now() # today
+            day_of_week_today   = start_date.weekday() # day of the week (0=Monday, 6=Sunday)
 
-            birthday_data = [{'placeholder_data': 'This is placeholder data for testing.'}]  # Placeholder data for testing
+            # date_offset         = 4
+            # start_date          = datetime.now() + timedelta(days=date_offset)
+            # day_of_week_today   = start_date.weekday()
+
+            # create a list of (month, day) tuples for the next 7 days
+            date_list = [
+                (d.month, d.day)
+                for d in (start_date + timedelta(days=i) for i in range(7))
+            ]
+
+            # create a Q object to hold the OR conditions
+            q_objects = Q()
+            for month, day in date_list:
+                q_objects |= Q(birthday__month=month, birthday__day=day)
+
+            # get all active students
+            active_students = Students.objects.filter(status=2)
+
+            # filter by active lessons on current day of the week
+            students_with_lessons_today = active_students.filter(events__day_of_week=day_of_week_today, events__archived=False).distinct()
+
+            # students with birthday data
+            students_with_birthday_data = students_with_lessons_today.filter(
+                birthday__isnull=False
+            )
+            
+            # students with birthdays within the next 7 days
+            students_with_upcoming_birthdays = students_with_birthday_data.filter(q_objects).order_by('events__start_time')
+
+            # get related objects to reduce queries
+            students_with_upcoming_birthdays = students_with_upcoming_birthdays.prefetch_related(Prefetch('events_set', queryset=Events.objects.filter(day_of_week=day_of_week_today, archived=False))
+)
+
+            # serialize data
+            serializer = UpcomingBirthdayStudentSerializer(students_with_upcoming_birthdays, many=True)
+
+            birthday_data = serializer.data
 
             return Response(birthday_data, status=status.HTTP_200_OK)
         
