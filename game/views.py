@@ -1,4 +1,5 @@
 from django.db.models import OuterRef, Subquery
+from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.response import Response
@@ -16,6 +17,7 @@ from .serializers import AttendanceRecordSerializer, CheckInSerializer
 # importing csv
 import csv
 
+# get student data based on card UUID
 class GetStudentDataView(APIView):
     authentication_classes = ([CustomAuthentication])
     permission_classes = ([isInDisplaysGroup])
@@ -25,15 +27,17 @@ class GetStudentDataView(APIView):
             # get UUID from request
             card_uuid = request.GET.get('card_uuid')
             # lookup card UUID
-            card_record = CardUUID.objects.get(card_uuid=card_uuid)
+            # card_record = CardUUID.objects.get(card_uuid=card_uuid)
+            card_record = get_object_or_404(CardUUID, card_uuid=card_uuid)
 
             # get linked student
-            student = Students.objects.get(id=card_record.linked_student.id)
+            # student = Students.objects.get(id=card_record.linked_student.id)
+            student = get_object_or_404(Students, id=card_record.linked_student.id)
 
             # get related attendance records
-            attendance_records = AttendanceRecord.objects.filter(student=student).order_by('attendance_reverse_relationship__date').prefetch_related('attendance_reverse_relationship')
+            attendance_records = AttendanceRecord.objects.filter(student=student).order_by('attendance_reverse_relationship__date').select_related('status').prefetch_related('attendance_reverse_relationship')
             # filter attendance records for present status
-            attendance_present_records = attendance_records.filter(student=student, status=3)
+            attendance_present_records = attendance_records.filter(status=3)
             # count attendance records for present status
             attendance_present_count = attendance_present_records.count()
 
@@ -62,7 +66,6 @@ class GetStudentDataView(APIView):
             print(e)
             return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
 
-
 # get recent checkins
 class GetRecentCheckinsView(APIView):
     authentication_classes = ([CustomAuthentication])
@@ -79,7 +82,7 @@ class GetRecentCheckinsView(APIView):
             checkins = CheckIn.objects.filter(
                 id=Subquery(latest_checkins.values('id')[:1])
             ).order_by('-date_time_created'
-            ).prefetch_related('student')[:15]
+            ).select_related('student')[:15]
 
             # Serialize the queryset
             checkins_serializer = CheckInSerializer(checkins, many=True)

@@ -216,7 +216,7 @@ class UpcomingBirthdaysView(APIView):
             start_date          = datetime.now() # today
             day_of_week_today   = start_date.weekday() # day of the week (0=Monday, 6=Sunday)
 
-            # date_offset         = 4
+            # date_offset         = 0
             # start_date          = datetime.now() + timedelta(days=date_offset)
             # day_of_week_today   = start_date.weekday()
 
