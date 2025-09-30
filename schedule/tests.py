@@ -11,8 +11,11 @@ from students.models import Students, PrefectureChoices, PhoneChoice, Phone, Gra
 from .models import Events, EventType
 
 
-# ===================== Events All View Tests =====================
-# ------- tests access permissions -------
+# ======================================
+# ======= EVENTS LIST VIEW TESTS =======
+# ======================================
+
+# ========= ACCESS PERMISSIONS =========
 
 # users NOT logged in CANNOT access the events all view
 class EventsAllViewAsUnauthenticatedUserTest(TestCase):

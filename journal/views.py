@@ -126,7 +126,7 @@ class ArchiveJournalEntryView(APIView):
     authentication_classes = ([CustomAuthentication])
     permission_classes = ([isInStaffGroup])
 
-    def post(self, request):
+    def put(self, request):
         journal_id = request.data.get('journal_id')
 
         if not journal_id:
