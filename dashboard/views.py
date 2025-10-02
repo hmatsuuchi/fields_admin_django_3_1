@@ -243,11 +243,10 @@ class UpcomingBirthdaysView(APIView):
             )
             
             # students with birthdays within the next 7 days
-            students_with_upcoming_birthdays = students_with_birthday_data.filter(q_objects).order_by('events__start_time')
+            students_with_upcoming_birthdays = students_with_birthday_data.filter(q_objects).annotate(earliest_event_start_time=Min('events__start_time')).order_by('earliest_event_start_time')
 
             # get related objects to reduce queries
-            students_with_upcoming_birthdays = students_with_upcoming_birthdays.prefetch_related(Prefetch('events_set', queryset=Events.objects.filter(day_of_week=day_of_week_today, archived=False))
-)
+            students_with_upcoming_birthdays = students_with_upcoming_birthdays.prefetch_related(Prefetch('events_set', queryset=Events.objects.filter(day_of_week=day_of_week_today, archived=False)))
 
             # serialize data
             serializer = UpcomingBirthdayStudentSerializer(students_with_upcoming_birthdays, many=True)
