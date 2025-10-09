@@ -17,3 +17,12 @@ class isInDisplaysGroup(permissions.BasePermission):
             return False
         # checks if user in in Displays group
         return request.user.groups.filter(name="Displays").exists()
+    
+class isInSuperusersGroup(permissions.BasePermission):
+    def has_permission(self, request, view):
+        # checks if user is authenticated
+        if not request.user.is_authenticated:
+            print("Error: user not in SUPERUSERS group - user not authenticated")
+            return False
+        # checks if user in in Superusers group
+        return request.user.groups.filter(name="Superusers").exists()

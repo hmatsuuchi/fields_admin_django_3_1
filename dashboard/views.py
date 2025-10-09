@@ -7,6 +7,7 @@ from django.db.models import Count, Q, Min, Max, Prefetch
 from authentication.customAuthentication import CustomAuthentication
 # group permission control
 from authentication.permissions import isInStaffGroup
+from authentication.permissions import isInSuperusersGroup
 # models
 from user_profiles.models import UserProfilesInstructors
 from attendance.models import AttendanceRecord
@@ -17,7 +18,7 @@ from schedule.models import Events
 from dashboard.serializers import AtRiskStudentSerializer
 from dashboard.serializers import UpcomingBirthdayStudentSerializer
 
-# get all attendance records for single date
+# get all incomplete recent attendance records for an instructor
 class IncompleteAttendanceForInstructorView(APIView):
     authentication_classes = ([CustomAuthentication])
     permission_classes = ([isInStaffGroup])
@@ -258,3 +259,25 @@ class UpcomingBirthdaysView(APIView):
         except Exception as e:
             print(e)
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+# ==============================================
+# ================== OVERVIEW ==================
+# ==============================================
+
+# get all incomplete recent attendance records for an instructor
+class IncompleteAttendanceForAllInstructorsView(APIView):
+    authentication_classes = ([CustomAuthentication])
+    permission_classes = ([isInSuperusersGroup])
+
+    def get(self, request, format=None):
+        try:
+
+            data = {
+                'some_data': "This is some data",
+            }
+
+            return Response(data, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            print(e)
+            return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
