@@ -59,7 +59,7 @@ class StudentChurnView(APIView):
 
     def get(self, request, format=None):        
         try:
-            # get students with four or more present attendance records
+            # get students with two or more present attendance records
             students_with_attendance = (
                 Students.objects
                 .annotate(
@@ -178,6 +178,61 @@ class TotalActiveStudentsView(APIView):
             }
 
             return Response(data, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            print(e)
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+# get historical data of total active students
+class TotalActiveStudentsHistoricalView(APIView):
+    authentication_classes = ([CustomAuthentication])
+    permission_classes = ([isInStaffGroup])
+
+    def get(self, request, format=None):
+        try:
+            # get students with two or more present attendance records
+            students_with_attendance = (
+                Students.objects
+                .annotate(
+                    present_count = Count('attendancerecord', filter=Q(attendancerecord__status=3)),
+                    earliest_present = Min('attendancerecord__attendance_reverse_relationship__date', filter=Q(attendancerecord__status=3)),
+                    latest_present = Max('attendancerecord__attendance_reverse_relationship__date', filter=Q(attendancerecord__status=3)),
+                )
+                .filter(present_count__gte=2)
+            )
+
+            # create a list of historical data
+            historical_data = []
+            # iterative parameters to generate historical data
+            today = date.today()
+            start_date = today - timedelta(days=365 * 2)  # 2 years ago
+            current_date = start_date
+
+            # iterate through each month from start_date to today
+            while current_date <= today:
+                # get the start of the current month
+                current_month_start = current_date.replace(day=1)
+
+                # get the start and end of the next month
+                next_month_start = (current_month_start + timedelta(days=31)).replace(day=1)
+                next_month_end = next_month_start - timedelta(days=1)
+
+                # count active students for the month
+                active_students_count = sum(
+                    1 for student in students_with_attendance
+                    if student.earliest_present < next_month_start and student.latest_present >= current_month_start
+                )
+
+                historical_data.append({
+                    'year': current_month_start.year,
+                    'month': current_month_start.month,
+                    'active_students_count': active_students_count,
+                })
+
+                # move to the next month
+                current_date = next_month_start
+
+            return Response(historical_data, status=status.HTTP_200_OK)
         
         except Exception as e:
             print(e)
