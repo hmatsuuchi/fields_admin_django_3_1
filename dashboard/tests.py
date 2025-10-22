@@ -553,6 +553,187 @@ class TotalActiveStudentsViewAsSuperusersGroupTest(TestCase):
         # response status code is 403 FORBIDDEN
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+
+# ===========================================================
+# ======= TOTAL ACTIVE STUDENTS HISTORICAL VIEW TESTS =======
+# ===========================================================
+
+# users NOT logged in CANNOT access the total active students historical view
+class TotalActiveStudentsHistoricalViewAsUnauthenticatedUserTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+    def test_view_get(self):
+        # attempt to access view
+        response = self.client.get('/api/dashboard/dashboard/total_active_students_historical/')
+
+        # response status code is 401 UNAUTHORIZED
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+# users logged in but NOT in any group CANNOT access the total active students historical view
+class TotalActiveStudentsHistoricalViewAsNoGroupUserTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create user
+        self.user = User.objects.create_user(
+            username='testuser', password='testpassword')
+
+        # authenticate user
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        # attempt to access view
+        response = self.client.get('/api/dashboard/dashboard/total_active_students_historical/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in but in the 'Administrators' group CANNOT access the total active students historical view
+class TotalActiveStudentsHistoricalViewAsAdministratorsGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create user
+        self.user = User.objects.create_user(
+            username='testuser', password='testpassword')
+
+        # add user to 'Administrators' group
+        administrators_group = Group.objects.create(name='Administrators')
+        self.user.groups.add(administrators_group)
+
+        # authenticate user
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        # attempt to access view
+        response = self.client.get('/api/dashboard/dashboard/total_active_students_historical/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in but in the 'Customers' group CANNOT access the total active students historical view
+class TotalActiveStudentsHistoricalViewAsCustomersGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create user
+        self.user = User.objects.create_user(
+            username='testuser', password='testpassword')
+
+        # add user to 'Customers' group
+        customers_group = Group.objects.create(name='Customers')
+        self.user.groups.add(customers_group)
+
+        # authenticate user
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        # attempt to access view
+        response = self.client.get('/api/dashboard/dashboard/total_active_students_historical/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in and in the 'Displays' group CANNOT access the total active students historical view
+class TotalActiveStudentsHistoricalViewAsDisplaysGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create user
+        self.user = User.objects.create_user(
+            username='testuser', password='testpassword')
+
+        # add user to 'Displays' group
+        displays_group = Group.objects.create(name='Displays')
+        self.user.groups.add(displays_group)
+
+        # authenticate user
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        # attempt to access view
+        response = self.client.get('/api/dashboard/dashboard/total_active_students_historical/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+# users logged in and in the 'Instructors' group CANNOT access the total active students historical view
+class TotalActiveStudentsHistoricalViewAsInstructorsGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create user
+        self.user = User.objects.create_user(
+            username='testuser', password='testpassword')
+
+        # add user to 'Instructors' group
+        instructors_group = Group.objects.create(name='Instructors')
+        self.user.groups.add(instructors_group)
+
+        # authenticate user
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        # attempt to access view
+        response = self.client.get('/api/dashboard/dashboard/total_active_students_historical/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in and in the 'Instructors_Staff' group CANNOT access the total active students historical view
+class TotalActiveStudentsHistoricalViewAsInstructorsStaffGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create user
+        self.user = User.objects.create_user(
+            username='testuser', password='testpassword')
+
+        # add user to 'Instructors_Staff' group
+        instructors_staff_group = Group.objects.create(name='Instructors_Staff')
+        self.user.groups.add(instructors_staff_group)
+
+        # authenticate user
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        # attempt to access view
+        response = self.client.get('/api/dashboard/dashboard/total_active_students_historical/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in and in the 'Superusers' group CANNOT access the total active students historical view
+class TotalActiveStudentsHistoricalViewAsSuperusersGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create user
+        self.user = User.objects.create_user(
+            username='testuser', password='testpassword')
+
+        # add user to 'Superusers' group
+        superusers_group = Group.objects.create(name='Superusers')
+        self.user.groups.add(superusers_group)
+
+        # authenticate user
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        # attempt to access view
+        response = self.client.get('/api/dashboard/dashboard/total_active_students_historical/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
 # ===========================================
 # ======= AT RISK STUDENTS VIEW TESTS =======
 # ===========================================
@@ -915,3 +1096,186 @@ class UpcomingBirthdaysViewAsSuperusersGroupTest(TestCase):
     def test_view_get(self):
         # attempt to access view
         response = self.client.get('/api/dashboard/dashboard/upcoming_birthdays/')
+
+# ===============================================================================
+# ======= OVERVIEW - INCOMPLETE ATTENDANCE FOR ALL INSTRUCTORS VIEW TESTS =======
+# ===============================================================================
+
+# ============ ACCESS PERMISSIONS ============
+
+# users NOT logged in CANNOT access the incomplete attendance for all instructors view
+class IncompleteAttendanceForAllInstructorsViewAsUnauthenticatedUserTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+    def test_view_get(self):
+        # attempt to access view
+        response = self.client.get('/api/dashboard/dashboard/incomplete_attendance_for_all_instructors/')
+
+        # response status code is 401 UNAUTHORIZED
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+# users logged in but NOT in any group CANNOT access the incomplete attendance for all instructors view
+class IncompleteAttendanceForAllInstructorsViewAsNoGroupUserTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create user
+        self.user = User.objects.create_user(
+            username='testuser', password='testpassword')
+
+        # authenticate user
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        # attempt to access view
+        response = self.client.get('/api/dashboard/dashboard/incomplete_attendance_for_all_instructors/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in but in the 'Administrators' group CANNOT access the incomplete attendance for all instructors view
+class IncompleteAttendanceForAllInstructorsViewAsAdministratorsGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create user
+        self.user = User.objects.create_user(
+            username='testuser', password='testpassword')
+
+        # add user to 'Administrators' group
+        administrators_group = Group.objects.create(name='Administrators')
+        self.user.groups.add(administrators_group)
+
+        # authenticate user
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        # attempt to access view
+        response = self.client.get('/api/dashboard/dashboard/incomplete_attendance_for_all_instructors/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in but in the 'Customers' group CANNOT access the incomplete attendance for all instructors view
+class IncompleteAttendanceForAllInstructorsViewAsCustomersGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create user
+        self.user = User.objects.create_user(
+            username='testuser', password='testpassword')
+
+        # add user to 'Customers' group
+        customers_group = Group.objects.create(name='Customers')
+        self.user.groups.add(customers_group)
+
+        # authenticate user
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        # attempt to access view
+        response = self.client.get('/api/dashboard/dashboard/incomplete_attendance_for_all_instructors/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in and in the 'Displays' group CANNOT access the incomplete attendance for all instructors view
+class IncompleteAttendanceForAllInstructorsViewAsDisplaysGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create user
+        self.user = User.objects.create_user(
+            username='testuser', password='testpassword')
+
+        # add user to 'Displays' group
+        displays_group = Group.objects.create(name='Displays')
+        self.user.groups.add(displays_group)
+
+        # authenticate user
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        # attempt to access view
+        response = self.client.get('/api/dashboard/dashboard/incomplete_attendance_for_all_instructors/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in and in the 'Instructors' group CANNOT access the incomplete attendance for all instructors view
+class IncompleteAttendanceForAllInstructorsViewAsInstructorsGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create user
+        self.user = User.objects.create_user(
+            username='testuser', password='testpassword')
+
+        # add user to 'Instructors' group
+        instructors_group = Group.objects.create(name='Instructors')
+        self.user.groups.add(instructors_group)
+
+        # authenticate user
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        # attempt to access view
+        response = self.client.get('/api/dashboard/dashboard/incomplete_attendance_for_all_instructors/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in and in the 'Instructors_Staff' group CANNOT access the incomplete attendance for all instructors view
+class IncompleteAttendanceForAllInstructorsViewAsInstructorsStaffGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create user
+        self.user = User.objects.create_user(
+            username='testuser', password='testpassword')
+
+        # add user to 'Instructors_Staff' group
+        instructors_staff_group = Group.objects.create(name='Instructors_Staff')
+        self.user.groups.add(instructors_staff_group)
+
+        # authenticate user
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        # attempt to access view
+        response = self.client.get('/api/dashboard/dashboard/incomplete_attendance_for_all_instructors/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in and in the 'Staff' group CANNOT access the incomplete attendance for all instructors view
+class IncompleteAttendanceForAllInstructorsViewAsStaffGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create user
+        self.user = User.objects.create_user(
+            username='testuser', password='testpassword')
+
+        # add user to 'Staff' group
+        staff_group = Group.objects.create(name='Staff')
+        self.user.groups.add(staff_group)
+
+        # authenticate user
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        # attempt to access view
+        response = self.client.get('/api/dashboard/dashboard/incomplete_attendance_for_all_instructors/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

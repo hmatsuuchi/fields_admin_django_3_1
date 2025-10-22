@@ -1,4 +1,4 @@
-from django.db.models import OuterRef, Subquery
+from django.db.models import OuterRef, Subquery, Count, Q
 from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
 from rest_framework import status
@@ -26,23 +26,29 @@ class GetStudentDataView(APIView):
         try:
             # get UUID from request
             card_uuid = request.GET.get('card_uuid')
-            # lookup card UUID
-            # card_record = CardUUID.objects.get(card_uuid=card_uuid)
-            card_record = get_object_or_404(CardUUID, card_uuid=card_uuid)
+
+            # get student record, attendance data and attendance count
+            card_record = get_object_or_404(
+                CardUUID.objects.select_related('linked_student').annotate(
+                    attendance_present_count=Count(
+                        'linked_student__attendancerecord',
+                        filter=Q(linked_student__attendancerecord__status=3)
+                    )
+                ),
+                card_uuid=card_uuid
+            )
 
             # get linked student
-            # student = Students.objects.get(id=card_record.linked_student.id)
-            student = get_object_or_404(Students, id=card_record.linked_student.id)
-
-            # get related attendance records
-            attendance_records = AttendanceRecord.objects.filter(student=student).order_by('attendance_reverse_relationship__date').select_related('status').prefetch_related('attendance_reverse_relationship')
-            # filter attendance records for present status
-            attendance_present_records = attendance_records.filter(status=3)
+            student = card_record.linked_student
             # count attendance records for present status
-            attendance_present_count = attendance_present_records.count()
+            attendance_present_count = card_record.attendance_present_count
+
+            # === no need to fetch and serialize attendance records yet as they are not displayed in frontend ===
+            # get related attendance records
+            # attendance_records = AttendanceRecord.objects.filter(student=student).order_by('attendance_reverse_relationship__date').select_related('status').prefetch_related('attendance_reverse_relationship')
 
             # serialize attendance records
-            attendance_records_serialzer = AttendanceRecordSerializer(attendance_records, many=True)
+            # attendance_records_serialzer = AttendanceRecordSerializer(attendance_records, many=True)
 
             # create checkin record
             CheckIn.objects.create(
@@ -56,8 +62,7 @@ class GetStudentDataView(APIView):
                 'student_first_name_romaji': student.first_name_romaji,
                 'student_grade_verbose': student.grade_verbose,
                 'attendance_present_count': attendance_present_count,
-                'attendance_records': attendance_records_serialzer.data,
-
+                # 'attendance_records': attendance_records_serialzer.data,
             }
 
             return Response(data, status=status.HTTP_200_OK)
