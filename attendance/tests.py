@@ -12,6 +12,7 @@ from .models import Attendance, AttendanceRecord, AttendanceRecordStatus
 from schedule.models import Events, EventType
 from students.models import Students, GradeChoices, StatusChoices
 from user_profiles.models import UserProfilesInstructors
+
 # ==============================================
 # ======= ATTENDANCE FOR DATE VIEW TESTS =======
 # ==============================================

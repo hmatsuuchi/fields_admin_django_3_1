@@ -49,6 +49,29 @@ class EventsAllViewAsNoGroupTest(TestCase):
         # response status code is 403 FORBIDDEN
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+# users logged in but in the 'Administrators' group CANNOT access the events all view
+class EventsAllViewAsAdministratorsGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        # add test user to 'Administrators' group
+        administrators_group = Group.objects.create(name='Administrators')
+        self.user.groups.add(administrators_group)
+
+        # set test user as authenticated
+        self.client.force_authenticate(user=self.user)
+
+    def test_events_all_view(self):
+        # attempt to access events all view
+        response = self.client.get('/api/schedule/events/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
 # users logged in but in the 'Customers' group CANNOT access the events all view
 class EventsAllViewAsCustomersGroupTest(TestCase):
     def setUp(self):
@@ -61,6 +84,98 @@ class EventsAllViewAsCustomersGroupTest(TestCase):
         # add test user to 'Customers' group
         customers_group = Group.objects.create(name='Customers')
         self.user.groups.add(customers_group)
+
+        # set test user as authenticated
+        self.client.force_authenticate(user=self.user)
+
+    def test_events_all_view(self):
+        # attempt to access events all view
+        response = self.client.get('/api/schedule/events/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in and in the 'Displays' group CANNOT access the events all view
+class EventsAllViewAsDisplaysGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        # add test user to 'Displays' group
+        displays_group = Group.objects.create(name='Displays')
+        self.user.groups.add(displays_group)
+
+        # set test user as authenticated
+        self.client.force_authenticate(user=self.user)
+
+    def test_events_all_view(self):
+        # attempt to access events all view
+        response = self.client.get('/api/schedule/events/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in but in the 'Instructors' group CANNOT access the events all view
+class EventsAllViewAsInstructorsGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        # add test user to 'Instructors' group
+        instructors_group = Group.objects.create(name='Instructors')
+        self.user.groups.add(instructors_group)
+
+        # set test user as authenticated
+        self.client.force_authenticate(user=self.user)
+
+    def test_events_all_view(self):
+        # attempt to access events all view
+        response = self.client.get('/api/schedule/events/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in but in the 'Instructors_Staff' group CANNOT access the events all view
+class EventsAllViewAsInstructorsStaffGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        # add test user to 'Instructors_Staff' group
+        instructors_staff_group = Group.objects.create(name='Instructors_Staff')
+        self.user.groups.add(instructors_staff_group)
+
+        # set test user as authenticated
+        self.client.force_authenticate(user=self.user)
+
+    def test_events_all_view(self):
+        # attempt to access events all view
+        response = self.client.get('/api/schedule/events/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in but in the 'Superusers' group CANNOT access the events all view
+class EventsAllViewAsSuperusersGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        # add test user to 'Superusers' group
+        superusers_group = Group.objects.create(name='Superusers')
+        self.user.groups.add(superusers_group)
 
         # set test user as authenticated
         self.client.force_authenticate(user=self.user)
@@ -206,8 +321,11 @@ class EventsAllViewContentRetrievalTest(TestCase):
         # response content contains event data
         self.assertEqual(len(response.data['events']), 3) # should fetch all three previously created events
 
-# ===================== Events Details View Tests =====================
-# ------- tests access permissions -------
+# =========================================
+# ======= EVENTS DETAILS VIEW TESTS =======
+# =========================================
+
+# ========= ACCESS PERMISSIONS =========
 
 # users NOT logged in CANNOT access the events details view
 class EventsDetailsViewAsUnauthenticatedUserTest(TestCase):
@@ -241,6 +359,29 @@ class EventsDetailsViewAsNoGroupTest(TestCase):
         # response status code is 403 FORBIDDEN
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+# users logged in but in the 'Administrators' group CANNOT access the events details view
+class EventsDetailsViewAsAdministratorsGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        # add test user to 'Administrators' group
+        administrators_group = Group.objects.create(name='Administrators')
+        self.user.groups.add(administrators_group)
+
+        # set test user as authenticated
+        self.client.force_authenticate(user=self.user)
+
+    def test_events_details_view_get(self):
+        # attempt to access events all view
+        response = self.client.get('/api/schedule/events/details/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
 # users logged in but in the 'Customers' group CANNOT access the events details view
 class EventsDetailsViewAsCustomerGroupTest(TestCase):
     def setUp(self):
@@ -253,6 +394,98 @@ class EventsDetailsViewAsCustomerGroupTest(TestCase):
         # add test user to 'Customers' group
         customers_group = Group.objects.create(name='Customers')
         self.user.groups.add(customers_group)
+
+        # set test user as authenticated
+        self.client.force_authenticate(user=self.user)
+
+    def test_events_details_view_get(self):
+        # attempt to access events all view
+        response = self.client.get('/api/schedule/events/details/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in but in the 'Displays' group CANNOT access the events details view
+class EventsDetailsViewAsDisplaysGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        # add test user to 'Displays' group
+        displays_group = Group.objects.create(name='Displays')
+        self.user.groups.add(displays_group)
+
+        # set test user as authenticated
+        self.client.force_authenticate(user=self.user)
+
+    def test_events_details_view_get(self):
+        # attempt to access events all view
+        response = self.client.get('/api/schedule/events/details/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in but in the 'Instructors' group CANNOT access the events details view
+class EventsDetailsViewAsInstructorsGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        # add test user to 'Instructors' group
+        instructors_group = Group.objects.create(name='Instructors')
+        self.user.groups.add(instructors_group)
+
+        # set test user as authenticated
+        self.client.force_authenticate(user=self.user)
+
+    def test_events_details_view_get(self):
+        # attempt to access events all view
+        response = self.client.get('/api/schedule/events/details/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in but in the 'Instructors_Staff' group CANNOT access the events details view
+class EventsDetailsViewAsInstructorsStaffGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        # add test user to 'Instructors_Staff' group
+        instructors_staff_group = Group.objects.create(name='Instructors_Staff')
+        self.user.groups.add(instructors_staff_group)
+
+        # set test user as authenticated
+        self.client.force_authenticate(user=self.user)
+
+    def test_events_details_view_get(self):
+        # attempt to access events all view
+        response = self.client.get('/api/schedule/events/details/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in but in the 'Superusers' group CANNOT access the events details view
+class EventsDetailsViewAsSuperusersGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        # add test user to 'Superusers' group
+        superusers_group = Group.objects.create(name='Superusers')
+        self.user.groups.add(superusers_group)
 
         # set test user as authenticated
         self.client.force_authenticate(user=self.user)
@@ -360,8 +593,11 @@ class EventsDetailsViewContentRetrievalTest(TestCase):
         self.assertEqual(response.data['day_of_week'], 1)
         self.assertEqual(response.data['start_time'], '12:00:00')
 
-# ===================== Event Choices View Tests =====================
-# ------- tests access permissions -------
+# =========================================
+# ======= EVENTS CHOICES VIEW TESTS =======
+# =========================================
+
+# ========= ACCESS PERMISSIONS =========
 
 # users NOT logged in CANNOT access the event choices view
 class EventChoicesViewAsUnauthenticatedUserTest(TestCase):
@@ -395,6 +631,29 @@ class EventChoicesViewAsNoGroupTest(TestCase):
         # response status code is 403 FORBIDDEN
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+# users logged in but in the 'Administrators' group CANNOT access the event choices view
+class EventChoicesViewAsAdministratorsGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        # add test user to 'Administrators' group
+        administrators_group = Group.objects.create(name='Administrators')
+        self.user.groups.add(administrators_group)
+
+        # set test user as authenticated
+        self.client.force_authenticate(user=self.user)
+
+    def test_event_choices_view_get(self):
+        # attempt to access events all view
+        response = self.client.get('/api/schedule/events/choices/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
 # users logged in but in the 'Customers' group CANNOT access the event choices view
 class EventChoicesViewAsCustomerGroupTest(TestCase):
     def setUp(self):
@@ -407,6 +666,98 @@ class EventChoicesViewAsCustomerGroupTest(TestCase):
         # add test user to 'Customers' group
         customers_group = Group.objects.create(name='Customers')
         self.user.groups.add(customers_group)
+
+        # set test user as authenticated
+        self.client.force_authenticate(user=self.user)
+
+    def test_event_choices_view_get(self):
+        # attempt to access events all view
+        response = self.client.get('/api/schedule/events/choices/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in but in the 'Displays' group CANNOT access the event choices view
+class EventChoicesViewAsDisplaysGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        # add test user to 'Displays' group
+        displays_group = Group.objects.create(name='Displays')
+        self.user.groups.add(displays_group)
+
+        # set test user as authenticated
+        self.client.force_authenticate(user=self.user)
+
+    def test_event_choices_view_get(self):
+        # attempt to access events all view
+        response = self.client.get('/api/schedule/events/choices/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in but in the 'Instructors' group CANNOT access the event choices view
+class EventChoicesViewAsInstructorsGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        # add test user to 'Instructors' group
+        instructors_group = Group.objects.create(name='Instructors')
+        self.user.groups.add(instructors_group)
+
+        # set test user as authenticated
+        self.client.force_authenticate(user=self.user)
+
+    def test_event_choices_view_get(self):
+        # attempt to access events all view
+        response = self.client.get('/api/schedule/events/choices/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in but in the 'Instructors_Staff' group CANNOT access the event choices view
+class EventChoicesViewAsInstructorsStaffGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        # add test user to 'Instructors_Staff' group
+        instructors_staff_group = Group.objects.create(name='Instructors_Staff')
+        self.user.groups.add(instructors_staff_group)
+
+        # set test user as authenticated
+        self.client.force_authenticate(user=self.user)
+
+    def test_event_choices_view_get(self):
+        # attempt to access events all view
+        response = self.client.get('/api/schedule/events/choices/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in but in the 'Superusers' group CANNOT access the event choices view
+class EventChoicesViewAsSuperusersGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        # add test user to 'Superusers' group
+        superusers_group = Group.objects.create(name='Superusers')
+        self.user.groups.add(superusers_group)
 
         # set test user as authenticated
         self.client.force_authenticate(user=self.user)
@@ -489,8 +840,11 @@ class EventChoicesViewContentRetrievalTest(TestCase):
         self.assertEqual(response.data['primary_instructor_choices'][0]['userprofilesinstructors__last_name_kanji'], self.user_profile.last_name_kanji)
         self.assertEqual(response.data['primary_instructor_choices'][0]['userprofilesinstructors__first_name_kanji'], self.user_profile.first_name_kanji)
 
-# ===================== Remove Student from Event View Tests =====================
-# ------- tests access permissions -------
+# ====================================================
+# ======= REMOVE STUDENT FROM EVENT VIEW TESTS =======
+# ====================================================
+
+# ========= ACCESS PERMISSIONS =========
 
 # users NOT logged in CANNOT access the remove student from event view
 class RemoveStudentFromEventViewAsUnauthenticatedUserTest(TestCase):
@@ -524,6 +878,29 @@ class RemoveStudentFromEventViewAsNoGroupTest(TestCase):
         # response status code is 403 FORBIDDEN
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+# users logged in but in the 'Administrators' group CANNOT access the remove student from event view
+class RemoveStudentFromEventViewAsAdministratorsGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        # add test user to 'Administrators' group
+        administrators_group = Group.objects.create(name='Administrators')
+        self.user.groups.add(administrators_group)
+
+        # set test user as authenticated
+        self.client.force_authenticate(user=self.user)
+
+    def test_remove_student_from_event_view_post(self):
+        # attempt to access remove student from event view
+        response = self.client.post('/api/schedule/events/remove_student_from_event/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
 # users logged in but in the 'Customers' group CANNOT access the remove student from event view
 class RemoveStudentFromEventViewAsCustomerGroupTest(TestCase):
     def setUp(self):
@@ -536,6 +913,98 @@ class RemoveStudentFromEventViewAsCustomerGroupTest(TestCase):
         # add test user to 'Customers' group
         customers_group = Group.objects.create(name='Customers')
         self.user.groups.add(customers_group)
+
+        # set test user as authenticated
+        self.client.force_authenticate(user=self.user)
+
+    def test_remove_student_from_event_view_post(self):
+        # attempt to access remove student from event view
+        response = self.client.post('/api/schedule/events/remove_student_from_event/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in but in the 'Displays' group CANNOT access the remove student from event view
+class RemoveStudentFromEventViewAsDisplaysGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        # add test user to 'Displays' group
+        displays_group = Group.objects.create(name='Displays')
+        self.user.groups.add(displays_group)
+
+        # set test user as authenticated
+        self.client.force_authenticate(user=self.user)
+
+    def test_remove_student_from_event_view_post(self):
+        # attempt to access remove student from event view
+        response = self.client.post('/api/schedule/events/remove_student_from_event/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in but in the 'Instructors' group CANNOT access the remove student from event view
+class RemoveStudentFromEventViewAsInstructorsGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        # add test user to 'Instructors' group
+        instructors_group = Group.objects.create(name='Instructors')
+        self.user.groups.add(instructors_group)
+
+        # set test user as authenticated
+        self.client.force_authenticate(user=self.user)
+
+    def test_remove_student_from_event_view_post(self):
+        # attempt to access remove student from event view
+        response = self.client.post('/api/schedule/events/remove_student_from_event/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in but in the 'Instructors_Staff' group CANNOT access the remove student from event view
+class RemoveStudentFromEventViewAsInstructorsStaffGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        # add test user to 'Instructors_Staff' group
+        instructors_staff_group = Group.objects.create(name='Instructors_Staff')
+        self.user.groups.add(instructors_staff_group)
+
+        # set test user as authenticated
+        self.client.force_authenticate(user=self.user)
+
+    def test_remove_student_from_event_view_post(self):
+        # attempt to access remove student from event view
+        response = self.client.post('/api/schedule/events/remove_student_from_event/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in but in the 'Superusers' group CANNOT access the remove student from event view
+class RemoveStudentFromEventViewAsSuperusersGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        # add test user to 'Superusers' group
+        superusers_group = Group.objects.create(name='Superusers')
+        self.user.groups.add(superusers_group)
 
         # set test user as authenticated
         self.client.force_authenticate(user=self.user)
@@ -793,8 +1262,11 @@ class RemoveStudentFromEventViewActionTest(TestCase):
         # confirm test profile is NOT in event
         self.assertEqual(self.event.students.count(), 0)
 
-# ===================== Add Student to Event View Tests =====================
-# ------- tests access permissions -------
+# ===============================================
+# ======= ADD STUDENT TO EVENT VIEW TESTS =======
+# ===============================================
+
+# ========= ACCESS PERMISSIONS =========
 
 # users NOT logged in CANNOT access the add student to event view
 class AddStudentToEventViewAsUnauthenticatedUserTest(TestCase):
@@ -828,6 +1300,29 @@ class AddStudentToEventViewAsNoGroupTest(TestCase):
         # response status code is 403 FORBIDDEN
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+# users logged in but in the 'Administrators' group CANNOT access the add student to event view
+class AddStudentToEventViewAsAdministratorsGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        # add test user to 'Administrators' group
+        administrators_group = Group.objects.create(name='Administrators')
+        self.user.groups.add(administrators_group)
+
+        # set test user as authenticated
+        self.client.force_authenticate(user=self.user)
+
+    def test_add_student_to_event_view_post(self):
+        # attempt to access add student to event view
+        response = self.client.post('/api/schedule/events/add_student_to_event/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
 # users logged in but in the 'Customers' group CANNOT access the add student to event view
 class AddStudentToEventViewAsCustomerGroupTest(TestCase):
     def setUp(self):
@@ -840,6 +1335,98 @@ class AddStudentToEventViewAsCustomerGroupTest(TestCase):
         # add test user to 'Customers' group
         customers_group = Group.objects.create(name='Customers')
         self.user.groups.add(customers_group)
+
+        # set test user as authenticated
+        self.client.force_authenticate(user=self.user)
+
+    def test_add_student_to_event_view_post(self):
+        # attempt to access add student to event view
+        response = self.client.post('/api/schedule/events/add_student_to_event/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in but in the 'Displays' group CANNOT access the add student to event view
+class AddStudentToEventViewAsDisplaysGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        # add test user to 'Displays' group
+        displays_group = Group.objects.create(name='Displays')
+        self.user.groups.add(displays_group)
+
+        # set test user as authenticated
+        self.client.force_authenticate(user=self.user)
+
+    def test_add_student_to_event_view_post(self):
+        # attempt to access add student to event view
+        response = self.client.post('/api/schedule/events/add_student_to_event/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in but in the 'Instructors' group CANNOT access the add student to event view
+class AddStudentToEventViewAsInstructorsGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        # add test user to 'Instructors' group
+        instructors_group = Group.objects.create(name='Instructors')
+        self.user.groups.add(instructors_group)
+
+        # set test user as authenticated
+        self.client.force_authenticate(user=self.user)
+
+    def test_add_student_to_event_view_post(self):
+        # attempt to access add student to event view
+        response = self.client.post('/api/schedule/events/add_student_to_event/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in but in the 'Instructors_Staff' group CANNOT access the add student to event view
+class AddStudentToEventViewAsInstructorsStaffGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        # add test user to 'Instructors_Staff' group
+        instructors_staff_group = Group.objects.create(name='Instructors_Staff')
+        self.user.groups.add(instructors_staff_group)
+
+        # set test user as authenticated
+        self.client.force_authenticate(user=self.user)
+
+    def test_add_student_to_event_view_post(self):
+        # attempt to access add student to event view
+        response = self.client.post('/api/schedule/events/add_student_to_event/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in but in the 'Superusers' group CANNOT access the add student to event view
+class AddStudentToEventViewAsSuperusersGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        # add test user to 'Superusers' group
+        superusers_group = Group.objects.create(name='Superusers')
+        self.user.groups.add(superusers_group)
 
         # set test user as authenticated
         self.client.force_authenticate(user=self.user)
@@ -1094,8 +1681,11 @@ class AddStudentToEventViewActionTest(TestCase):
         # confirm test profile is NOT in event
         self.assertEqual(self.event.students.count(), 1)
 
-# ===================== Archive Event View Tests =====================
-# ------- tests access permissions -------
+# ========================================
+# ======= ARCHIVE EVENT VIEW TESTS =======
+# ========================================
+
+# ========= ACCESS PERMISSIONS =========
 
 # users NOT logged in CANNOT access the archive event view
 class ArchiveEventViewAsUnauthenticatedUserTest(TestCase):
@@ -1129,6 +1719,29 @@ class ArchiveEventViewAsNoGroupTest(TestCase):
         # response status code is 403 FORBIDDEN
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+# users logged in but in the 'Administrators' group CANNOT access the archive event view
+class ArchiveEventViewAsAdministratorsGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        # add test user to 'Administrators' group
+        administrators_group = Group.objects.create(name='Administrators')
+        self.user.groups.add(administrators_group)
+
+        # set test user as authenticated
+        self.client.force_authenticate(user=self.user)
+
+    def test_archive_event_view_post(self):
+        # attempt to access archive event view
+        response = self.client.post('/api/schedule/events/archive_event/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
 # users logged in but in the 'Customers' group CANNOT access the archive event view
 class ArchiveEventViewAsCustomerGroupTest(TestCase):
     def setUp(self):
@@ -1141,6 +1754,98 @@ class ArchiveEventViewAsCustomerGroupTest(TestCase):
         # add test user to 'Customers' group
         customers_group = Group.objects.create(name='Customers')
         self.user.groups.add(customers_group)
+
+        # set test user as authenticated
+        self.client.force_authenticate(user=self.user)
+
+    def test_archive_event_view_post(self):
+        # attempt to access archive event view
+        response = self.client.post('/api/schedule/events/archive_event/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in but in the 'Displays' group CANNOT access the archive event view
+class ArchiveEventViewAsDisplaysGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        # add test user to 'Displays' group
+        displays_group = Group.objects.create(name='Displays')
+        self.user.groups.add(displays_group)
+
+        # set test user as authenticated
+        self.client.force_authenticate(user=self.user)
+
+    def test_archive_event_view_post(self):
+        # attempt to access archive event view
+        response = self.client.post('/api/schedule/events/archive_event/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in but in the 'Instructors' group CANNOT access the archive event view
+class ArchiveEventViewAsInstructorsGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        # add test user to 'Instructors' group
+        instructors_group = Group.objects.create(name='Instructors')
+        self.user.groups.add(instructors_group)
+
+        # set test user as authenticated
+        self.client.force_authenticate(user=self.user)
+
+    def test_archive_event_view_post(self):
+        # attempt to access archive event view
+        response = self.client.post('/api/schedule/events/archive_event/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in but in the 'Instructors_Staff' group CANNOT access the archive event view
+class ArchiveEventViewAsInstructorsStaffGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        # add test user to 'Instructors_Staff' group
+        instructors_staff_group = Group.objects.create(name='Instructors_Staff')
+        self.user.groups.add(instructors_staff_group)
+
+        # set test user as authenticated
+        self.client.force_authenticate(user=self.user)
+
+    def test_archive_event_view_post(self):
+        # attempt to access archive event view
+        response = self.client.post('/api/schedule/events/archive_event/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in but in the 'Superusers' group CANNOT access the archive event view
+class ArchiveEventViewAsSuperusersGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        # add test user to 'Superusers' group
+        superusers_group = Group.objects.create(name='Superusers')
+        self.user.groups.add(superusers_group)
 
         # set test user as authenticated
         self.client.force_authenticate(user=self.user)
@@ -1247,8 +1952,11 @@ class ArchiveEventViewActionTest(TestCase):
         # test event is archived
         self.assertTrue(event_from_db.archived)
 
-# ===================== Get Events for Profile Tests =====================
-# ------- tests access permissions -------
+# =================================================
+# ======= GET EVENTS FOR PROFILE VIEW TESTS =======
+# =================================================
+
+# ========= ACCESS PERMISSIONS =========
 
 # users NOT logged in CANNOT access the get events for profile view
 class GetEventsForProfileViewAsUnauthenticatedUserTest(TestCase):
@@ -1282,6 +1990,29 @@ class GetEventsForProfileViewAsNoGroupTest(TestCase):
         # response status code is 403 FORBIDDEN
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+# users logged in but in the 'Administrators' group CANNOT access the get events for profile view
+class GetEventsForProfileViewAsAdministratorsGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        # add test user to 'Administrators' group
+        administrators_group = Group.objects.create(name='Administrators')
+        self.user.groups.add(administrators_group)
+
+        # set test user as authenticated
+        self.client.force_authenticate(user=self.user)
+
+    def test_get_events_for_profile_view_get(self):
+        # attempt to access get events for profile view
+        response = self.client.get('/api/schedule/events/get_events_for_profile/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
 # users logged in and in the 'Customers' group CANNOT access the get events for profile view
 class GetEventsForProfileViewAsCustomerGroupTest(TestCase):
     def setUp(self):
@@ -1294,6 +2025,98 @@ class GetEventsForProfileViewAsCustomerGroupTest(TestCase):
         # add test user to 'Customers' group
         customers_group = Group.objects.create(name='Customers')
         self.user.groups.add(customers_group)
+
+        # set test user as authenticated
+        self.client.force_authenticate(user=self.user)
+
+    def test_get_events_for_profile_view_get(self):
+        # attempt to access get events for profile view
+        response = self.client.get('/api/schedule/events/get_events_for_profile/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in but in the 'Displays' group CANNOT access the get events for profile view
+class GetEventsForProfileViewAsDisplaysGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        # add test user to 'Displays' group
+        displays_group = Group.objects.create(name='Displays')
+        self.user.groups.add(displays_group)
+
+        # set test user as authenticated
+        self.client.force_authenticate(user=self.user)
+
+    def test_get_events_for_profile_view_get(self):
+        # attempt to access get events for profile view
+        response = self.client.get('/api/schedule/events/get_events_for_profile/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in but in the 'Instructors' group CANNOT access the get events for profile view
+class GetEventsForProfileViewAsInstructorsGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        # add test user to 'Instructors' group
+        instructors_group = Group.objects.create(name='Instructors')
+        self.user.groups.add(instructors_group)
+
+        # set test user as authenticated
+        self.client.force_authenticate(user=self.user)
+
+    def test_get_events_for_profile_view_get(self):
+        # attempt to access get events for profile view
+        response = self.client.get('/api/schedule/events/get_events_for_profile/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in but in the 'Instructors_Staff' group CANNOT access the get events for profile view
+class GetEventsForProfileViewAsInstructorsStaffGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        # add test user to 'Instructors_Staff' group
+        instructors_staff_group = Group.objects.create(name='Instructors_Staff')
+        self.user.groups.add(instructors_staff_group)
+
+        # set test user as authenticated
+        self.client.force_authenticate(user=self.user)
+
+    def test_get_events_for_profile_view_get(self):
+        # attempt to access get events for profile view
+        response = self.client.get('/api/schedule/events/get_events_for_profile/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in but in the 'Superusers' group CANNOT access the get events for profile view
+class GetEventsForProfileViewAsSuperusersGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        # add test user to 'Superusers' group
+        superusers_group = Group.objects.create(name='Superusers')
+        self.user.groups.add(superusers_group)
 
         # set test user as authenticated
         self.client.force_authenticate(user=self.user)
