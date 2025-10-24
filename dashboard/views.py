@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from datetime import date, datetime, timedelta
 from django.db.models import Count, Q, Min, Max, Prefetch
+from django.contrib.auth.models import Group
 # authentication
 from authentication.customAuthentication import CustomAuthentication
 # group permission control
@@ -17,6 +18,7 @@ from schedule.models import Events
 # serializers
 from dashboard.serializers import AtRiskStudentSerializer
 from dashboard.serializers import UpcomingBirthdayStudentSerializer
+from dashboard.serializers import InstructorSerializerForIncompleteAttendanceForAllInstructors
 
 # get all incomplete recent attendance records for an instructor
 class IncompleteAttendanceForInstructorView(APIView):
@@ -326,9 +328,17 @@ class IncompleteAttendanceForAllInstructorsView(APIView):
 
     def get(self, request, format=None):
         try:
+            # instructor group
+            group = Group.objects.get(name='Instructors')
+
+            # active instructors in the "Instructors" group
+            instructors = group.user_set.filter(userprofilesinstructors__archived=False)
+
+            # serialize data
+            serializer = InstructorSerializerForIncompleteAttendanceForAllInstructors(instructors, many=True)
 
             data = {
-                'some_data': "This is some data",
+                'intructor_data': serializer.data,
             }
 
             return Response(data, status=status.HTTP_200_OK)

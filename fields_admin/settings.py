@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'game', # Game App
     'analytics', # Analytics App
     'utilities', # Utilities App
+    'invoices', # Invoices App
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

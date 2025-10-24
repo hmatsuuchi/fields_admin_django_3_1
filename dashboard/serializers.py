@@ -3,6 +3,7 @@ from rest_framework import serializers
 from analytics.models import AtRiskStudents
 from students.models import Students
 from schedule.models import Events
+from django.contrib.auth.models import User
 
 # ======= DASHBOARD WIDGET =======
 
@@ -37,3 +38,13 @@ class UpcomingBirthdayStudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Students
         fields = ['id', 'last_name_kanji', 'first_name_kanji', 'last_name_katakana', 'first_name_katakana', 'last_name_romaji', 'first_name_romaji', 'birthday', 'age', 'events_set']
+
+# ====================================================================
+# ======= OVERVIEW - INCOMPLETE ATTENDANCE FOR ALL INSTRUCTORS =======
+# ====================================================================
+
+# ======= Instructor Serializer =======
+class InstructorSerializerForIncompleteAttendanceForAllInstructors(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username']

@@ -104,7 +104,7 @@ class EventChoicesView(APIView):
     # GET - event type choice list
     def get(self, request, format=None):
         try:
-            event_type_choices = EventType.objects.all().order_by('order')
+            event_type_choices = EventType.objects.filter(archived=False).order_by('order')
             primary_instructor_choices = User.objects.filter(groups__name='Instructors').order_by('username')
 
             data = {

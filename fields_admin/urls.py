@@ -13,6 +13,7 @@ import dashboard.urls as DashboardUrls
 import game.urls as GameUrls
 import analytics.urls as AnalyticsUrls
 import utilities.urls as UtilitiesUrls
+import invoices.urls as InvoicesUrls
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -48,4 +49,7 @@ urlpatterns = [
 
     # utilities
     path('api/utilities/', include(UtilitiesUrls)),
+
+    # invoices
+    path('api/invoices/', include(InvoicesUrls)),
 ]
