@@ -10,19 +10,19 @@ from students.models import Students
 class PaymentMethodSerializer(serializers.ModelSerializer):
     class Meta:
         model = PaymentMethod
-        fields = '__all__'
+        fields = ['id', 'name',]
 
 # Student Serializer
 class StudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Students
-        fields = '__all__'
+        fields = ['id', 'last_name_kanji', 'first_name_kanji',]
 
 # Tax Serializer
 class TaxSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tax
-        fields = '__all__'
+        fields = ['id', 'name', 'rate',]
 
 # Service Type Serializer
 class ServiceTypeSerializer(serializers.ModelSerializer):
@@ -30,7 +30,7 @@ class ServiceTypeSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = ServiceType
-        fields = '__all__'
+        fields = ['id', 'name', 'price', 'tax',]
 
 # Invoice Item Serializer
 class InvoiceItemSerializer(serializers.ModelSerializer):
@@ -38,14 +38,53 @@ class InvoiceItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = InvoiceItem
-        fields = '__all__'
+        fields = ['id', 'description', 'quantity', 'rate', 'tax', 'service_type',]
 
 # Invoice Serializer
 class InvoiceSerializer(serializers.ModelSerializer):
-    payment_method = PaymentMethodSerializer()
     student = StudentSerializer()
+    payment_method = PaymentMethodSerializer()
     invoice_items = InvoiceItemSerializer(source='invoiceitem_set', many=True, read_only=True)
 
     class Meta:
         model = Invoice
-        fields = '__all__'
+        fields = [
+            'id',
+            'customer_name',
+            'customer_postal_code',
+            'customer_prefecture',
+            'customer_city',
+            'customer_address_line_1',
+            'customer_address_line_2',
+            'year',
+            'month',
+            'transfer_date',
+            'issued',
+            'paid',
+            'student',
+            'payment_method',
+            'invoice_items',
+            'date_time_created',
+            'date_time_modified',
+            ]
+        
+# ========== PROFILE  SERIALIZER ==========
+
+class ProfilesListForSelectSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Students
+        fields = [
+            'id',
+            'last_name_kanji',
+            'first_name_kanji',
+            'last_name_romaji',
+            'first_name_romaji',
+            'last_name_katakana',
+            'first_name_katakana',
+            'grade_verbose',
+            'post_code',
+            'prefecture_verbose',
+            'city',
+            'address_1',
+            'address_2',
+            ]

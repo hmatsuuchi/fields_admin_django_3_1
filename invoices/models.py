@@ -19,7 +19,12 @@ class PaymentMethod(models.Model):
         return f"{str(self.name)}"
 
 class Invoice(models.Model):
-    student                     = models.ForeignKey(Students, on_delete=models.CASCADE, blank=False, null=False)
+    customer_name               = models.CharField(max_length=200, blank=True, null=True)
+    customer_postal_code        = models.CharField(max_length=20, blank=True, null=True)
+    customer_prefecture         = models.CharField(max_length=100, blank=True, null=True)
+    customer_city               = models.CharField(max_length=100, blank=True, null=True)
+    customer_address_line_1     = models.CharField(max_length=200, blank=True, null=True)
+    customer_address_line_2     = models.CharField(max_length=200, blank=True, null=True)
 
     year                        = models.IntegerField(blank=False, null=False)
     month                       = models.IntegerField(blank=False, null=False)
@@ -28,6 +33,7 @@ class Invoice(models.Model):
     issued                      = models.BooleanField(default=False, db_index=True)
     paid                        = models.BooleanField(default=False, db_index=True)
 
+    student                     = models.ForeignKey(Students, on_delete=models.CASCADE, blank=False, null=False)
     payment_method              = models.ForeignKey(PaymentMethod, on_delete=models.CASCADE, blank=False, null=False)
 
     date_time_created           = models.DateTimeField(auto_now_add=True, blank=True, null=True)
@@ -72,14 +78,13 @@ class ServiceType(models.Model):
         return f"{str(self.name)} [{str(self.price)}]"
     
 class InvoiceItem(models.Model):
-    invoice                     = models.ForeignKey(Invoice, on_delete=models.CASCADE, blank=False, null=False)
-
-    service_type                = models.ForeignKey(ServiceType, on_delete=models.CASCADE, blank=False, null=False)
-
     description                 = models.CharField(max_length=500, blank=False, null=False)
     quantity                    = models.IntegerField(blank=False, null=False)
     rate                        = models.IntegerField(blank=False, null=False)
     tax                         = models.IntegerField(blank=False, null=False)
+
+    invoice                     = models.ForeignKey(Invoice, on_delete=models.CASCADE, blank=False, null=False)
+    service_type                = models.ForeignKey(ServiceType, on_delete=models.CASCADE, blank=False, null=False)
 
     date_time_created           = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_time_modified          = models.DateTimeField(auto_now=True, blank=True, null=True)
