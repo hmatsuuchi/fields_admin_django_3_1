@@ -28,7 +28,10 @@ class Invoice(models.Model):
 
     year                        = models.IntegerField(blank=False, null=False)
     month                       = models.IntegerField(blank=False, null=False)
+    creation_date               = models.DateField(blank=False, null=False)
     transfer_date               = models.DateField(blank=True, null=True)
+    issued_date                 = models.DateField(blank=True, null=True)
+    paid_date                   = models.DateField(blank=True, null=True)
 
     issued                      = models.BooleanField(default=False, db_index=True)
     paid                        = models.BooleanField(default=False, db_index=True)
@@ -49,6 +52,8 @@ class Invoice(models.Model):
 class Tax(models.Model):
     name                        = models.CharField(max_length=100, blank=False, null=False)
     rate                        = models.IntegerField(blank=False, null=False)
+
+    default_value               = models.BooleanField(default=False, db_index=True)
 
     order                       = models.IntegerField(blank=True, null=True)
 
@@ -81,11 +86,12 @@ class InvoiceItem(models.Model):
     description                 = models.CharField(max_length=500, blank=False, null=False)
     quantity                    = models.IntegerField(blank=False, null=False)
     rate                        = models.IntegerField(blank=False, null=False)
-    tax                         = models.IntegerField(blank=False, null=False)
+    tax_rate                    = models.IntegerField(blank=False, null=False)
 
     invoice                     = models.ForeignKey(Invoice, on_delete=models.CASCADE, blank=False, null=False)
     service_type                = models.ForeignKey(ServiceType, on_delete=models.CASCADE, blank=False, null=False)
-
+    tax_type                    = models.ForeignKey(Tax, on_delete=models.CASCADE, blank=False, null=False)
+    
     date_time_created           = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_time_modified          = models.DateTimeField(auto_now=True, blank=True, null=True)
 

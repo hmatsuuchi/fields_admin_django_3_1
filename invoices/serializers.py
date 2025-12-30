@@ -32,13 +32,32 @@ class ServiceTypeSerializer(serializers.ModelSerializer):
         model = ServiceType
         fields = ['id', 'name', 'price', 'tax',]
 
+# Invoice Serializer
+class InvoiceForInvoiceItemsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Invoice
+        fields = ['id', 'customer_name', 'year', 'month',]
+
 # Invoice Item Serializer
 class InvoiceItemSerializer(serializers.ModelSerializer):
+    invoice = InvoiceForInvoiceItemsSerializer()
     service_type = ServiceTypeSerializer()
+    tax_type = TaxSerializer()
+
 
     class Meta:
         model = InvoiceItem
-        fields = ['id', 'description', 'quantity', 'rate', 'tax', 'service_type',]
+        fields = [
+            'id',
+            'description',
+            'quantity',
+            'rate',
+            'tax_rate',
+            'invoice',
+            'service_type',
+            'tax_type',
+            'date_time_created',
+            'date_time_modified',]
 
 # Invoice Serializer
 class InvoiceSerializer(serializers.ModelSerializer):
@@ -58,7 +77,10 @@ class InvoiceSerializer(serializers.ModelSerializer):
             'customer_address_line_2',
             'year',
             'month',
+            'creation_date',
             'transfer_date',
+            'issued_date',
+            'paid_date',
             'issued',
             'paid',
             'student',
@@ -67,9 +89,46 @@ class InvoiceSerializer(serializers.ModelSerializer):
             'date_time_created',
             'date_time_modified',
             ]
-        
-# ========== PROFILE  SERIALIZER ==========
 
+# ========== INVOICE CREATE SERIALIZER ==========
+class InvoiceItemCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = InvoiceItem
+        fields = ['description', 'quantity', 'rate', 'tax_rate', 'service_type', 'tax_type']
+
+class InvoiceCreateSerializer(serializers.ModelSerializer):
+    line_items = InvoiceItemCreateSerializer(many=True, write_only=True)
+
+    class Meta:
+        model = Invoice
+        fields = [
+            'customer_name',
+            'customer_postal_code',
+            'customer_prefecture',
+            'customer_city',
+            'customer_address_line_1',
+            'customer_address_line_2',
+            'year',
+            'month',
+            'creation_date',
+            'transfer_date',
+            'issued',
+            'paid',
+            'student',
+            'payment_method',
+            'line_items',
+            ]
+
+    def create(self, validated_data):
+        line_items_data = validated_data.pop('line_items')
+        invoice = Invoice.objects.create(**validated_data)
+
+        for line_item in line_items_data:
+            InvoiceItem.objects.create(invoice=invoice, **line_item)
+        
+        return invoice
+
+# ========== PROFILE SERIALIZER FOR SELECTION LIST ==========
 class ProfilesListForSelectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Students
@@ -88,3 +147,21 @@ class ProfilesListForSelectSerializer(serializers.ModelSerializer):
             'address_1',
             'address_2',
             ]
+        
+# ========== PAYMENT METHOD SERIALIZER FOR SELECTION LIST ==========
+class PaymentMethodSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PaymentMethod
+        fields = '__all__'
+
+# ========== SERVICE TYPE SERIALIZER FOR SELECTION LIST ==========
+class ServiceTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ServiceType
+        fields = '__all__'
+
+# ========== TAX SERIALIZER FOR SELECTION LIST ==========
+class TaxSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tax
+        fields = '__all__'
