@@ -2,8 +2,9 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.http import JsonResponse
-from .models import PaymentChoices, Phone, PhoneChoice, GradeChoices, StatusChoices, PrefectureChoices
+from .models import Phone, PhoneChoice, GradeChoices, StatusChoices, PrefectureChoices
 from .models import Students
+from invoices.models import PaymentMethod
 from .serializers import ProfileSerializer, ProfileSerializerForSelect
 # group permission control
 from authentication.permissions import isInStaffGroup
@@ -21,7 +22,7 @@ class ProfilesListView(APIView):
     
     def get(self, request, format=None):
         try:
-            profiles = Students.objects.all().order_by('-id').prefetch_related('phone', 'phone__number_type', 'prefecture', 'grade', 'status', 'payment_method')
+            profiles = Students.objects.all().order_by('-id').prefetch_related('phone', 'phone__number_type', 'prefecture', 'grade', 'status', 'payment_method_from_invoice')
             serializer = ProfileSerializer(profiles, many=True)
 
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -138,7 +139,8 @@ class ProfilesChoicesView(APIView):
             prefecture_choices = PrefectureChoices.objects.all().order_by('order')
             grade_choices = GradeChoices.objects.all().order_by('order')
             status_choices = StatusChoices.objects.all().order_by('order')
-            payment_choices = PaymentChoices.objects.all().order_by('order')
+            # payment_choices = PaymentChoices.objects.all().order_by('order')
+            payment_choices = PaymentMethod.objects.all().order_by('order')
 
             return Response({
                 'phone_choices': phone_choices.values(),

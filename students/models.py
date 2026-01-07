@@ -49,7 +49,8 @@ class Students(models.Model):
 
     status                      = models.ForeignKey("StatusChoices", on_delete=models.CASCADE, blank=True, null=True)
 
-    payment_method              = models.ForeignKey("PaymentChoices", on_delete=models.CASCADE, blank=True, null=True)
+    payment_method_legacy       = models.ForeignKey("PaymentChoices", on_delete=models.CASCADE, blank=True, null=True)
+    payment_method_from_invoice = models.ForeignKey("invoices.PaymentMethod", on_delete=models.CASCADE, blank=True, null=True)
 
     archived                    = models.BooleanField(default=False)
 
@@ -92,7 +93,7 @@ class Students(models.Model):
     @cached_property
     def payment_method_verbose(self):
         try:
-            return self.payment_method.name
+            return self.payment_method_from_invoice.name
         except:
             return ''
 

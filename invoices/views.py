@@ -27,6 +27,7 @@ class InvoiceListAllView(APIView):
                 Invoice.objects
                 .select_related('student', 'payment_method')
                 .prefetch_related(Prefetch('invoiceitem_set', queryset=invoice_items_qs))
+                .order_by('-id')
             )
 
             # serialize data
@@ -58,9 +59,6 @@ class InvoiceCreateView(APIView):
 
         try:
             serializer = InvoiceCreateSerializer(data=data_copy)
-
-            for x in request.data:
-                print(f"{x}: {request.data[x]}")
 
             if serializer.is_valid():
                 invoice = serializer.save()

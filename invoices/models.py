@@ -6,7 +6,6 @@ from students.models import Students
 
 class PaymentMethod(models.Model):
     name                        = models.CharField(max_length=200, blank=False, null=False)
-
     order                       = models.IntegerField(blank=True, null=True)
 
     date_time_created           = models.DateTimeField(auto_now_add=True, blank=True, null=True)
