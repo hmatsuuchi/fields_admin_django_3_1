@@ -82,7 +82,7 @@ class ServiceType(models.Model):
         return f"{str(self.name)} [{str(self.price)}]"
     
 class InvoiceItem(models.Model):
-    description                 = models.CharField(max_length=500, blank=False, null=False)
+    description                 = models.CharField(max_length=500, blank=True, null=True)
     quantity                    = models.IntegerField(blank=False, null=False)
     rate                        = models.IntegerField(blank=False, null=False)
     tax_rate                    = models.IntegerField(blank=False, null=False)
