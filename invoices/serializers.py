@@ -59,8 +59,40 @@ class InvoiceItemSerializer(serializers.ModelSerializer):
             'date_time_created',
             'date_time_modified',]
 
-# Invoice Serializer
-class InvoiceSerializer(serializers.ModelSerializer):
+# Invoice List All Serializer
+class InvoiceListAllSerializer(serializers.ModelSerializer):
+    student = StudentSerializer()
+    payment_method = PaymentMethodSerializer()
+    invoice_items = InvoiceItemSerializer(source='invoiceitem_set', many=True, read_only=True)
+
+    class Meta:
+        model = Invoice
+        fields = [
+            'id',
+            'customer_name',
+            'customer_postal_code',
+            'customer_prefecture',
+            'customer_city',
+            'customer_address_line_1',
+            'customer_address_line_2',
+            'year',
+            'month',
+            'creation_date',
+            'transfer_date',
+            'issued_date',
+            'paid_date',
+            'issued',
+            'paid',
+            'student',
+            'payment_method',
+            'invoice_items',
+            'date_time_created',
+            'date_time_modified',
+            ]
+
+# ========== INVOICE STATUS ALL SERIALIZER ==========
+# Invoice Status All Serializer
+class InvoiceStatusAllSerializer(serializers.ModelSerializer):
     student = StudentSerializer()
     payment_method = PaymentMethodSerializer()
     invoice_items = InvoiceItemSerializer(source='invoiceitem_set', many=True, read_only=True)
