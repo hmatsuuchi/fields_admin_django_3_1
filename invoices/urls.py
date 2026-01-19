@@ -2,11 +2,14 @@ from django.urls import path
 # VIEWS
 from . import views
 # VIEWS
-from .views import InvoiceListAllView, InvoiceStatusAllView, InvoiceCreateView, ProfilesListForSelectView, PaymentMethodsListForSelectView, ServiceTypesListForSelectView, TaxesListForSelectView
+from .views import InvoiceListAllView, InvoiceStatusAllView, InvoiceStatusBatchUpdateView, InvoiceCreateView, ProfilesListForSelectView, PaymentMethodsListForSelectView, ServiceTypesListForSelectView, TaxesListForSelectView
 
 urlpatterns = [
     path('invoices/list/all/', InvoiceListAllView.as_view(), name='invoice-list-all'),
+
     path('invoices/status/all/', InvoiceStatusAllView.as_view(), name='invoice-status-all'),
+    path('invoices/status/batch-update/', InvoiceStatusBatchUpdateView.as_view(), name='invoice-status-batch-update'),
+
     path('invoices/create/invoice/', InvoiceCreateView.as_view(), name='invoice-create'),
 
     path('invoices/profiles-list-for-select/', ProfilesListForSelectView.as_view(), name='profiles-list-for-select'),

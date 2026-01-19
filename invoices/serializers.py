@@ -91,10 +91,15 @@ class InvoiceListAllSerializer(serializers.ModelSerializer):
             ]
 
 # ========== INVOICE STATUS ALL SERIALIZER ==========
+# Student Serializer for Invoice Status All Serializer
+class StudentSerializerForInvoiceStatusAll(serializers.ModelSerializer):
+    class Meta:
+        model = Students
+        fields = ['id', 'last_name_kanji', 'first_name_kanji', 'last_name_katakana', 'first_name_katakana', 'last_name_romaji', 'first_name_romaji',]
+
 # Invoice Status All Serializer
 class InvoiceStatusAllSerializer(serializers.ModelSerializer):
-    student = StudentSerializer()
-    payment_method = PaymentMethodSerializer()
+    student = StudentSerializerForInvoiceStatusAll()
     invoice_items = InvoiceItemSerializer(source='invoiceitem_set', many=True, read_only=True)
 
     class Meta:
@@ -102,11 +107,6 @@ class InvoiceStatusAllSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'customer_name',
-            'customer_postal_code',
-            'customer_prefecture',
-            'customer_city',
-            'customer_address_line_1',
-            'customer_address_line_2',
             'year',
             'month',
             'creation_date',
@@ -116,7 +116,6 @@ class InvoiceStatusAllSerializer(serializers.ModelSerializer):
             'issued',
             'paid',
             'student',
-            'payment_method',
             'invoice_items',
             'date_time_created',
             'date_time_modified',

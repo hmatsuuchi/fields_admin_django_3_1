@@ -55,7 +55,7 @@ class InvoiceStatusAllView(APIView):
             invoice_items_qs = InvoiceItem.objects.select_related('invoice', 'service_type', 'tax_type', 'service_type__tax')
             invoices_all = (
                 Invoice.objects
-                .select_related('student', 'payment_method')
+                .select_related('student')
                 .prefetch_related(Prefetch('invoiceitem_set', queryset=invoice_items_qs))
                 .order_by('-id')
             )
@@ -72,6 +72,24 @@ class InvoiceStatusAllView(APIView):
         except Exception as e:
             return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
         
+# Invoice Status Batch Update View
+class InvoiceStatusBatchUpdateView(APIView):
+    authentication_classes = ([CustomAuthentication])
+    permission_classes = ([isInStaffGroup])
+    
+    def post(self, request, format=None):
+        try:
+            for record in request.data:
+                print(record['id'])
+                print(record['field'])
+                print(record['newValue'])
+                print("--------------------------")
+
+            return Response({'message': 'Invoice statuses updated successfully.'}, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 # Invoice Create View
 class InvoiceCreateView(APIView):
     authentication_classes = ([CustomAuthentication])
