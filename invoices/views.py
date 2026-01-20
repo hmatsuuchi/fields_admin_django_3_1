@@ -79,11 +79,21 @@ class InvoiceStatusBatchUpdateView(APIView):
     
     def post(self, request, format=None):
         try:
-            for record in request.data:
-                print(record['id'])
-                print(record['field'])
-                print(record['newValue'])
-                print("--------------------------")
+            updated_records = request.data
+
+            for record in updated_records:
+                record_id = record['id']
+                record_field = record['field']
+                record_new_value = record['newValue']
+
+                # converts empty strings to None
+                if record_new_value == "":
+                    record_new_value = None
+
+                # process each record
+                invoice = Invoice.objects.get(id=record_id)
+                setattr(invoice, record_field, record_new_value)
+                invoice.save()
 
             return Response({'message': 'Invoice statuses updated successfully.'}, status=status.HTTP_200_OK)
         
