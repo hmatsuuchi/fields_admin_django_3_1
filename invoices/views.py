@@ -50,11 +50,14 @@ class InvoiceStatusAllView(APIView):
     # GET - event type choice list
     def get(self, request, format=None):
         try:
+            # get year and month values from query params
+            year = request.query_params.get('year', None)
+            month = request.query_params.get('month', None)
 
             # get all invoices, prefetch invoice items and eager-load InvoiceItem FKs
             invoice_items_qs = InvoiceItem.objects.select_related('invoice', 'service_type', 'tax_type', 'service_type__tax')
             invoices_all = (
-                Invoice.objects
+                Invoice.objects.filter(year=year, month=month)
                 .select_related('student')
                 .prefetch_related(Prefetch('invoiceitem_set', queryset=invoice_items_qs))
                 .order_by('-id')
