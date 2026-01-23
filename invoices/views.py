@@ -53,15 +53,27 @@ class InvoiceStatusAllView(APIView):
             # get year and month values from query params
             year = request.query_params.get('year', None)
             month = request.query_params.get('month', None)
+            display_unissued_only = request.query_params.get('display_unissued_only', None)
+            display_unpaid_only = request.query_params.get('display_unpaid_only', None)
 
             # get all invoices, prefetch invoice items and eager-load InvoiceItem FKs
             invoice_items_qs = InvoiceItem.objects.select_related('invoice', 'service_type', 'tax_type', 'service_type__tax')
             invoices_all = (
-                Invoice.objects.filter(year=year, month=month)
+                Invoice.objects
                 .select_related('student')
                 .prefetch_related(Prefetch('invoiceitem_set', queryset=invoice_items_qs))
                 .order_by('-id')
             )
+
+            # apply additional filters
+            if year:
+                invoices_all = invoices_all.filter(year=year)
+            if month:
+                invoices_all = invoices_all.filter(month=month)
+            if display_unissued_only == 'true':
+                invoices_all = invoices_all.filter(issued_date__isnull=True)
+            if display_unpaid_only == 'true':
+                invoices_all = invoices_all.filter(paid_date__isnull=True)
 
             # serialize data
             serializer = InvoiceStatusAllSerializer(invoices_all, many=True)
