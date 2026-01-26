@@ -1,3 +1,4 @@
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -50,11 +51,12 @@ class InvoiceStatusAllView(APIView):
     # GET - event type choice list
     def get(self, request, format=None):
         try:
-            # get year and month values from query params
+            # get filter query params
             year = request.query_params.get('year', None)
             month = request.query_params.get('month', None)
             display_unissued_only = request.query_params.get('display_unissued_only', None)
             display_unpaid_only = request.query_params.get('display_unpaid_only', None)
+            display_student_only_id = request.query_params.get('display_student_only_id', None)
 
             # get all invoices, prefetch invoice items and eager-load InvoiceItem FKs
             invoice_items_qs = InvoiceItem.objects.select_related('invoice', 'service_type', 'tax_type', 'service_type__tax')
@@ -62,7 +64,7 @@ class InvoiceStatusAllView(APIView):
                 Invoice.objects
                 .select_related('student')
                 .prefetch_related(Prefetch('invoiceitem_set', queryset=invoice_items_qs))
-                .order_by('-id')
+                .order_by('-year', '-month', '-id')
             )
 
             # apply additional filters
@@ -74,6 +76,13 @@ class InvoiceStatusAllView(APIView):
                 invoices_all = invoices_all.filter(issued_date__isnull=True)
             if display_unpaid_only == 'true':
                 invoices_all = invoices_all.filter(paid_date__isnull=True)
+            if display_student_only_id:
+                invoices_all = invoices_all.filter(student__id=display_student_only_id)
+
+            # defaults to current year/month if no filters applied
+            if year == "" and month == "" and display_unissued_only == "false" and display_unpaid_only == "false" and not display_student_only_id:
+                now = timezone.now()
+                invoices_all = invoices_all.filter(year=now.year, month=now.month)
 
             # serialize data
             serializer = InvoiceStatusAllSerializer(invoices_all, many=True)
