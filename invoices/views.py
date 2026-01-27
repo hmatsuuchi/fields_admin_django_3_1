@@ -8,7 +8,7 @@ from authentication.permissions import isInStaffGroup
 from authentication.customAuthentication import CustomAuthentication
 # MODELS
 from .models import Invoice, InvoiceItem, PaymentMethod, ServiceType, Tax
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Q
 from students.models import Students
 # SERIALIZERS
 from .serializers import InvoiceListAllSerializer, InvoiceStatusAllSerializer, InvoiceCreateSerializer, ProfilesListForSelectSerializer, PaymentMethodSerializer, ServiceTypeSerializer, TaxSerializer
@@ -57,6 +57,7 @@ class InvoiceStatusAllView(APIView):
             display_unissued_only = request.query_params.get('display_unissued_only', None)
             display_unpaid_only = request.query_params.get('display_unpaid_only', None)
             display_student_only_id = request.query_params.get('display_student_only_id', None)
+            text_filter = request.query_params.get('text_filter', None)
 
             # get all invoices, prefetch invoice items and eager-load InvoiceItem FKs
             invoice_items_qs = InvoiceItem.objects.select_related('invoice', 'service_type', 'tax_type', 'service_type__tax')
@@ -78,6 +79,11 @@ class InvoiceStatusAllView(APIView):
                 invoices_all = invoices_all.filter(paid_date__isnull=True)
             if display_student_only_id:
                 invoices_all = invoices_all.filter(student__id=display_student_only_id)
+            if text_filter and text_filter != "":
+                invoices_all = invoices_all.filter(
+                    Q(student__first_name_romaji__icontains=text_filter) |
+                    Q(student__last_name_romaji__icontains=text_filter)
+                )
 
             # defaults to current year/month if no filters applied
             if year == "" and month == "" and display_unissued_only == "false" and display_unpaid_only == "false" and not display_student_only_id:
