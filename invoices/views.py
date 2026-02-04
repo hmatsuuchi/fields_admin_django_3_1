@@ -86,7 +86,7 @@ class InvoiceStatusAllView(APIView):
                 )
 
             # defaults to current year/month if no filters applied
-            if year == "" and month == "" and display_unissued_only == "false" and display_unpaid_only == "false" and not display_student_only_id:
+            if text_filter == "" and year == None and month == None and display_unissued_only == None and display_unpaid_only == None and display_student_only_id == None:
                 now = timezone.now()
                 invoices_all = invoices_all.filter(year=now.year, month=now.month)
 

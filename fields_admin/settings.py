@@ -9,7 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env(DEBUG=(bool, False))
 # dev.env - Development
 # prod.env - Production
-environ.Env.read_env('./fields_admin/dev.env')
+environ.Env.read_env('./fields_admin/prod.env')
 
 SECRET_KEY = env('SECRET_KEY')
 
