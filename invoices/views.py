@@ -69,26 +69,24 @@ class InvoiceStatusAllView(APIView):
             )
 
             # apply additional filters
-            if year:
-                invoices_all = invoices_all.filter(year=year)
-            if month:
-                invoices_all = invoices_all.filter(month=month)
-            if display_unissued_only == 'true':
+            if year and month:
+                invoices_all = invoices_all.filter(year=year, month=month)
+            elif display_unissued_only == 'true':
                 invoices_all = invoices_all.filter(issued_date__isnull=True)
-            if display_unpaid_only == 'true':
+            elif display_unpaid_only == 'true':
                 invoices_all = invoices_all.filter(paid_date__isnull=True)
-            if display_student_only_id:
+            elif display_student_only_id:
                 invoices_all = invoices_all.filter(student__id=display_student_only_id)
-            if text_filter and text_filter != "":
+            elif text_filter and text_filter != "":
                 invoices_all = invoices_all.filter(
                     Q(student__first_name_romaji__icontains=text_filter) |
                     Q(student__last_name_romaji__icontains=text_filter)
                 )
-
             # defaults to current year/month if no filters applied
-            if text_filter == "" and year == None and month == None and display_unissued_only == None and display_unpaid_only == None and display_student_only_id == None:
+            else:
                 now = timezone.now()
                 invoices_all = invoices_all.filter(year=now.year, month=now.month)
+
 
             # serialize data
             serializer = InvoiceStatusAllSerializer(invoices_all, many=True)

@@ -25,7 +25,11 @@ class EventsListView(APIView):
     def get(self, request, format=None):
         try:
             # ------- get all events for date -------
-            events = Events.objects.all().filter(archived=False).select_related('event_type', 'primary_instructor', 'primary_instructor__userprofilesinstructors').prefetch_related('students')    
+            events = Events.objects.all().filter(archived=False).select_related(
+                'event_type',
+                'primary_instructor',
+                'primary_instructor__userprofilesinstructors'
+                ).prefetch_related('students')    
             
             # serialize events
             event_serializer = EventsSerializer(events, many=True)
