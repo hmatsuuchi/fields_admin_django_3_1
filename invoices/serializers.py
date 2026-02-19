@@ -16,7 +16,7 @@ class PaymentMethodSerializer(serializers.ModelSerializer):
 class StudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Students
-        fields = ['id', 'last_name_kanji', 'first_name_kanji', 'payment_method_from_invoice',]
+        fields = ['id', 'last_name_kanji', 'first_name_kanji', 'last_name_romaji', 'first_name_romaji', 'payment_method_from_invoice',]
 
 # Tax Serializer
 class TaxSerializer(serializers.ModelSerializer):

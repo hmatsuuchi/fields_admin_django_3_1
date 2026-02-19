@@ -21,11 +21,14 @@ class InvoiceListAllView(APIView):
     # GET - event type choice list
     def get(self, request, format=None):
         try:
+            # get filter query parameters
+            query_params = request.query_params
 
             # get all invoices, prefetch invoice items and eager-load InvoiceItem FKs
             invoice_items_qs = InvoiceItem.objects.select_related('invoice', 'service_type', 'tax_type', 'service_type__tax')
             invoices_all = (
                 Invoice.objects
+                .filter(year=query_params['year'], month=query_params['month'])
                 .select_related('student', 'payment_method')
                 .prefetch_related(Prefetch('invoiceitem_set', queryset=invoice_items_qs))
                 .order_by('-id')
