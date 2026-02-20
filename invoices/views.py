@@ -23,16 +23,28 @@ class InvoiceListAllView(APIView):
         try:
             # get filter query parameters
             query_params = request.query_params
+            year = query_params.get('year', None)
+            month = query_params.get('month', None)
+            display_student_only_id = query_params.get('display_student_only_id', None)
 
             # get all invoices, prefetch invoice items and eager-load InvoiceItem FKs
             invoice_items_qs = InvoiceItem.objects.select_related('invoice', 'service_type', 'tax_type', 'service_type__tax')
             invoices_all = (
                 Invoice.objects
-                .filter(year=query_params['year'], month=query_params['month'])
                 .select_related('student', 'payment_method')
                 .prefetch_related(Prefetch('invoiceitem_set', queryset=invoice_items_qs))
-                .order_by('-id')
+                .order_by('-year', '-month', '-id')
             )
+
+            # apply additional filters
+            if year and month:
+                invoices_all = invoices_all.filter(year=year, month=month)
+            elif display_student_only_id:
+                invoices_all = invoices_all.filter(student__id=display_student_only_id)
+            # defaults to current year/month if no filters applied
+            else:
+                today = timezone.now()
+                invoices_all = invoices_all.filter(year=today.year, month=today.month)
 
             # serialize data
             serializer = InvoiceListAllSerializer(invoices_all, many=True)
@@ -87,8 +99,8 @@ class InvoiceStatusAllView(APIView):
                 )
             # defaults to current year/month if no filters applied
             else:
-                now = timezone.now()
-                invoices_all = invoices_all.filter(year=now.year, month=now.month)
+                today = timezone.now()
+                invoices_all = invoices_all.filter(year=today.year, month=today.month)
 
 
             # serialize data
