@@ -23,9 +23,10 @@ class InvoiceListAllView(APIView):
         try:
             # get filter query parameters
             query_params = request.query_params
+            display_student_only_id = query_params.get('display_student_only_id', None)
             year = query_params.get('year', None)
             month = query_params.get('month', None)
-            display_student_only_id = query_params.get('display_student_only_id', None)
+            text_filter = query_params.get('text_filter', None)
 
             # get all invoices, prefetch invoice items and eager-load InvoiceItem FKs
             invoice_items_qs = InvoiceItem.objects.select_related('invoice', 'service_type', 'tax_type', 'service_type__tax')
@@ -36,11 +37,21 @@ class InvoiceListAllView(APIView):
                 .order_by('-year', '-month', '-id')
             )
 
-            # apply additional filters
+            # year/month filter
             if year and month:
                 invoices_all = invoices_all.filter(year=year, month=month)
+            # text filter
+            elif text_filter and text_filter != "":
+                invoices_all = invoices_all.filter(
+                    Q(student__first_name_romaji__icontains=text_filter) |
+                    Q(student__last_name_romaji__icontains=text_filter)
+                )
+            # isolate student filter
             elif display_student_only_id:
                 invoices_all = invoices_all.filter(student__id=display_student_only_id)
+
+
+
             # defaults to current year/month if no filters applied
             else:
                 today = timezone.now()
