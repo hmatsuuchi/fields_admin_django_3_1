@@ -1,6 +1,6 @@
 from django.db.models import OuterRef, Subquery, Count, Q
 from django.shortcuts import get_object_or_404
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -17,8 +17,8 @@ from .serializers import AttendanceRecordSerializer, CheckInSerializer
 # importing csv
 import csv
 
-# get student data based on card UUID
-class GetStudentDataView(APIView):
+# Display 01 - get student data
+class Display01GetStudentDataView(APIView):
     authentication_classes = ([CustomAuthentication])
     permission_classes = ([isInDisplaysGroup])
 
@@ -71,8 +71,8 @@ class GetStudentDataView(APIView):
             print(e)
             return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
 
-# get recent checkins
-class GetRecentCheckinsView(APIView):
+# Display 01 - get recent checkins
+class Display01GetRecentCheckinsView(APIView):
     authentication_classes = ([CustomAuthentication])
     permission_classes = ([isInDisplaysGroup])
 
@@ -97,7 +97,55 @@ class GetRecentCheckinsView(APIView):
         except Exception as e:
             print(e)
             return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
+
+ # get student data based on card UUID
+
+# Display 02 - get student data
+class Display02GetStudentDataView(APIView):
+    authentication_classes = ([CustomAuthentication])
+    permission_classes = ([isInDisplaysGroup])
+
+    def get(self, request, format=None):
+        try:
+            # get UUID from request
+            card_uuid = request.GET.get('card_uuid')
+
+            # get student record, attendance data and attendance count
+            card_record = get_object_or_404(
+                CardUUID.objects.select_related('linked_student').annotate(
+                    attendance_present_count=Count(
+                        'linked_student__attendancerecord',
+                        filter=Q(linked_student__attendancerecord__status=3)
+                    )
+                ),
+                card_uuid=card_uuid
+            )
+
+            # get linked student
+            student = card_record.linked_student
+            # count attendance records for present status
+            attendance_present_count = card_record.attendance_present_count
+
+            # create checkin record
+            CheckIn.objects.create(
+                student=student,
+                attendance_present_count=attendance_present_count,
+            )
+
+            data = {
+                'card_uuid': card_uuid,
+                'student_last_name_romaji': student.last_name_romaji,
+                'student_first_name_romaji': student.first_name_romaji,
+                'student_grade_verbose': student.grade_verbose,
+                'attendance_present_count': attendance_present_count,
+            }
+
+            return Response(data, status=status.HTTP_200_OK)
         
+        except Http404 as e:
+            return Response({'error': str(e)}, status=status.HTTP_404_NOT_FOUND)
+
+
 # used to import attendance records from CSV
 def ImportCardUUID(request):
     print('')
