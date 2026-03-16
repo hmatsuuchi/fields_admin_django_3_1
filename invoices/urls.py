@@ -2,7 +2,7 @@ from django.urls import path
 # VIEWS
 from . import views
 # VIEWS
-from .views import InvoiceListAllView, InvoiceStatusAllView, InvoiceStatusBatchUpdateView, InvoiceCreateView, ProfilesListForSelectView, PaymentMethodsListForSelectView, ServiceTypesListForSelectView, TaxesListForSelectView
+from .views import InvoiceListAllView, InvoiceStatusAllView, InvoiceStatusBatchUpdateView, InvoiceCreateView, InvoicePrintView, ProfilesListForSelectView, PaymentMethodsListForSelectView, ServiceTypesListForSelectView, TaxesListForSelectView
 
 urlpatterns = [
     path('invoices/list/all/', InvoiceListAllView.as_view(), name='invoice-list-all'),
@@ -11,6 +11,7 @@ urlpatterns = [
     path('invoices/status/batch-update/', InvoiceStatusBatchUpdateView.as_view(), name='invoice-status-batch-update'),
 
     path('invoices/create/invoice/', InvoiceCreateView.as_view(), name='invoice-create'),
+    path ('invoices/print/', views.InvoicePrintView.as_view(), name='invoice-print'),
 
     path('invoices/profiles-list-for-select/', ProfilesListForSelectView.as_view(), name='profiles-list-for-select'),
     path('invoices/payment-methods-list-for-select/', PaymentMethodsListForSelectView.as_view(), name='payment-methods-list-for-select'),

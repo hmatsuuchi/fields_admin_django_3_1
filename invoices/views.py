@@ -11,7 +11,7 @@ from .models import Invoice, InvoiceItem, PaymentMethod, ServiceType, Tax
 from django.db.models import Prefetch, Q
 from students.models import Students
 # SERIALIZERS
-from .serializers import InvoiceListAllSerializer, InvoiceStatusAllSerializer, InvoiceCreateSerializer, ProfilesListForSelectSerializer, PaymentMethodSerializer, ServiceTypeSerializer, TaxSerializer
+from .serializers import InvoiceListAllSerializer, InvoicePrintSerializer, InvoiceStatusAllSerializer, InvoiceCreateSerializer, ProfilesListForSelectSerializer, PaymentMethodSerializer, ServiceTypeSerializer, TaxSerializer
 
 # Invoice List All View
 class InvoiceListAllView(APIView):
@@ -29,7 +29,7 @@ class InvoiceListAllView(APIView):
             text_filter = query_params.get('text_filter', None)
 
             # get all invoices, prefetch invoice items and eager-load InvoiceItem FKs
-            invoice_items_qs = InvoiceItem.objects.select_related('invoice', 'service_type', 'tax_type', 'service_type__tax')
+            invoice_items_qs = InvoiceItem.objects.select_related('invoice', 'service_type', 'tax_type', 'service_type__tax').order_by('id')
             invoices_all = (
                 Invoice.objects
                 .select_related('student', 'payment_method')
@@ -178,6 +178,29 @@ class InvoiceCreateView(APIView):
                 return Response({'invoice_id': invoice.id}, status=status.HTTP_200_OK)
             
             return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+# Invoice Print View
+class InvoicePrintView(APIView):
+    authentication_classes = ([CustomAuthentication])
+    permission_classes = ([isInStaffGroup])
+
+    def get(self, request, format=None):
+        try:
+            invoice_id = request.GET.get('invoice_id')
+
+            invoice_items_qs = InvoiceItem.objects.select_related('service_type').order_by('id')
+
+            invoice = (Invoice.objects
+            .select_related('payment_method')
+            .prefetch_related(Prefetch('invoiceitem_set', queryset=invoice_items_qs))
+            .get(id=invoice_id))
+            
+            serializer = InvoicePrintSerializer(invoice)
+
+            return Response(serializer.data, status=status.HTTP_200_OK)
         
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

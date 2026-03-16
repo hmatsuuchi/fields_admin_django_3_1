@@ -159,6 +159,37 @@ class InvoiceCreateSerializer(serializers.ModelSerializer):
         
         return invoice
 
+# ========== INVOICE PRINT SERIALIZER ==========
+# Service Type Serializer for Invoice Print Serializer
+class ServiceTypeSerializerForInvoicePrint(serializers.ModelSerializer):
+
+    class Meta:
+        model = ServiceType
+        fields = "__all__"
+
+# Invoice Item Serializer for Invoice Print Serializer
+class InvoiceItemSerializer(serializers.ModelSerializer):
+    service_type = ServiceTypeSerializerForInvoicePrint()
+
+    class Meta:
+        model = InvoiceItem
+        fields = "__all__"
+
+# Payment Method Serializer for Invoice Print Serializer
+class PaymentMethodSerializerForInvoicePrint(serializers.ModelSerializer):
+    class Meta:
+        model = PaymentMethod
+        fields = "__all__"
+
+# Invoice Print Serializer
+class InvoicePrintSerializer(serializers.ModelSerializer):
+    payment_method = PaymentMethodSerializerForInvoicePrint()
+    invoice_items = InvoiceItemSerializer(source='invoiceitem_set', many=True, read_only=True)
+
+    class Meta:
+        model = Invoice
+        fields = "__all__"
+
 # ========== PROFILE SERIALIZER FOR SELECTION LIST ==========
 class ProfilesListForSelectSerializer(serializers.ModelSerializer):
     class Meta:
