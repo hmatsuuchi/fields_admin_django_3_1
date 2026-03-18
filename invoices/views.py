@@ -246,7 +246,7 @@ class ServiceTypesListForSelectView(APIView):
     
     def get(self, request, format=None):
         try:
-            service_types = ServiceType.objects.all().order_by('order').select_related('tax')
+            service_types = ServiceType.objects.filter(archived=False).order_by('order').select_related('tax')
 
             serializer = ServiceTypeSerializer(service_types, many=True)
 

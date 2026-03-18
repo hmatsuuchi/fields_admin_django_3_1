@@ -71,6 +71,7 @@ class ServiceType(models.Model):
     tax                         = models.ForeignKey(Tax, on_delete=models.CASCADE, blank=False, null=False)
 
     order                       = models.IntegerField(blank=True, null=True)
+    archived                    = models.BooleanField(default=False, db_index=True)
 
     date_time_created           = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_time_modified          = models.DateTimeField(auto_now=True, blank=True, null=True)
@@ -79,7 +80,7 @@ class ServiceType(models.Model):
         verbose_name_plural = "Service Types"
 
     def __str__(self):
-        return f"{str(self.name)} [{str(self.price)}]"
+        return f"{str(self.name)} [{str(self.price)}] [{str(self.order)}] [{'X' if self.archived else 'O'}]"
     
 class InvoiceItem(models.Model):
     description                 = models.CharField(max_length=500, blank=True, null=True)
