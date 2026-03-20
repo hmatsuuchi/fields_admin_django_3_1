@@ -160,6 +160,12 @@ class InvoiceCreateSerializer(serializers.ModelSerializer):
         return invoice
 
 # ========== INVOICE PRINT SERIALIZER ==========
+# Student Serializer for Invoice Print Serializer
+class StudentSerializerForInvoiceStatusAll(serializers.ModelSerializer):
+    class Meta:
+        model = Students
+        fields = "__all__"
+        
 # Service Type Serializer for Invoice Print Serializer
 class ServiceTypeSerializerForInvoicePrint(serializers.ModelSerializer):
 
@@ -185,6 +191,7 @@ class PaymentMethodSerializerForInvoicePrint(serializers.ModelSerializer):
 class InvoicePrintSerializer(serializers.ModelSerializer):
     payment_method = PaymentMethodSerializerForInvoicePrint()
     invoice_items = InvoiceItemSerializer(source='invoiceitem_set', many=True, read_only=True)
+    student = StudentSerializerForInvoiceStatusAll()
 
     class Meta:
         model = Invoice
