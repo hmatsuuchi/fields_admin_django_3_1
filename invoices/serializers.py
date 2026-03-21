@@ -164,14 +164,14 @@ class InvoiceCreateSerializer(serializers.ModelSerializer):
 class StudentSerializerForInvoiceStatusAll(serializers.ModelSerializer):
     class Meta:
         model = Students
-        fields = "__all__"
+        fields = ['last_name_romaji', 'first_name_romaji']
         
 # Service Type Serializer for Invoice Print Serializer
 class ServiceTypeSerializerForInvoicePrint(serializers.ModelSerializer):
 
     class Meta:
         model = ServiceType
-        fields = "__all__"
+        fields = ['name']
 
 # Invoice Item Serializer for Invoice Print Serializer
 class InvoiceItemSerializer(serializers.ModelSerializer):
@@ -179,23 +179,29 @@ class InvoiceItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = InvoiceItem
-        fields = "__all__"
-
-# Payment Method Serializer for Invoice Print Serializer
-class PaymentMethodSerializerForInvoicePrint(serializers.ModelSerializer):
-    class Meta:
-        model = PaymentMethod
-        fields = "__all__"
+        fields = ['quantity', 'rate', 'tax_rate', 'service_type', 'description']
 
 # Invoice Print Serializer
 class InvoicePrintSerializer(serializers.ModelSerializer):
-    payment_method = PaymentMethodSerializerForInvoicePrint()
     invoice_items = InvoiceItemSerializer(source='invoiceitem_set', many=True, read_only=True)
     student = StudentSerializerForInvoiceStatusAll()
 
     class Meta:
         model = Invoice
-        fields = "__all__"
+        fields = [
+            'year',
+            'month',
+            'customer_name',
+            'creation_date',
+            'customer_postal_code',
+            'customer_prefecture',
+            'customer_city',
+            'customer_address_line_1',
+            'customer_address_line_2',
+            'transfer_date',
+            'invoice_items',
+            'student',
+        ]
 
 # ========== PROFILE SERIALIZER FOR SELECTION LIST ==========
 class ProfilesListForSelectSerializer(serializers.ModelSerializer):

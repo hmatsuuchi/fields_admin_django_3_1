@@ -194,7 +194,7 @@ class InvoicePrintView(APIView):
             invoice_items_qs = InvoiceItem.objects.select_related('service_type').order_by('id')
 
             invoice = (Invoice.objects
-            .select_related('payment_method')
+            .select_related('student')
             .prefetch_related(Prefetch('invoiceitem_set', queryset=invoice_items_qs))
             .get(id=invoice_id))
             
