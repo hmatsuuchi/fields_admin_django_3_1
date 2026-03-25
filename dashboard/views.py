@@ -3,7 +3,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from datetime import date, datetime, timedelta
 from django.db.models import Count, Q, Min, Max, Prefetch
-from django.contrib.auth.models import Group
 # authentication
 from authentication.customAuthentication import CustomAuthentication
 # group permission control
@@ -11,14 +10,14 @@ from authentication.permissions import isInStaffGroup
 from authentication.permissions import isInSuperusersGroup
 # models
 from user_profiles.models import UserProfilesInstructors
-from attendance.models import AttendanceRecord
+from attendance.models import Attendance, AttendanceRecord
 from students.models import Students
 from analytics.models import HighestActiveStudentCount, AtRiskStudents
 from schedule.models import Events
 # serializers
 from dashboard.serializers import AtRiskStudentSerializer
 from dashboard.serializers import UpcomingBirthdayStudentSerializer
-from dashboard.serializers import InstructorSerializerForIncompleteAttendanceForAllInstructors
+from dashboard.serializers import AttendanceSerializerForIAFAI
 
 # get all incomplete recent attendance records for an instructor
 class IncompleteAttendanceForInstructorView(APIView):
@@ -156,23 +155,26 @@ class TotalActiveStudentsView(APIView):
                 .distinct()
             )
 
+            # gets the count of active students
+            active_students_count = active_students.count()
+
             # gets the highest active student count
             highest_active_student_count = HighestActiveStudentCount.objects.order_by('-active_student_count').first()
 
             if not highest_active_student_count:
                 # if no records exist, create a new record with the current count
                 highest_active_student_count = HighestActiveStudentCount.objects.create(
-                    active_student_count=active_students.count()
+                    active_student_count=active_students_count
                 )
-            elif highest_active_student_count.active_student_count < active_students.count():
+            elif highest_active_student_count.active_student_count < active_students_count:
                 # if the current count is higher than the stored count, create a new record with the current count
                 highest_active_student_count = HighestActiveStudentCount.objects.create(
-                    active_student_count=active_students.count()
+                    active_student_count=active_students_count
                 )
 
 
             data = {
-                'total_active_students_count': active_students.count(),
+                'total_active_students_count': active_students_count,
                 'highest_active_student_count': {
                     'count': highest_active_student_count.active_student_count,
                     'date': highest_active_student_count.date_time_created,
@@ -328,21 +330,42 @@ class IncompleteAttendanceForAllInstructorsView(APIView):
 
     def get(self, request, format=None):
         try:
-            # instructor group
-            group = Group.objects.get(name='Instructors')
-
-            # active instructors in the "Instructors" group
-            instructors = group.user_set.filter(userprofilesinstructors__archived=False)
+            # get attendance records for the past month for all instructors
+            past_month_attendance = Attendance.objects.filter(
+                instructor__groups__name='Instructors',
+                instructor__userprofilesinstructors__archived=False,
+                date__gte=datetime.now() - timedelta(days=30),
+                date__lte=datetime.now(),
+            ).prefetch_related(
+                'attendance_records'
+            ).select_related(
+                'instructor',
+                'instructor__userprofilesinstructors'
+            ).annotate(
+                incomplete_count=Count('attendance_records', filter=Q(attendance_records__status=2), distinct=True),
+                complete_count=Count('attendance_records', filter=Q(attendance_records__status__in=[3, 4]), distinct=True),
+            ).order_by('-date')
 
             # serialize data
-            serializer = InstructorSerializerForIncompleteAttendanceForAllInstructors(instructors, many=True)
+            serializer = AttendanceSerializerForIAFAI(past_month_attendance, many=True)
+
+            # derive instructor data
+            instructor_data = list(past_month_attendance
+                .values(
+                    'instructor_id',
+                    'instructor__userprofilesinstructors__last_name_romaji',
+                    'instructor__userprofilesinstructors__first_name_romaji',
+                )
+                .distinct()
+                .order_by('instructor_id'))
 
             data = {
-                'intructor_data': serializer.data,
+                'attendance_data': serializer.data,
+                'instructor_data': instructor_data,
             }
 
             return Response(data, status=status.HTTP_200_OK)
         
         except Exception as e:
             print(e)
-            return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
