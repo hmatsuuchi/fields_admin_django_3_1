@@ -18,6 +18,7 @@ DEBUG = env('DEBUG')
 ALLOWED_HOSTS = env('ALLOWED_HOSTS').split(',')
 
 INSTALLED_APPS = [
+    'alerts', # Alerts App
     'corsheaders', # cors headers
     'authentication', # Authentication App
     'students', # Students App
