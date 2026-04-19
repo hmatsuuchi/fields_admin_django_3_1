@@ -1,4 +1,5 @@
 import datetime
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -12,7 +13,7 @@ from .models import Attendance, AttendanceRecord, AttendanceRecordStatus
 from schedule.models import Events
 from students.models import Students
 # serializers
-from .serializers import AttendanceSerializer, AttendanceDetailsSerializer, AttendanceRecordDetailsSerializer, UserInstructorSerializer, UserInstructorPreferenceSerializer, EventsChoiceListSerializer, StudentsChoiceListSerializer, AttendanceRecordForProfileDetailsSerializer
+from .serializers import AttendanceSerializer, AttendanceDetailsSerializer, AttendanceRecordDetailsSerializer, UserInstructorSerializer, UserInstructorPreferenceSerializer, EventsChoiceListSerializer, StudentsChoiceListSerializer, AttendanceRecordForProfileDetailsSerializer, AttendanceRecordForInvoiceCreateSerializer
 # importing csv
 import csv
 from django.http import JsonResponse
@@ -421,6 +422,41 @@ class GetAttendanceForProfileView(APIView):
 
             # serialize attendance records
             attendance_records_serializer = AttendanceRecordForProfileDetailsSerializer(attendance_records, many=True)
+
+            data = {
+                'attendance_records': attendance_records_serializer.data,
+            }
+
+            return Response(data, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            print(e)
+            return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
+
+# get attendance for a single student for invoice creation
+class AttendanceForStudentForInvoiceView(APIView):
+    authentication_classes = ([CustomAuthentication])
+    permission_classes = ([isInStaffGroup])
+
+    # GET - get attendance for single student for invoice creation
+    def get(self, request, format=None):
+        try:
+            # get student id from the request
+            student_id = request.GET.get('student_id')
+
+            # get attendance records for student
+            attendance_records = AttendanceRecord.objects.filter(
+                student=student_id,
+                ).prefetch_related(
+                    'status',
+                    'grade',
+                    'attendance_reverse_relationship',
+                    'attendance_reverse_relationship__linked_class',
+                    'attendance_reverse_relationship__instructor__userprofilesinstructors',
+                ).order_by('-attendance_reverse_relationship__date', '-attendance_reverse_relationship__start_time')[:48]
+            
+            # serialize attendance records
+            attendance_records_serializer = AttendanceRecordForInvoiceCreateSerializer(attendance_records, many=True)
 
             data = {
                 'attendance_records': attendance_records_serializer.data,

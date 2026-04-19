@@ -259,3 +259,80 @@ class AttendanceRecordForProfileDetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model = AttendanceRecord
         fields = ['id', 'status', 'grade', 'attendance_reverse_relationship']
+
+# ======= ATTENDANCE RECORDS FOR INVOICE CREATE SERIALIZERS =======
+
+# Attendance Record for Invoice Create Serializer
+class AttendanceRecordForInvoiceCreateSerializer(serializers.ModelSerializer):
+    grade = serializers.CharField(source='grade.name', read_only=True)
+
+    # Computed from one selected Attendance (latest)
+    date = serializers.SerializerMethodField()
+    start_time = serializers.SerializerMethodField()
+    linked_class_name = serializers.SerializerMethodField()
+    instructor_name = serializers.SerializerMethodField()
+    icon_stub = serializers.SerializerMethodField()
+
+    class Meta:
+        model = AttendanceRecord
+        fields = ['id', 'status', 'grade', 'date', 'start_time', 'linked_class_name', 'instructor_name', 'icon_stub']
+
+    def _get_selected_attendance(self, obj):
+        """
+        Select exactly one related Attendance for invoice output.
+        Current rule: latest by (date, start_time).
+        """
+        cached = getattr(obj, '_selected_attendance_for_invoice', None)
+        if cached is not None:
+            return cached
+
+        attendances = list(obj.attendance_reverse_relationship.all())
+        if not attendances:
+            obj._selected_attendance_for_invoice = None
+            return None
+
+        selected = sorted(
+            attendances,
+            key=lambda a: (a.date, a.start_time),
+            reverse=True
+        )[0]
+
+        obj._selected_attendance_for_invoice = selected
+        return selected
+
+    def get_date(self, obj):
+        attendance = self._get_selected_attendance(obj)
+        return attendance.date.isoformat() if attendance else None
+    
+    def get_start_time(self, obj):
+        attendance = self._get_selected_attendance(obj)
+        return attendance.start_time.isoformat() if attendance else None
+
+    def get_linked_class_name(self, obj):
+        attendance = self._get_selected_attendance(obj)
+        if not attendance or not attendance.linked_class:
+            return None
+        return attendance.linked_class.event_name
+
+    def get_instructor_name(self, obj):
+        attendance = self._get_selected_attendance(obj)
+        if not attendance or not attendance.instructor:
+            return None
+
+        instructor = attendance.instructor
+        if not hasattr(instructor, 'userprofilesinstructors'):
+            return None
+
+        return instructor.userprofilesinstructors.last_name_kanji
+    
+    def get_icon_stub(self, obj):
+        attendance = self._get_selected_attendance(obj)
+        if not attendance or not attendance.instructor:
+            return None
+
+        instructor = attendance.instructor
+        if not hasattr(instructor, 'userprofilesinstructors'):
+            return None
+
+        return instructor.userprofilesinstructors.icon_stub
+

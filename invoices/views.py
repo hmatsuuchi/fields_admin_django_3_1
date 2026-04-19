@@ -11,7 +11,7 @@ from .models import Invoice, InvoiceItem, PaymentMethod, ServiceType, Tax
 from django.db.models import Prefetch, Q
 from students.models import Students
 # SERIALIZERS
-from .serializers import InvoiceListAllSerializer, InvoicePrintSerializer, InvoiceStatusAllSerializer, InvoiceCreateSerializer, ProfilesListForSelectSerializer, PaymentMethodSerializer, ServiceTypeSerializer, TaxSerializer
+from .serializers import InvoiceListAllSerializer, InvoicePrintSerializer, InvoiceStatusAllSerializer, InvoiceCreateSerializer, ProfilesListForSelectSerializer, PaymentMethodSerializer, ServiceTypeSerializer, TaxSerializer, InvoicesForStudentWithTotalsSerializer, InvoicesForStudentWithTotalsSerializer
 
 # Invoice List All View
 class InvoiceListAllView(APIView):
@@ -274,3 +274,36 @@ class TaxesListForSelectView(APIView):
             
         except Exception as e:
             return Response(status=status.HTTP_400_BAD_REQUEST)
+        
+class InvoicesForStudentForInvoiceView(APIView):
+    authentication_classes = ([CustomAuthentication])
+    permission_classes = ([isInStaffGroup])
+
+    def get(self, request, format=None):
+        try:
+            # get student id from the request
+            student_id = request.GET.get('student_id')
+
+            # prefetch invoice items
+            invoice_items_qs = InvoiceItem.objects.select_related('service_type', 'tax_type').order_by('id')
+
+            # get invoices for student with prefetched items
+            student_invoices = (
+                Invoice.objects
+                .filter(student__id=student_id)
+                .prefetch_related(Prefetch('invoiceitem_set', queryset=invoice_items_qs))
+                .order_by('-year', '-month', '-id')[:12]
+            )
+
+            # serialize data with totals
+            invoice_serializer = InvoicesForStudentWithTotalsSerializer(student_invoices, many=True)
+        
+            data = {
+                'invoice_records': invoice_serializer.data,
+            }
+
+            return Response(data, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            print(e)
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

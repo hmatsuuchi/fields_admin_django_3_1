@@ -241,3 +241,51 @@ class TaxSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tax
         fields = '__all__'
+
+# ========== INVOICE CREATE SERIALIZERS ==========
+class InvoicesForStudentForInvoiceCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Invoice
+        fields = ['id', 'year', 'month', 'issued_date', 'paid_date',]
+
+# ========== INVOICE WITH TOTALS SERIALIZERS ==========
+
+# Invoice Item with calculated totals
+class InvoiceItemWithTotalsSerializer(serializers.ModelSerializer):
+    subtotal = serializers.SerializerMethodField()
+    tax_amount = serializers.SerializerMethodField()
+    item_total = serializers.SerializerMethodField()
+
+    class Meta:
+        model = InvoiceItem
+        fields = ['id', 'description', 'quantity', 'rate', 'tax_rate', 'subtotal', 'tax_amount', 'item_total', 'service_type', 'tax_type']
+
+    def get_subtotal(self, obj):
+        return obj.quantity * obj.rate
+    
+    def get_tax_amount(self, obj):
+        subtotal = obj.quantity * obj.rate
+        return subtotal * (obj.tax_rate / 100)
+    
+    def get_item_total(self, obj):
+        subtotal = obj.quantity * obj.rate
+        tax_amount = subtotal * (obj.tax_rate / 100)
+        return subtotal + tax_amount
+
+
+# Invoice for Student with totals
+class InvoicesForStudentWithTotalsSerializer(serializers.ModelSerializer):
+    invoice_items = InvoiceItemWithTotalsSerializer(source='invoiceitem_set', many=True, read_only=True)
+    invoice_total = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Invoice
+        fields = ['id', 'year', 'month', 'issued_date', 'paid_date', 'invoice_items', 'invoice_total', 'payment_method']
+
+    def get_invoice_total(self, obj):
+        total = 0
+        for item in obj.invoiceitem_set.all():
+            subtotal = item.quantity * item.rate
+            tax_amount = subtotal * (item.tax_rate / 100)
+            total += subtotal + tax_amount
+        return total

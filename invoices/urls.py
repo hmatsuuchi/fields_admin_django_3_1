@@ -17,4 +17,7 @@ urlpatterns = [
     path('invoices/payment-methods-list-for-select/', PaymentMethodsListForSelectView.as_view(), name='payment-methods-list-for-select'),
     path('invoices/service-types-list-for-select/', ServiceTypesListForSelectView.as_view(), name='service-types-list-for-select'),
     path('invoices/taxes-list-for-select/', TaxesListForSelectView.as_view(), name='taxes-list-for-select'),
+
+    # Invoice related views
+    path('invoices/invoices_for_student_for_invoice_create/', views.InvoicesForStudentForInvoiceView.as_view(), name='invoices_for_student_for_invoice'),
 ]

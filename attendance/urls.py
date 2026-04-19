@@ -13,4 +13,6 @@ urlpatterns = [
     path('attendance/user_preferences/', views.AttendanceUserPreferencesView.as_view(), name='attendance_user_preferences'),
     path('attendance/auto_generate_attendance_records/', views.AutoGenerateAttendanceRecordsView.as_view(), name='auto_generate_attendance_records'),
     path('attendance/get_attendance_for_profile/', views.GetAttendanceForProfileView.as_view(), name='get_attendance_for_profile'),
+    # Invoice related views
+    path('attendance/attendance_for_student_for_invoice/', views.AttendanceForStudentForInvoiceView.as_view(), name='attendance_for_student_for_invoice'),
 ]
