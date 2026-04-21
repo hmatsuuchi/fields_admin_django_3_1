@@ -53,13 +53,13 @@ class AttendanceAlertsAnalyzeView(APIView):
             display_date_range = 4 # number of weeks to display in response (must be less than or equal to analysis_date_range)
 
             # if today is not Monday, find the most recent Monday
-            most_recent_monday = timezone.localdate()
-            while most_recent_monday.weekday() != 0: # Monday=0, Tuesday=1, ..., Sunday=6
-                most_recent_monday -= datetime.timedelta(days=1)
+            most_recent_sunday = timezone.localdate()
+            while most_recent_sunday.weekday() != 6: # Sunday=6
+                most_recent_sunday -= datetime.timedelta(days=1)
 
             # set the date range for analysis always starting on Monday and ending on Sunday
-            range_start_date = most_recent_monday - datetime.timedelta(weeks=analysis_date_range)
-            range_end_date = most_recent_monday - datetime.timedelta(days=1)
+            range_start_date = most_recent_sunday - datetime.timedelta(weeks=analysis_date_range)
+            range_end_date = most_recent_sunday - datetime.timedelta(days=1)
 
             # get all attendance records from the specified date range            
             base_attendance_records = AttendanceRecord.objects.filter(
@@ -98,13 +98,16 @@ class AttendanceAlertsAnalyzeView(APIView):
             # initializes analytics data list for response
             analytics_data = []
 
+            # list of days of week starting with Sunday (Python weekday: Monday=0, ..., Sunday=6)
+            days_of_week = [6, 0, 1, 2, 3, 4, 5] # Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday
+
             # iterates through instructor list            
             for instructor in instructor_list:
-                day_of_week_data = [] # contains analytics data for each day of week (Monday, Tuesday, ..., Sunday)
+                day_of_week_data = [] # contains analytics data for each day of week (Sunday, Monday, ..., Saturday)
 
-                # iterates through each day of week (Monday, Tuesday, ..., Sunday)
-                for day_of_week in range(0, 7):
-                    date = range_start_date + datetime.timedelta(days=day_of_week) # first day of week in date range
+                # iterates through each day of week starting with Sunday
+                for day_offset, day_of_week in enumerate(days_of_week):
+                    date = range_start_date + datetime.timedelta(days=day_offset) # first day of week in date range
 
                     attendance_records_for_day_of_week = [] # attendance records for the current instructor and day of week (Monday, Tuesday, ..., Sunday) in date range
                     attendance_records_counts = [] # list of total attendance record counts for each day of week in date range, used to calculate mean and standard deviation for anomaly detection

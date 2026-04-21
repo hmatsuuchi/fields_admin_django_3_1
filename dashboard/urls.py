@@ -9,4 +9,7 @@ urlpatterns = [
     path('dashboard/total_active_students_historical/', views.TotalActiveStudentsHistoricalView.as_view(), name='total_active_students_historical'),
     path('dashboard/at_risk_students/', views.AtRiskStudentsView.as_view(), name='at_risk_students'),
     path('dashboard/upcoming_birthdays/', views.UpcomingBirthdaysView.as_view(), name='upcoming_birthdays'),
+
+    # Overview Endpoints
+    path('dashboard/overview/revenue_by_month/', views.RevenueByMonthView.as_view(), name='revenue_by_month'),
 ]

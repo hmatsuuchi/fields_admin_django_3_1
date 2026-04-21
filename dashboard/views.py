@@ -317,3 +317,19 @@ class UpcomingBirthdaysView(APIView):
             print(e)
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
+# get revenue by month
+class RevenueByMonthView(APIView):
+    authentication_classes = ([CustomAuthentication])
+    permission_classes = ([isInStaffGroup])
+
+    def get(self, request, format=None):        
+        try:
+            print('Calculating revenue by month...')
+
+            monthly_revenue = "SOME REVENUE DATA HERE"
+
+            return Response(monthly_revenue, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            print(e)
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
