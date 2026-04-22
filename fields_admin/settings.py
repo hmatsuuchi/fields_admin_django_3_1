@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     'analytics', # Analytics App
     'utilities', # Utilities App
     'invoices', # Invoices App
+    'accounting', # Accounting App
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

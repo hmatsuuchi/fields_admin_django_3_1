@@ -26,34 +26,26 @@ urlpatterns = [
 
     # student profiles
     path('api/students/', include(StudentsUrls)),
-
     # schedule
     path('api/schedule/', include(ScheduleUrls)),
-
     # attendance
     path('api/attendance/', include(AttendanceUrls)),
-
     # journal
     path('api/journal/', include(JournalUrls)),
-
     # logged in user data
     path('api/logged_in_user_data/', LoggedInUserDataView.as_view(), name='logged_in_user_data'),
-
     # dashboard
     path('api/dashboard/', include(DashboardUrls)),
-
     # game
     path('api/game/', include(GameUrls)),
-
     # analytics
     path('api/analytics/', include(AnalyticsUrls)),
-
     # utilities
     path('api/utilities/', include(UtilitiesUrls)),
-
     # invoices
     path('api/invoices/', include(InvoicesUrls)),
-
     # alerts
     path('api/alerts/', include(AlertsUrls)),
+    # accounting
+    path('api/accounting/', include('accounting.urls')),
 ]
