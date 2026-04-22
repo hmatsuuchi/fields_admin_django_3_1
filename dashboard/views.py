@@ -2,7 +2,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from datetime import date, datetime, timedelta
-from django.db.models import Count, Q, Min, Max, Prefetch
+from django.db.models import Count, Q, Min, Max, Prefetch, Sum, F, ExpressionWrapper, IntegerField
+from django.utils import timezone
 # authentication
 from authentication.customAuthentication import CustomAuthentication
 # group permission control
@@ -13,6 +14,7 @@ from attendance.models import AttendanceRecord
 from students.models import Students
 from analytics.models import HighestActiveStudentCount, AtRiskStudents
 from schedule.models import Events
+from invoices.models import InvoiceItem
 # serializers
 from dashboard.serializers import AtRiskStudentSerializer
 from dashboard.serializers import UpcomingBirthdayStudentSerializer
@@ -324,11 +326,72 @@ class RevenueByMonthView(APIView):
 
     def get(self, request, format=None):        
         try:
-            print('Calculating revenue by month...')
+            # paid revenue by month
+            invoice_items_paid = InvoiceItem.objects.filter(
+                invoice__paid_date__isnull=False
+                ).values(
+                'invoice__year',
+                'invoice__month',
+            ).annotate(
+                total_revenue=Sum(
+                    ExpressionWrapper(F('quantity') * F('rate'), output_field=IntegerField())
+                )
+            ).order_by('invoice__year', 'invoice__month')
 
-            monthly_revenue = "SOME REVENUE DATA HERE"
+            # unpaid revenue by month
+            invoice_items_unpaid = InvoiceItem.objects.filter(
+                invoice__paid_date__isnull=True
+                ).values(
+                'invoice__year',
+                'invoice__month',
+            ).annotate(
+                total_revenue=Sum(
+                    ExpressionWrapper(F('quantity') * F('rate'), output_field=IntegerField())
+                )
+            ).order_by('invoice__year', 'invoice__month')
 
-            return Response(monthly_revenue, status=status.HTTP_200_OK)
+            # create a list of years, months, total revenue, unpaid revenue
+            today = timezone.localdate() # today
+            working_year = today.year - 2 # set year to 2 years ago
+            working_month = today.month 
+
+            monthly_revenue_data = [] # list for response data
+
+            # adjust working year and month to have a starting point of no sooner than 2026/01
+            if (working_year < 2026):
+                working_year = 2026
+                working_month = 1
+
+            while (working_year, working_month) <= (today.year, today.month):
+                # get paid revenue data for year/month
+                paid_revenue_data = next((item for item in invoice_items_paid if item['invoice__year'] == working_year and item['invoice__month'] == working_month), None)
+                paid_revenue = paid_revenue_data['total_revenue'] if paid_revenue_data else 0
+
+                # get unpaid revenue data for year/month
+                unpaid_revenue_data = next((item for item in invoice_items_unpaid if item['invoice__year'] == working_year and item['invoice__month'] == working_month), None)
+                unpaid_revenue = unpaid_revenue_data['total_revenue'] if unpaid_revenue_data else 0
+
+                month_data = {
+                    'year': working_year,
+                    'month': working_month,
+                    'paid_revenue': paid_revenue,
+                    'unpaid_revenue': unpaid_revenue,
+                }
+
+                monthly_revenue_data.append(month_data)
+
+                # increments to next year/month
+                if working_month == 12:
+                    working_month = 1
+                    working_year += 1
+                else:
+                    working_month += 1
+
+            data = {
+                'monthly_revenue_data': monthly_revenue_data,
+            }
+
+            return Response(data, status=status.HTTP_200_OK)
         
         except Exception as e:
             print(e)
