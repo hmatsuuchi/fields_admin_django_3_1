@@ -255,10 +255,11 @@ class InvoiceItemWithTotalsSerializer(serializers.ModelSerializer):
     subtotal = serializers.SerializerMethodField()
     tax_amount = serializers.SerializerMethodField()
     item_total = serializers.SerializerMethodField()
+    service_type_verbose = serializers.CharField(source='service_type.name', read_only=True)
 
     class Meta:
         model = InvoiceItem
-        fields = ['id', 'description', 'quantity', 'rate', 'tax_rate', 'subtotal', 'tax_amount', 'item_total', 'service_type', 'tax_type']
+        fields = ['id', 'description', 'quantity', 'rate', 'tax_rate', 'subtotal', 'tax_amount', 'item_total', 'service_type_verbose', 'tax_type']
 
     def get_subtotal(self, obj):
         return obj.quantity * obj.rate
