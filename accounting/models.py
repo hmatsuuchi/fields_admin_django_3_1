@@ -37,7 +37,6 @@ class Account(models.Model):
             return debits - credits
         return credits - debits
 
-
 class JournalEntry(models.Model):
     date = models.DateField()
     description = models.TextField()

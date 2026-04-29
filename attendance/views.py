@@ -30,7 +30,14 @@ class AttendanceForDateView(APIView):
             instructor_id = request.GET.get('instructor_id')
 
             # get all attendance records for date
-            attendance = Attendance.objects.filter(date=date, instructor=instructor_id).order_by('start_time').prefetch_related('attendance_records')
+            attendance = Attendance.objects.filter(
+                date=date,
+                instructor=instructor_id
+                ).order_by(
+                    'start_time'
+                ).prefetch_related(
+                    'attendance_records'
+                    )
 
             # serialize attendance
             attendance_serialzer = AttendanceSerializer(attendance, many=True)
