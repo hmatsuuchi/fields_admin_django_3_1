@@ -119,6 +119,6 @@ class AccountActivityView(APIView):
         transactions.reverse()  # return newest-first
 
         data['transactions'] = transactions
-        data['account_type'] = account.account_type
+        data['account_data'] = {'account_type': account.account_type, 'account_code': account.code, 'account_name_japanese': account.name_japanese}
         
         return Response(data)
