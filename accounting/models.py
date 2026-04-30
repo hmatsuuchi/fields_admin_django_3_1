@@ -70,7 +70,6 @@ class JournalEntry(models.Model):
         if debits != credits:
             raise ValidationError('Debits must equal credits.')
 
-
 class JournalEntryLine(models.Model):
     JOURNAL_ENTRY_LINE_CHOICES = [
         ('DEBIT', 'Debit'),
