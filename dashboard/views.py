@@ -396,3 +396,132 @@ class RevenueByMonthView(APIView):
         except Exception as e:
             print(e)
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+# get revenue by month
+class RevenueBreakdownByMonthView(APIView):
+    authentication_classes = ([CustomAuthentication])
+    permission_classes = ([isInStaffGroup])
+
+    def get(self, request, format=None):        
+        try:
+            # lesson revenue by month
+            invoice_items_lessons = InvoiceItem.objects.filter(
+                service_type__revenue_type__id=1, # lesson revenue type
+                ).values(
+                'invoice__year',
+                'invoice__month',
+            ).annotate(
+                total_revenue=Sum(
+                    ExpressionWrapper(F('quantity') * F('rate'), output_field=IntegerField())
+                )
+            ).order_by('invoice__year', 'invoice__month')
+
+            # entrance fee revenue by month
+            invoice_items_entrance_fee = InvoiceItem.objects.filter(
+                service_type__revenue_type__id=2, # entrance fee revenue type
+                ).values(
+                'invoice__year',
+                'invoice__month',
+            ).annotate(
+                total_revenue=Sum(
+                    ExpressionWrapper(F('quantity') * F('rate'), output_field=IntegerField())
+                )
+            ).order_by('invoice__year', 'invoice__month')
+
+            # discounts given by month
+            invoice_items_discounts = InvoiceItem.objects.filter(
+                service_type__revenue_type__id=3, # discounts revenue type
+                ).values(
+                'invoice__year',
+                'invoice__month',
+            ).annotate(
+                total_revenue=Sum(
+                    ExpressionWrapper(F('quantity') * F('rate'), output_field=IntegerField())
+                )
+            ).order_by('invoice__year', 'invoice__month')
+
+            # teaching materials revenue by month
+            invoice_items_teaching_materials = InvoiceItem.objects.filter(
+                service_type__revenue_type__id=4, # teaching materials revenue type
+                ).values(
+                'invoice__year',
+                'invoice__month',
+            ).annotate(
+                total_revenue=Sum(
+                    ExpressionWrapper(F('quantity') * F('rate'), output_field=IntegerField())
+                )
+            ).order_by('invoice__year', 'invoice__month')
+
+            # refunds given by month
+            invoice_items_refunds = InvoiceItem.objects.filter(
+                service_type__revenue_type__id=5, # refunds revenue type
+                ).values(
+                'invoice__year',
+                'invoice__month',
+            ).annotate(
+                total_revenue=Sum(
+                    ExpressionWrapper(F('quantity') * F('rate'), output_field=IntegerField())
+                )
+            ).order_by('invoice__year', 'invoice__month')
+
+            # create a list of years, months, total revenue, unpaid revenue
+            today = timezone.localdate() # today
+            working_year = today.year - 2 # set year to 2 years ago
+            working_month = today.month 
+
+            monthly_revenue_data = [] # list for response data
+
+            # adjust working year and month to have a starting point of no sooner than 2026/01
+            if (working_year < 2026):
+                working_year = 2026
+                working_month = 1
+
+            while (working_year, working_month) <= (today.year, today.month):
+                # get lesson revenue data for year/month
+                lesson_revenue_data = next((item for item in invoice_items_lessons if item['invoice__year'] == working_year and item['invoice__month'] == working_month), None)
+                lesson_revenue = lesson_revenue_data['total_revenue'] if lesson_revenue_data else 0
+
+                # get entrance fee revenue data for year/month
+                entrance_fee_revenue_data = next((item for item in invoice_items_entrance_fee if item['invoice__year'] == working_year and item['invoice__month'] == working_month), None)
+                entrance_fee_revenue = entrance_fee_revenue_data['total_revenue'] if entrance_fee_revenue_data else 0
+
+                # get discounts given data for year/month
+                discounts_given_data = next((item for item in invoice_items_discounts if item['invoice__year'] == working_year and item['invoice__month'] == working_month), None)
+                discounts_given = discounts_given_data['total_revenue'] if discounts_given_data else 0
+
+                # get teaching materials revenue data for year/month
+                teaching_materials_revenue_data = next((item for item in invoice_items_teaching_materials if item['invoice__year'] == working_year and item['invoice__month'] == working_month), None)
+                teaching_materials_revenue = teaching_materials_revenue_data['total_revenue'] if teaching_materials_revenue_data else 0
+
+                # get refunds given data for year/month
+                refunds_given_data = next((item for item in invoice_items_refunds if item['invoice__year'] == working_year and item['invoice__month'] == working_month), None)
+                refunds_given = refunds_given_data['total_revenue'] if refunds_given_data else 0
+
+                month_data = {
+                    'year': working_year,
+                    'month': working_month,
+                    'lesson_revenue': lesson_revenue,
+                    'entrance_fee_revenue': entrance_fee_revenue,
+                    'discounts_given': discounts_given,
+                    'teaching_materials_revenue': teaching_materials_revenue,
+                    'refunds_given': refunds_given,
+                }
+
+                monthly_revenue_data.append(month_data)
+
+                # increments to next year/month
+                if working_month == 12:
+                    working_month = 1
+                    working_year += 1
+                else:
+                    working_month += 1
+
+            data = {
+                'monthly_revenue_data': monthly_revenue_data,
+            }
+
+            return Response(data, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            print(e)
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

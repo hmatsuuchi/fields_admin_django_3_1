@@ -12,4 +12,5 @@ urlpatterns = [
 
     # Overview Endpoints
     path('dashboard/overview/revenue_by_month/', views.RevenueByMonthView.as_view(), name='revenue_by_month'),
+    path('dashboard/overview/revenue_breakdown_by_month/', views.RevenueBreakdownByMonthView.as_view(), name='revenue_breakdown_by_month'),
 ]
