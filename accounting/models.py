@@ -1,5 +1,19 @@
 from django.db import models, transaction
 from django.core.exceptions import ValidationError
+from django.db.models import Sum, Case, When, IntegerField
+
+class JournalContact(models.Model):
+    CONTACT_CHOICES = [
+        ('CUSTOMER', 'Customer'),
+        ('SUPPLIER', 'Supplier'),
+        ('EMPLOYEE', 'Employee'),
+        ]
+    
+    name = models.CharField(max_length=255)
+    type = models.CharField(max_length=20, choices=CONTACT_CHOICES)
+
+    def __str__(self):
+        return f'{self.name} [{self.type}]'
 
 class Account(models.Model):
     ACCOUNT_CHOICES = [
@@ -29,10 +43,12 @@ class Account(models.Model):
         lines = JournalEntryLine.objects.filter(account=self)
         if as_of:
             lines = lines.filter(entry__date__lte=as_of)
-        debits = lines.filter(side='DEBIT').aggregate(
-            total=models.Sum('amount'))['total'] or 0
-        credits = lines.filter(side='CREDIT').aggregate(
-            total=models.Sum('amount'))['total'] or 0
+        result = lines.aggregate(
+            debits=Sum(Case(When(side='DEBIT', then='amount'), default=0, output_field=IntegerField())),
+            credits=Sum(Case(When(side='CREDIT', then='amount'), default=0, output_field=IntegerField())),
+        )
+        debits = result['debits'] or 0
+        credits = result['credits'] or 0
         if self.normal_balance == 'debit':
             return debits - credits
         return credits - debits
@@ -41,6 +57,7 @@ class JournalEntry(models.Model):
     date = models.DateField()
     description = models.TextField()
     reference = models.CharField(max_length=100, blank=True)
+    contact = models.ForeignKey(JournalContact, null=True, blank=True, on_delete=models.SET_NULL)
     date_time_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -61,6 +78,7 @@ class JournalEntry(models.Model):
         if not any(l['side'] == 'CREDIT' for l in lines_data):
             raise ValidationError('A journal entry must have at least one credit line.')
         self.save()
+        self.lines.all().delete()  # clear existing lines before re-creating
         for line in lines_data:
             if line.get('amount') is None or line['amount'] <= 0:
                 raise ValidationError('Amount must be greater than zero.')
