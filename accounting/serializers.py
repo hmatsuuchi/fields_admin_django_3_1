@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Account, JournalEntry, JournalEntryLine
+from .models import Account, JournalEntry, JournalEntryLine, JournalContact
 
 
 class JournalEntryLineInputSerializer(serializers.Serializer):
@@ -7,11 +7,18 @@ class JournalEntryLineInputSerializer(serializers.Serializer):
     side = serializers.ChoiceField(choices=['DEBIT', 'CREDIT'])
     amount = serializers.IntegerField(min_value=1)
 
+class JournalContactSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = JournalContact
+        fields = ['id', 'name', 'type']
 
 class JournalEntryCreateSerializer(serializers.Serializer):
     date = serializers.DateField()
     description = serializers.CharField()
     reference = serializers.CharField(required=False, allow_blank=True, default='')
+    contact = serializers.PrimaryKeyRelatedField(
+        queryset=JournalContact.objects.all(), required=False, allow_null=True, default=None
+    )
     lines = JournalEntryLineInputSerializer(many=True)
 
     def validate_lines(self, lines):
@@ -47,7 +54,8 @@ class JournalEntryLineSerializer(serializers.ModelSerializer):
 
 class JournalEntrySerializer(serializers.ModelSerializer):
     lines = JournalEntryLineSerializer(many=True, read_only=True)
+    contact = JournalContactSerializer(read_only=True)
 
     class Meta:
         model = JournalEntry
-        fields = ['id', 'date', 'description', 'reference', 'date_time_created', 'lines']
+        fields = ['id', 'date', 'description', 'reference', 'contact', 'date_time_created', 'lines']

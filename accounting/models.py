@@ -11,6 +11,10 @@ class JournalContact(models.Model):
     
     name = models.CharField(max_length=255)
     type = models.CharField(max_length=20, choices=CONTACT_CHOICES)
+    archived = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['name']
 
     def __str__(self):
         return f'{self.name} [{self.type}]'
@@ -61,7 +65,7 @@ class JournalEntry(models.Model):
     date_time_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'{self.date} - {self.description}'
+        return f'{self.id} - {self.date} - {self.contact.name if self.contact else "NONE"} - {self.description}'
 
     @transaction.atomic
     def save_with_lines(self, lines_data):

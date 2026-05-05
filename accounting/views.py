@@ -7,7 +7,7 @@ from authentication.customAuthentication import CustomAuthentication
 # SERIALIZERS
 from .serializers import JournalEntryCreateSerializer, JournalEntrySerializer
 # MODELS
-from .models import Account
+from .models import Account, JournalContact
 from django.db.models import Sum, Case, When, IntegerField
 
 
@@ -41,6 +41,18 @@ class AccountListForDropdownMenuView(APIView):
         
         return Response(data)
     
+# provides a list of active contacts for dropdown menus
+class ContactListForDropdownMenuView(APIView):
+    authentication_classes = ([CustomAuthentication])
+    permission_classes = ([isInStaffGroup])
+
+    def get(self, request, format=None):
+        contacts = JournalContact.objects.filter(archived=False).order_by('name')
+
+        data = [{'id': contact.id, 'name': contact.name, 'type': contact.type} for contact in contacts]
+
+        return Response(data)
+
 # balance sheet
 class BalanceSheetView(APIView):
     authentication_classes = ([CustomAuthentication])
@@ -89,11 +101,16 @@ class AccountActivityView(APIView):
             return Response({'error': 'Account ID is required'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
+            account_id = int(account_id)
+        except (ValueError, TypeError):
+            return Response({'error': 'Account ID must be an integer.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
             account = Account.objects.get(id=account_id, archived=False)
         except Account.DoesNotExist:
             return Response({'error': 'Account not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        lines = account.journalentryline_set.select_related('entry').order_by('entry__date', 'entry__date_time_created')
+        lines = account.journalentryline_set.select_related('entry', 'entry__contact').order_by('entry__date', 'entry__date_time_created')
 
         data = {}
 
@@ -111,6 +128,8 @@ class AccountActivityView(APIView):
                 'date': entry.date,
                 'description': entry.description,
                 'reference': entry.reference,
+                'contact_name': str(entry.contact.name) if entry.contact else None,
+                'contact_type': str(entry.contact.type) if entry.contact else None,
                 'side': line.side,
                 'amount': line.amount,
                 'running_balance': running_balance,
