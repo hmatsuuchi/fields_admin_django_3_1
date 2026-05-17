@@ -10,8 +10,8 @@ from authentication.customAuthentication import CustomAuthentication
 from authentication.permissions import isInStaffGroup
 # models
 from user_profiles.models import UserProfilesInstructors
-from attendance.models import AttendanceRecord
-from students.models import Students
+from attendance.models import AttendanceRecord, Attendance
+from students.models import Students, GradeChoices
 from analytics.models import HighestActiveStudentCount, AtRiskStudents
 from schedule.models import Events
 from invoices.models import InvoiceItem
@@ -231,6 +231,109 @@ class TotalActiveStudentsHistoricalView(APIView):
                     'year': current_month_start.year,
                     'month': current_month_start.month,
                     'active_students_count': active_students_count,
+                })
+
+                # move to the next month
+                current_date = next_month_start
+
+            return Response(historical_data, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            print(e)
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+# get historical data of total active students by grade
+class TotalActiveStudentsByGrade(APIView):
+    authentication_classes = ([CustomAuthentication])
+    permission_classes = ([isInStaffGroup])
+
+    def get(self, request, format=None):
+        try:
+            # 1 - fetch data from DB
+            # two year time window to prefetch data
+            today = date.today()
+            start_date = date.today() - timedelta(days=365 * 2)
+
+            # get students with two or more present attendance records
+            students_with_attendance = (
+                Students.objects
+                .annotate(
+                    present_count = Count('attendancerecord', filter=Q(attendancerecord__status=3)),
+                    earliest_present = Min('attendancerecord__attendance_reverse_relationship__date', filter=Q(attendancerecord__status=3)),
+                    latest_present = Max('attendancerecord__attendance_reverse_relationship__date', filter=Q(attendancerecord__status=3)),
+                )
+                .prefetch_related(
+                    Prefetch(
+                        'attendancerecord_set',
+                        queryset=AttendanceRecord.objects.filter(
+                            status_id=3,  # present only — skip non-present records entirely
+                            attendance_reverse_relationship__date__gte=start_date,
+                        ).prefetch_related(
+                            Prefetch(
+                                'attendance_reverse_relationship',
+                                queryset=Attendance.objects.filter(date__gte=start_date)
+                            )
+                        )
+                    )
+                )
+                .filter(present_count__gte=2)
+            )
+
+            # 2 - Single pass: build (student_id, year, month) -> grade_id lookup
+            # This replaces get_latest_grade_in_month() entirely
+            student_month_grade = {}  # key: (student_id, year, month), value: grade_id
+
+            for student in students_with_attendance:
+                for record in student.attendancerecord_set.all():
+                    for attendance in record.attendance_reverse_relationship.all():
+                        key = (student.id, attendance.date.year, attendance.date.month)
+                        existing = student_month_grade.get(key)
+                        if existing is None or attendance.date > existing[0]:
+                            student_month_grade[key] = (attendance.date, record.grade_id)
+
+            # 3 - Generate historical data with a single pass through months
+            grade_choices = GradeChoices.objects.all()
+            grade_map = {grade.id: grade.name for grade in grade_choices}
+
+            historical_data = []
+            current_date = start_date
+
+            # iterate through each month from start_date to today
+            while current_date <= today:
+                # get the start of the current month
+                current_month_start = current_date.replace(day=1)
+
+                # get the start and end of the next month
+                next_month_start = (current_month_start + timedelta(days=31)).replace(day=1)
+                next_month_end = next_month_start - timedelta(days=1)
+
+                # count active students for the month
+                total_active_students_count = sum(
+                    1 for student in students_with_attendance
+                    if student.earliest_present < next_month_start and student.latest_present >= current_month_start
+                )
+
+                # count active students by grade for the month
+                active_students_count_by_grade = {}
+                active_students_this_month = [
+                    s for s in students_with_attendance
+                    if s.earliest_present < next_month_start and s.latest_present >= current_month_start
+                ]
+
+                counts_by_grade = {name: 0 for name in grade_map.values()}
+                for student in active_students_this_month:
+                    key = (student.id, current_month_start.year, current_month_start.month)
+                    entry = student_month_grade.get(key)
+                    if entry:
+                        grade_name = grade_map.get(entry[1])
+                        if grade_name:
+                            counts_by_grade[grade_name] += 1
+
+                historical_data.append({
+                    'year': current_month_start.year,
+                    'month': current_month_start.month,
+                    'total': total_active_students_count,
+                    **counts_by_grade
                 })
 
                 # move to the next month

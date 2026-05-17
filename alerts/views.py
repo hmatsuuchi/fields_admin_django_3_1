@@ -49,8 +49,8 @@ class AttendanceAlertsAnalyzeView(APIView):
 
     def get(self, request, format=None):
         try:
-            analysis_date_range = 12 # number of weeks to analyze
-            display_date_range = 4 # number of weeks to display in response (must be less than or equal to analysis_date_range)
+            analysis_date_range = 15 # number of weeks to analyze
+            display_date_range = 5 # number of weeks to display in response (must be less than or equal to analysis_date_range)
 
             # if today is not Monday, find the most recent Monday
             most_recent_sunday = timezone.localdate()
