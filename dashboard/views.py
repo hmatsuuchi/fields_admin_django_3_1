@@ -12,7 +12,7 @@ from authentication.permissions import isInStaffGroup
 from user_profiles.models import UserProfilesInstructors
 from attendance.models import AttendanceRecord, Attendance
 from students.models import Students, GradeChoices
-from analytics.models import HighestActiveStudentCount, AtRiskStudents
+from analytics.models import HighestActiveStudentCount, AtRiskStudents, HighestRevenuePerStudent, HighestLifetimeInDaysPerStudent
 from schedule.models import Events
 from invoices.models import InvoiceItem
 # serializers
@@ -219,7 +219,6 @@ class TotalActiveStudentsHistoricalView(APIView):
 
                 # get the start and end of the next month
                 next_month_start = (current_month_start + timedelta(days=31)).replace(day=1)
-                next_month_end = next_month_start - timedelta(days=1)
 
                 # count active students for the month
                 active_students_count = sum(
@@ -252,7 +251,7 @@ class TotalActiveStudentsByGrade(APIView):
             # 1 - fetch data from DB
             # two year time window to prefetch data
             today = date.today()
-            start_date = date.today() - timedelta(days=365 * 2)
+            start_date = today - timedelta(days=365 * 2)
 
             # get students with two or more present attendance records
             students_with_attendance = (
@@ -268,7 +267,7 @@ class TotalActiveStudentsByGrade(APIView):
                         queryset=AttendanceRecord.objects.filter(
                             status_id=3,  # present only — skip non-present records entirely
                             attendance_reverse_relationship__date__gte=start_date,
-                        ).prefetch_related(
+                        ).distinct().prefetch_related(
                             Prefetch(
                                 'attendance_reverse_relationship',
                                 queryset=Attendance.objects.filter(date__gte=start_date)
@@ -308,18 +307,13 @@ class TotalActiveStudentsByGrade(APIView):
                 next_month_end = next_month_start - timedelta(days=1)
 
                 # count active students for the month
-                total_active_students_count = sum(
-                    1 for student in students_with_attendance
-                    if student.earliest_present < next_month_start and student.latest_present >= current_month_start
-                )
-
-                # count active students by grade for the month
-                active_students_count_by_grade = {}
                 active_students_this_month = [
                     s for s in students_with_attendance
                     if s.earliest_present < next_month_start and s.latest_present >= current_month_start
                 ]
+                total_active_students_count = len(active_students_this_month)  # free — no second pass
 
+                # count active students by grade for the month
                 counts_by_grade = {name: 0 for name in grade_map.values()}
                 for student in active_students_this_month:
                     key = (student.id, current_month_start.year, current_month_start.month)
@@ -621,6 +615,115 @@ class RevenueBreakdownByMonthView(APIView):
 
             data = {
                 'monthly_revenue_data': monthly_revenue_data,
+            }
+
+            return Response(data, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            print(e)
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+# calculate average lifetime revenue per student
+class LifetimeDataView(APIView):
+    authentication_classes = ([CustomAuthentication])
+    permission_classes = ([isInStaffGroup])
+
+    def get(self, request, format=None):        
+        try:
+            # 1 - calculate total revenue per student
+            revenue_per_student = InvoiceItem.objects.filter(
+                invoice__paid_date__isnull=False
+            ).values(
+                'invoice__student__id'
+            ).annotate(
+                total_revenue=Sum(
+                    ExpressionWrapper(F('quantity') * F('rate'), output_field=IntegerField())
+                )
+            ).order_by('total_revenue')
+
+            # calculate mean and median lifetime revenue per student
+            mean_revenue = revenue_per_student.aggregate(mean_revenue=Sum('total_revenue') / Count('invoice__student__id'))['mean_revenue']
+            median_revenue = revenue_per_student[len(revenue_per_student) // 2]['total_revenue'] if revenue_per_student else 0
+
+            # get the highest mean and median revenue per student record
+            highest_mean_revenue = HighestRevenuePerStudent.objects.filter(value_type='mean').order_by('-revenue_per_student').first()
+            highest_median_revenue = HighestRevenuePerStudent.objects.filter(value_type='median').order_by('-revenue_per_student').first()
+
+            # if no record exists or current mean/median revenue is higher than the stored value, create a new record
+            if not highest_mean_revenue or mean_revenue > highest_mean_revenue.revenue_per_student:
+                new_record_mean = HighestRevenuePerStudent.objects.create(
+                    revenue_per_student=mean_revenue,
+                    value_type='mean'
+                )
+
+                highest_mean_revenue = new_record_mean
+            
+            if not highest_median_revenue or median_revenue > highest_median_revenue.revenue_per_student:
+                new_record_median = HighestRevenuePerStudent.objects.create(
+                    revenue_per_student=median_revenue,
+                    value_type='median'
+                )
+
+                highest_median_revenue = new_record_median
+            
+            # 2 - calculate average lifetime per student in days
+            lifetime_data = AttendanceRecord.objects.filter(
+                status=3
+            ).values(
+                'student__id'
+            ).annotate(
+                present_count=Count('id'),
+            ).filter(
+                present_count__gte=2
+            ).annotate(
+                first_attendance=Min('attendance_reverse_relationship__date'),
+                last_attendance=Max('attendance_reverse_relationship__date'),
+            )
+
+            lifetimes = [
+                (row['last_attendance'] - row['first_attendance']).days
+                for row in lifetime_data
+                if row['first_attendance'] and row['last_attendance']
+            ]
+
+            mean_lifetime_days = sum(lifetimes) // len(lifetimes) if lifetimes else 0
+            median_lifetime_days = sorted(lifetimes)[len(lifetimes) // 2] if lifetimes else 0
+
+            # get the highest mean and median lifetime in days per student record
+            highest_mean_lifetime = HighestLifetimeInDaysPerStudent.objects.filter(value_type='mean').order_by('-lifetime_in_days_per_student').first()
+            highest_median_lifetime = HighestLifetimeInDaysPerStudent.objects.filter(value_type='median').order_by('-lifetime_in_days_per_student').first()
+
+            # if no record exists or current mean/median lifetime is higher than the stored value, create a new record
+            if not highest_mean_lifetime or mean_lifetime_days > highest_mean_lifetime.lifetime_in_days_per_student:
+                new_record_mean_lifetime = HighestLifetimeInDaysPerStudent.objects.create(
+                    lifetime_in_days_per_student=mean_lifetime_days,
+                    value_type='mean'
+                )
+
+                highest_mean_lifetime = new_record_mean_lifetime
+
+            if not highest_median_lifetime or median_lifetime_days > highest_median_lifetime.lifetime_in_days_per_student:
+                new_record_median_lifetime = HighestLifetimeInDaysPerStudent.objects.create(
+                    lifetime_in_days_per_student=median_lifetime_days,
+                    value_type='median'
+                )
+
+                highest_median_lifetime = new_record_median_lifetime
+            
+
+            data = {
+                'mean_lifetime_revenue': mean_revenue,
+                'highest_mean_lifetime_revenue': highest_mean_revenue.revenue_per_student if highest_mean_revenue else None,
+                'highest_mean_lifetime_revenue_date': highest_mean_revenue.date_time_created if highest_mean_revenue else None,
+                'median_lifetime_revenue': median_revenue,
+                'highest_median_lifetime_revenue': highest_median_revenue.revenue_per_student if highest_median_revenue else None,
+                'highest_median_lifetime_revenue_date': highest_median_revenue.date_time_created if highest_median_revenue else None,
+                'mean_lifetime_in_days': mean_lifetime_days,
+                'highest_mean_lifetime_in_days': highest_mean_lifetime.lifetime_in_days_per_student if highest_mean_lifetime else None,
+                'highest_mean_lifetime_in_days_date': highest_mean_lifetime.date_time_created if highest_mean_lifetime else None,
+                'median_lifetime_in_days': median_lifetime_days,
+                'highest_median_lifetime_in_days': highest_median_lifetime.lifetime_in_days_per_student if highest_median_lifetime else None,
+                'highest_median_lifetime_in_days_date': highest_median_lifetime.date_time_created if highest_median_lifetime else None,
             }
 
             return Response(data, status=status.HTTP_200_OK)
