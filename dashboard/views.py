@@ -623,7 +623,7 @@ class RevenueBreakdownByMonthView(APIView):
             print(e)
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
-# calculate average lifetime revenue per student
+# calculate lifetime in days and lifetime revenue per student
 class LifetimeDataView(APIView):
     authentication_classes = ([CustomAuthentication])
     permission_classes = ([isInStaffGroup])
