@@ -15,4 +15,5 @@ urlpatterns = [
     path('dashboard/overview/revenue_by_month/', views.RevenueByMonthView.as_view(), name='revenue_by_month'),
     path('dashboard/overview/revenue_breakdown_by_month/', views.RevenueBreakdownByMonthView.as_view(), name='revenue_breakdown_by_month'),
     path('dashboard/overview/lifetime_data/', views.LifetimeDataView.as_view(), name='lifetime_data'),
+    path('dashboard/overview/instructor_data/', views.InstructorDataView.as_view(), name='instructor_data'),
 ]

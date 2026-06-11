@@ -731,3 +731,49 @@ class LifetimeDataView(APIView):
         except Exception as e:
             print(e)
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+# calculate instructor data such as total students, total lessons
+class InstructorDataView(APIView):
+    authentication_classes = ([CustomAuthentication])
+    permission_classes = ([isInStaffGroup])
+
+    def get(self, request, format=None):        
+        try:
+
+            # get total number of active events taught by each instructor
+            instructor_events = (
+                Events.objects.filter(archived=False)
+                .values('primary_instructor__id', 'primary_instructor__userprofilesinstructors__last_name_kanji')
+                .annotate(total_classes=Count('id'))
+                .order_by('-total_classes')
+            )
+
+            # get total number of active students taught by each instructor
+            instructor_students = (
+                Events.objects.filter(archived=False)
+                .values('primary_instructor__id', 'primary_instructor__userprofilesinstructors__last_name_kanji')
+                .annotate(total_students=Count('students', distinct=True))
+                .order_by('-total_students')
+            )
+
+            instructor_revenue = (
+                Events.objects.filter(archived=False, students__isnull=False)
+                .values(
+                    'primary_instructor__id',
+                    'primary_instructor__userprofilesinstructors__last_name_kanji',
+                )
+                .annotate(total_revenue=Sum('event_type__invoice_service_type__price'))
+                .order_by('-total_revenue')
+            )
+
+            data = {
+                "active_events": instructor_events,
+                "active_students": instructor_students,
+                "instructor_revenue": instructor_revenue,
+            }
+
+            return Response(data, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            print(e)
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
