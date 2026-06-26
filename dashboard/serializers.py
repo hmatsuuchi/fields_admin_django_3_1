@@ -2,6 +2,7 @@ from rest_framework import serializers
 # models
 from alerts.models import AttendanceAlert
 from analytics.models import AtRiskStudents
+from invoices.models import Invoice, InvoiceItem
 from students.models import Students
 from schedule.models import Events
 from attendance.models import Attendance
@@ -40,3 +41,24 @@ class UpcomingBirthdayStudentSerializer(serializers.ModelSerializer):
         model = Students
         fields = ['id', 'last_name_kanji', 'first_name_kanji', 'last_name_katakana', 'first_name_katakana', 'last_name_romaji', 'first_name_romaji', 'birthday', 'age', 'events_set']
 
+# =====================================
+# ======= INVOICES FOR CUSTOMER =======
+# =====================================
+
+# ======= Invoice Item Serializer =======
+class InvoiceItemSerializer(serializers.ModelSerializer):
+    service_type_name = serializers.CharField(source='service_type.name', read_only=True)
+    tax_type_name = serializers.CharField(source='service_type.tax.name', read_only=True)
+
+    class Meta:
+        model = InvoiceItem
+        fields = '__all__'
+
+# ======= Invoice Serializer =======
+class InvoiceSerializerForCustomer(serializers.ModelSerializer):
+    payment_method_name = serializers.CharField(source='payment_method.name', read_only=True)
+    invoiceitem_set = InvoiceItemSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Invoice
+        fields = '__all__'
