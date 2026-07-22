@@ -778,7 +778,55 @@ class InstructorDataView(APIView):
         except Exception as e:
             print(e)
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+# get all invoices for a given customer
+class CustomerProfileDataView(APIView):
+    authentication_classes = ([CustomAuthentication])
+    permission_classes = ([isInCustomersGroup])
+
+    def get(self, request, format=None):        
+        try:
+            # get user from request
+            user = request.user
+            # get customer profile for the user
+            customer_profile = UserProfilesCustomers.objects.get(user=user)
+
+            if not customer_profile:
+                return Response({'error': 'Customer profile not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+            customer_profile_data = {
+                'id': customer_profile.user.id,
+                'last_name_kanji': customer_profile.last_name_kanji,
+                'last_name_katakana': customer_profile.last_name_katakana,
+                'last_name_romaji': customer_profile.last_name_romaji,
+                'related_students': [
+                    {
+                        'id': student.id,
+                        'last_name_kanji': student.last_name_kanji,
+                        'last_name_katakana': student.last_name_katakana,
+                        'last_name_romaji': student.last_name_romaji,
+                        'first_name_kanji': student.first_name_kanji,
+                        'first_name_katakana': student.first_name_katakana,
+                        'first_name_romaji': student.first_name_romaji,
+                        'grade_id': student.grade.id if student.grade else None,
+                        'grade_verbose': student.grade.name if student.grade else None,
+                    }
+                    for student in customer_profile.related_students.all()
+                ],
+                'archived': customer_profile.archived,
+            }
+
+
+            data = {
+                "customer_profile": customer_profile_data,
+            }
+
+            return Response(data, status=status.HTTP_200_OK)
         
+        except Exception as e:
+            print(e)
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 # get all invoices for a given customer
 class InvoicesForCustomerView(APIView):
     authentication_classes = ([CustomAuthentication])
@@ -841,7 +889,7 @@ class InvoicesForCustomerView(APIView):
             ]
 
             data = {
-                "students": students_data,
+                "student_invoices": students_data,
             }
 
             return Response(data, status=status.HTTP_200_OK)

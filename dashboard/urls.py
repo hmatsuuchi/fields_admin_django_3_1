@@ -19,5 +19,6 @@ urlpatterns = [
     path('dashboard/overview/instructor_data/', views.InstructorDataView.as_view(), name='instructor_data'),
 
     # Customer Dashboard Endpoints
-    path('dashboard/invoices_for_customer/', views.InvoicesForCustomerView.as_view(), name='invoices_for_customer')
+    path('dashboard/invoices_for_customer/', views.InvoicesForCustomerView.as_view(), name='invoices_for_customer'),
+    path('dashboard/customer_profile/', views.CustomerProfileDataView.as_view(), name='customer_profile_data')
 ]
