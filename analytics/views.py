@@ -1,175 +1,100 @@
 from datetime import date, timedelta
-from django.db.models import Count, Max, Q
+from django.db.models import Count, Max, Min, Q
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-import os
-# authentication
-from authentication.customAuthentication import CustomAuthentication
-# group permission control
-from authentication.permissions import isInStaffGroup
+import os, json
 # models
 from attendance.models import AttendanceRecord
 from students.models import Students
-from analytics.models import AtRiskStudents, StudentChurnModelTrainingHistory
+from analytics.models import StudentChurnModelTrainingHistory
 # machine learning imports
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import f1_score, precision_score, recall_score
+from sklearn.metrics import f1_score, precision_score, recall_score, roc_auc_score, confusion_matrix, accuracy_score
 import joblib
 
 # ========================== FUNCTIONS ==========================
 def clean_normalize_data(student):
-    # ============ ATTENDANCE / IS ACTIVE ============
+    # ============ STUDENT IS ACTIVE ============
     # converts attendance records to binary data and normalizes the length of list
-    # students without present attendance in the last 28 days are considdered as having quit
+    # students without an attendance record in the last 28 days are considered as having quit
     cutoff_date = date.today() - timedelta(days=28)
 
     # determine if the student has been present in the last 28 days
-    currently_active = student.most_recent_present > cutoff_date
+    currently_active = student.last_attendance_record_date > cutoff_date
 
-    # fetch all attendance records for the student ordered by attendance date
-    attendance_records = (
-        AttendanceRecord.objects
-        .filter(student=student)
-        .order_by('attendance_reverse_relationship__date')
-        .select_related('status')
-        .prefetch_related('attendance_reverse_relationship')
+    # ============ ATTENDANCE - RECENT ABSENCE RATE ============
+    analysis_period = 12 # weeks
+
+    counts = AttendanceRecord.objects.filter(
+        student=student,
+        attendance_reverse_relationship__date__gte=student.last_attendance_record_date - timedelta(days=analysis_period * 7)
+    ).aggregate(
+        total_count=Count('id'),
+        absence_count=Count('id', filter=Q(status=4))
     )
 
-    # normalizes the length of attendance records to a fixed length
-    normalized_attendance_record_length = 300
+    absence_rate = counts['absence_count'] / counts['total_count']
 
-    # creates a list of attendance data for the student 0 = absent, 1 = present
-    attendance_data = []
-    for record in attendance_records:
-        if record.status.id == 3:
-            attendance_data.append(1)
-        else:
-            attendance_data.append(0)
-
-    # makes length of attendance record array equal to normalized_attendance_record_length
-    if len(attendance_data) < normalized_attendance_record_length:
-        padding = [0] * (normalized_attendance_record_length - len(attendance_data))
-        attendance_data = padding + attendance_data
-
-    # ============ AGE AT TIME OF MOST RECENT PRESENT ATTENDANCE RECORD ============
-    age_at_most_recent_present = 999
+    # ============ AGE AT TIME OF MOST RECENT ATTENDANCE RECORD ============
+    age_at_most_recent_attendance_record = 0
 
     if student.birthday:
-        # calculates age in years at the time of most recent present attendance record
+        # calculates age in years at the time of most recent attendance record
         birthday = student.birthday
-        present_date = student.most_recent_present
+        present_date = student.last_attendance_record_date
         years = present_date.year - birthday.year
         # Adjust if the birthday hasn't occurred yet this year
         if (present_date.month, present_date.day) < (birthday.month, birthday.day):
             years -= 1
-        age_at_most_recent_present = years
+        age_at_most_recent_attendance_record = years
 
-    # print(f"{student.first_name_romaji}, {student.last_name_romaji}")
-    # print(student.birthday)
-    # print(f"Age at Most Recent Present: {age_at_most_recent_present}")
-    # print(f"Attendance Record Length: {len(attendance_data)}")
-    # print("-" * 50)
+    # ============ ENROLLMENT MONTH - CYCLICAL ENCODING ============
+    enrollment_month = student.first_attendance_record_date.month
+    enrollment_month_sin = np.sin(2 * np.pi * enrollment_month / 12)
+    enrollment_month_cos = np.cos(2 * np.pi * enrollment_month / 12)
 
     return {
-            'attendance': attendance_data,
-            'age_at_most_recent_present': age_at_most_recent_present,
+            'absence_rate': absence_rate,
+            'age_at_most_recent_attendance_record': age_at_most_recent_attendance_record,
             'currently_active': 1 if currently_active else 0,
+            'enrollment_month_sin': enrollment_month_sin,
+            'enrollment_month_cos': enrollment_month_cos,
         }
 
-# LOOP THROUGH STUDENTS AND PRINT DATA (FOR TESTING PURPOSES)
-def loop_through_students(request):
-    # cutoff date of 28 days ago
-    cutoff_date = date.today() - timedelta(days=28)
-
-    # get students
-    students = Students.objects.annotate(
-        attendance_record_count=Count('attendancerecord',
-        filter=Q(attendancerecord__status=3) | Q(attendancerecord__status=4),
-        ),
-        most_recent_present=Max(
-            'attendancerecord__attendance_reverse_relationship__date',
-            filter=Q(attendancerecord__status=3)
-        ),
-    ).filter(attendance_record_count__gte=2)
-
-    # get students without birthday data
-    students_without_birthday = students.filter(birthday__isnull=True)
-
-    # get students with status=3 (present) attendance in the last 28 days
-    students_with_recent_attendance = students.filter(most_recent_present__gte=cutoff_date)
-
-    for student in students:
-        age_at_most_recent_present = None
-        if student.birthday:
-            # calculates age in years at the time of most recent present attendance record
-            birthday = student.birthday
-            present_date = student.most_recent_present
-            years = present_date.year - birthday.year
-            # Adjust if the birthday hasn't occurred yet this year
-            if (present_date.month, present_date.day) < (birthday.month, birthday.day):
-                years -= 1
-            age_at_most_recent_present = years
-
-            # creates a list of binary values for student age at most recent present attendance
-            age_binary = [0] * 22 # 0 - 20 and over 20
-            if age_at_most_recent_present is not None:
-                if age_at_most_recent_present < 20:
-                    age_binary[age_at_most_recent_present] = 1
-                else:
-                    age_binary[20] = 1
-
-        print(f"{student.first_name_romaji} {student.last_name_romaji}")
-        print(student.birthday)
-        print(age_at_most_recent_present)
-        print(age_binary)
-        print("-" * 50)
-
-    print("")
-    print("=" * 50)
-    print(f"Student Count: {students.count()}")
-    print(f"Students Without Birthday Data Count: {students_without_birthday.count()}")
-    print(f"Students Recent Attendance Count: {students_with_recent_attendance.count()}")
-    print("=" * 50)
-    print("")
-
-    return JsonResponse({'status': '200 OK'})
-
 # TRAIN RANDOM FOREST CLASSIFIER ON STUDENT ATTENDANCE DATA (STUDENT CHURN)
-class StudentChurnModelTrain(APIView): 
+class StudentChurnModelTrain(APIView):    
     def get(self, request, format=None):
         try:
             # ================ CLEANING DATA FOR ML ANALYSIS ================
             # data for ML analysis
             cleaned_data = []
 
-            # Annotate each student with their most recent status=3 (present) attendance date
+            # Annotate each student with their most recent attendance date
             students = Students.objects.annotate(
-                attendance_count = Count('attendancerecord'),
-                most_recent_present = Max(
-                    'attendancerecord__attendance_reverse_relationship__date',
-                    filter=Q(attendancerecord__status = 3),                )
+                attendance_count=Count('attendancerecord'),
+                last_attendance_record_date=Max('attendancerecord__attendance_reverse_relationship__date'),
+                first_attendance_record_date=Min('attendancerecord__attendance_reverse_relationship__date'),
             ).filter(attendance_count__gte=2)
 
-            for student in students:
-                cleaned_data.append(clean_normalize_data(student))
-
-
+            for index, student in enumerate(students):
+                data = clean_normalize_data(student)
+                cleaned_data.append(data)
+                print(f"========== [{index}] {student.last_name_romaji}, {student.first_name_romaji} ({student.id}) ==========")
+                print(data)
+                print("")
 
             # ============================ NUMPY ============================
             # extract features (X) and labels (y)
-            X = [data['attendance'] + [data['age_at_most_recent_present']] for data in cleaned_data]
+            X = [[data['absence_rate'], data['age_at_most_recent_attendance_record'], data['enrollment_month_sin'], data['enrollment_month_cos']] for data in cleaned_data]
             y = [data['currently_active'] for data in cleaned_data]
 
             # convert to numpy arrays
             X = np.array(X)
             y = np.array(y)
-
-
-
 
             # =================== SCIKIT-LEARN - TRAINING ===================
             # Split into train/test sets (optional but recommended)
@@ -182,19 +107,45 @@ class StudentChurnModelTrain(APIView):
             # Predict on test set
             y_pred = clf.predict(X_test)
 
-            # Evaluate accuracy
-            from sklearn.metrics import accuracy_score
+            y_pred_proba = clf.predict_proba(X_test)[:, 1]
+            tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
 
             # Save model training history
             training_history = StudentChurnModelTrainingHistory(
-                model_name='Second Generation',
-                model_accuracy=accuracy_score(y_test, y_pred),
-                model_f1_score=f1_score(y_test, y_pred, average='weighted'),
-                model_precision=precision_score(y_test, y_pred, average='weighted'),
-                model_recall=recall_score(y_test, y_pred, average='weighted'),
+                model_name='Third Generation',
+                notes=json.dumps({
+                    'accuracy': accuracy_score(y_test, y_pred),
+                    'f1_score': f1_score(y_test, y_pred, average='weighted'),
+                    'precision': precision_score(y_test, y_pred, average='weighted'),
+                    'recall': recall_score(y_test, y_pred, average='weighted'),
+                    'roc_auc': roc_auc_score(y_test, y_pred_proba),
+                    'confusion_matrix': {
+                        'true_positives': int(tp),
+                        'true_negatives': int(tn),
+                        'false_positives': int(fp),
+                        'false_negatives': int(fn),
+                    },
+                    'sample_sizes': {
+                        'training': len(X_train),
+                        'test': len(X_test),
+                    },
+                    'class_distribution': {
+                        'active_count': int(np.sum(y == 1)),
+                        'churned_count': int(np.sum(y == 0)),
+                    },
+                    'feature_importance': {
+                        'absence_rate': float(clf.feature_importances_[0]),
+                        'age_at_most_recent_attendance_record': float(clf.feature_importances_[1]),
+                        'enrollment_month_sin': float(clf.feature_importances_[2]),
+                        'enrollment_month_cos': float(clf.feature_importances_[3]),
+                    },
+                })
             )
             training_history.save()
 
+            # print data from most recently trained model to console
+            for data_point in training_history.__dict__.items():
+                print(data_point)
 
             # ================== SCIKIT-LEARN - SAVE MODEL ==================
             # Build the path to the sibling ml_models directory
@@ -216,60 +167,3 @@ class StudentChurnModelTrain(APIView):
         except Exception as e:
             print(e)
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        
-# PREDICT STUDENT CHURN USING RANDOM FOREST CLASSIFIER FOR ATTENDANCE RECORD
-class StudentChurnModelPredictForAttendanceRecord(APIView):
-    authentication_classes = ([CustomAuthentication])
-    permission_classes = ([isInStaffGroup])
-
-    def get(self, request, attendance_record_id, format=None):
-        try:
-            # Load the trained model
-            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            model_filename = os.path.join(base_dir, 'analytics/ml_models/student_churn_model.pkl')
-            clf = joblib.load(model_filename)
-
-            # get student id from attendance record
-            student_id = AttendanceRecord.objects.get(id=attendance_record_id).student.id
-
-            # get student by id
-            student = Students.objects.annotate(
-                most_recent_present=Max(
-                    'attendancerecord__attendance_reverse_relationship__date',
-                    filter=Q(attendancerecord__status=3)
-                )
-                ).get(id=student_id)
-
-            # clean and normalize the data for the student
-            cleaned_normalized_data = clean_normalize_data(student)
-            combined_data = cleaned_normalized_data['attendance'] + [cleaned_normalized_data['age_at_most_recent_present']]
-
-            # convert to numpy array and reshape for prediction
-            attendance_data = np.array(combined_data).reshape(1, -1)  # Reshape for a single sample
-
-            # make prediction
-            prediction = clf.predict(attendance_data)
-
-            # add student to AtRiskStudents if prediction is 0 (predicted to quit)
-            if prediction[0] == 0:
-                # check if student is already in AtRiskStudents
-                at_risk_student, created = AtRiskStudents.objects.get_or_create(student=student)
-            else:
-                # remove student from AtRiskStudents if prediction is 1 (predicted to be active)
-                AtRiskStudents.objects.filter(student=student).delete()
-
-            data = {
-                'status': 'HTTP_200_OK',
-                # 'student_id': student.id,
-                # 'last_name': student.last_name_romaji,
-                # 'first_name': student.first_name_romaji,
-                # 'prediction': prediction[0],
-                # 'attendance_data': attendance_data,
-            }
-
-            return Response(data, status=status.HTTP_200_OK)
-
-        except Exception as e:
-            print(e)
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        

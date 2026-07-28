@@ -13,11 +13,11 @@ from authentication.permissions import isInCustomersGroup
 from user_profiles.models import UserProfilesCustomers, UserProfilesInstructors
 from attendance.models import AttendanceRecord, Attendance
 from students.models import Students, GradeChoices
-from analytics.models import HighestActiveStudentCount, AtRiskStudents, HighestRevenuePerStudent, HighestLifetimeInDaysPerStudent
+from analytics.models import HighestActiveStudentCount, HighestRevenuePerStudent, HighestLifetimeInDaysPerStudent
 from schedule.models import Events
 from invoices.models import Invoice, InvoiceItem
 # serializers
-from dashboard.serializers import AtRiskStudentSerializer, InvoiceSerializerForCustomer
+from dashboard.serializers import InvoiceSerializerForCustomer
 from dashboard.serializers import UpcomingBirthdayStudentSerializer
 
 # get all incomplete recent attendance records for an instructor

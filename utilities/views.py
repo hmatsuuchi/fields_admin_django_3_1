@@ -3,7 +3,6 @@ from django.db.models import Max, Q, Count
 from django.http import JsonResponse
 # models
 from students.models import Students, StatusChoices
-from analytics.models import AtRiskStudents
 from attendance.models import Attendance
 
 # adjust student attendance status depending on their attendance records

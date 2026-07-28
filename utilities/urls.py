@@ -1,6 +1,6 @@
 from django.urls import path
 # VIEWS
-from analytics.views import StudentChurnModelTrain, loop_through_students
+from analytics.views import StudentChurnModelTrain
 from attendance.views import AttendanceImport
 from game.views import ImportCardUUID
 from journal.views import JournalImport
@@ -12,10 +12,7 @@ urlpatterns = [
     # ========== ANALYTICS ==========
 
     # trains the student churn random forest classifier model
-    # path('utilities/student_churn_model_train/', StudentChurnModelTrain.as_view(), name='student_churn_model_train'),
-
-    # loop through list of students
-    # path('utilities/loop_through_students/', loop_through_students, name='loop_through_students'),
+    path('utilities/student_churn_model_train/', StudentChurnModelTrain.as_view(), name='student_churn_model_train'),
     
 
 
