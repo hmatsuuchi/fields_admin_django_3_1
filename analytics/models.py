@@ -1,4 +1,6 @@
 from django.db import models
+# Models
+from students.models import Students
 
 # stores highest active student count data
 class HighestActiveStudentCount(models.Model):
@@ -59,3 +61,18 @@ class StudentChurnModelTrainingHistory(models.Model):
 
     def __str__(self):
         return f"{self.id} - {self.model_name} ({self.date_time_created.strftime('%y-%m-%d')} @ {self.date_time_created.strftime('%H:%M:%S')})"
+
+# list of students likely to churn, based on the student churn model prediction
+class StudentChurnPrediction(models.Model):
+    student                                 = models.ForeignKey(Students, on_delete=models.CASCADE, blank=False, null=False)
+    predicted_active_probability            = models.FloatField(blank=False, null=False)
+
+    date_time_created                       = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    date_time_modified                      = models.DateTimeField(auto_now=True, blank=True, null=True)
+
+    class Meta:
+        verbose_name = "Student Churn Prediction"
+        verbose_name_plural = "Student Churn Predictions"
+
+    def __str__(self):
+        return f"{self.student.id} - {self.student.first_name_romaji} {self.student.last_name_romaji} (Predicted Active Probability: {self.predicted_active_probability:.2f})"

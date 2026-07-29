@@ -1,7 +1,8 @@
 from django.contrib import admin
-from .models import HighestActiveStudentCount, StudentChurnModelTrainingHistory, HighestRevenuePerStudent, HighestLifetimeInDaysPerStudent
+from .models import HighestActiveStudentCount, StudentChurnModelTrainingHistory, HighestRevenuePerStudent, HighestLifetimeInDaysPerStudent, StudentChurnPrediction
 
 admin.site.register(HighestActiveStudentCount)
 admin.site.register(StudentChurnModelTrainingHistory)
 admin.site.register(HighestRevenuePerStudent)
 admin.site.register(HighestLifetimeInDaysPerStudent)
+admin.site.register(StudentChurnPrediction)
