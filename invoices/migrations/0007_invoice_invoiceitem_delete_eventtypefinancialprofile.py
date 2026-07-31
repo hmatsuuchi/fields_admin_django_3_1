@@ -8,6 +8,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('invoices', '0006_remove_invoiceitem_invoice_delete_invoice_and_more'),
+        ('schedule', '0021_remove_eventtype_financial_profile'),
     ]
 
     operations = [

@@ -3,6 +3,7 @@ from rest_framework import serializers
 from invoices.models import Invoice, InvoiceItem
 from students.models import Students
 from schedule.models import Events
+from analytics.models import StudentChurnPrediction
 
 # ==================================
 # ======= UPCOMING BIRTHDAYS =======
@@ -42,4 +43,22 @@ class InvoiceSerializerForCustomer(serializers.ModelSerializer):
 
     class Meta:
         model = Invoice
+        fields = '__all__'
+
+# ================================
+# ======= AT RISK STUDENTS =======
+# ================================
+
+# ======= Student Serializer =======
+class AtRiskStudentStudentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Students
+        fields = ['id', 'last_name_kanji', 'first_name_kanji', 'last_name_katakana', 'first_name_katakana', 'last_name_romaji', 'first_name_romaji', 'age']
+
+# ======= At Risk Student Serializer =======
+class AtRiskStudentSerializer(serializers.ModelSerializer):
+    student = AtRiskStudentStudentSerializer(read_only=True)
+    
+    class Meta:
+        model = StudentChurnPrediction
         fields = '__all__'

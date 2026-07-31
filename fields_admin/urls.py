@@ -14,7 +14,6 @@ import game.urls as GameUrls
 import analytics.urls as AnalyticsUrls
 import utilities.urls as UtilitiesUrls
 import invoices.urls as InvoicesUrls
-import alerts.urls as AlertsUrls
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -44,8 +43,6 @@ urlpatterns = [
     path('api/utilities/', include(UtilitiesUrls)),
     # invoices
     path('api/invoices/', include(InvoicesUrls)),
-    # alerts
-    path('api/alerts/', include(AlertsUrls)),
     # accounting
     path('api/accounting/', include('accounting.urls')),
 ]

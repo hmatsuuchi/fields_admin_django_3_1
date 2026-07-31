@@ -12,6 +12,7 @@ from .models import Attendance, AttendanceRecord, AttendanceRecordStatus
 from schedule.models import Events, EventType
 from students.models import Students, GradeChoices, StatusChoices
 from user_profiles.models import UserProfilesInstructors
+from invoices.models import ServiceType, Tax, RevenueType
 
 # ==============================================
 # ======= ATTENDANCE FOR DATE VIEW TESTS =======
@@ -250,13 +251,26 @@ class AttendanceForDateViewAContentRetrievalTest(TestCase):
         self.student.first_name_romaji = 'Test Student First'
         self.student.save()
 
+        # create tax
+        self.tax = Tax.objects.create(name='Test Tax', rate=10)
+        
+        # create revenue type
+        self.revenue_type = RevenueType.objects.create(name='Test Revenue Type')
+        
+        # create service type
+        self.service_type = ServiceType.objects.create(
+            name='Test Service Type',
+            tax=self.tax,
+            revenue_type=self.revenue_type
+        )
+
         # create event type
         self.event_type = EventType()
         self.event_type.name = 'Test Event Type'
-        self.event_type.price = 9999
         self.event_type.duration = 99
         self.event_type.order = 99
         self.event_type.capacity = 9
+        self.event_type.invoice_service_type = self.service_type
         self.event_type.save()
 
         # create events
@@ -531,10 +545,24 @@ class AttendanceDetailsViewAsStaffGroupTest(TestCase):
         # authenticate user
         self.client.force_authenticate(user=self.user)
 
+        # create tax
+        self.tax = Tax.objects.create(name='Test Tax', rate=10)
+        
+        # create revenue type
+        self.revenue_type = RevenueType.objects.create(name='Test Revenue Type')
+        
+        # create service type
+        self.service_type = ServiceType.objects.create(
+            name='Test Service Type',
+            tax=self.tax,
+            revenue_type=self.revenue_type
+        )
+
         # create event type
         self.event_type = EventType()
         self.event_type.duration = 99
         self.event_type.capacity = 9
+        self.event_type.invoice_service_type = self.service_type
         self.event_type.save()
 
         # create linked class
@@ -648,13 +676,26 @@ class AttendanceDetailsViewContentRetrievalTest(TestCase):
         self.student.grade = self.grade
         self.student.save()
 
+        # create tax
+        self.tax = Tax.objects.create(name='Test Tax', rate=10)
+        
+        # create revenue type
+        self.revenue_type = RevenueType.objects.create(name='Test Revenue Type')
+        
+        # create service type
+        self.service_type = ServiceType.objects.create(
+            name='Test Service Type',
+            tax=self.tax,
+            revenue_type=self.revenue_type
+        )
+
         # create event type
         self.event_type = EventType()
         self.event_type.name = 'Test Event Type'
-        self.event_type.price = 9999
         self.event_type.duration = 99
         self.event_type.order = 99
         self.event_type.capacity = 9
+        self.event_type.invoice_service_type = self.service_type
         self.event_type.save()
 
         # create events
@@ -2240,4 +2281,211 @@ class GetAttendanceForProfileViewAsSuperusersGroupTest(TestCase):
 
         # response status code is 403 FORBIDDEN
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# ===================================================================
+# ======== GET ATTENDANCE FOR STUDENT FOR INVOICE VIEW TESTS ========
+# ===================================================================
+
+# ================= ACCESS PERMISSIONS =================
+
+# users NOT logged in CANNOT access the get attendance for student for invoice view
+class AttendanceForStudentForInvoiceViewAsUnauthenticatedUserTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+    def test_attendance_for_student_for_invoice_view_get(self):
+        # attempt to access attendance for student for invoice view
+        response = self.client.get('/api/attendance/attendance/attendance_for_student_for_invoice/')
+
+        # response status code is 401 UNAUTHORIZED
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+# users logged in but NOT in any group CANNOT access the get attendance for student for invoice view
+class AttendanceForStudentForInvoiceViewAsNoGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create user
+        self.user = User.objects.create_user(
+            username='testuser', password='testpassword')
+
+        # authenticate user
+        self.client.force_authenticate(user=self.user)
+
+    def test_attendance_for_student_for_invoice_view_get(self):
+        # attempt to access attendance for student for invoice view
+        response = self.client.get('/api/attendance/attendance/attendance_for_student_for_invoice/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in but in the 'Administrators' group CANNOT access the get attendance for student for invoice view
+class AttendanceForStudentForInvoiceViewAsAdministratorsGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create user
+        self.user = User.objects.create_user(
+            username='testuser', password='testpassword')
+
+        # add user to 'Administrators' group
+        administrators_group = Group.objects.create(name='Administrators')
+        self.user.groups.add(administrators_group)
+
+        # authenticate user
+        self.client.force_authenticate(user=self.user)
+
+    def test_attendance_for_student_for_invoice_view_get(self):
+        # attempt to access attendance for student for invoice view
+        response = self.client.get('/api/attendance/attendance/attendance_for_student_for_invoice/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in but in the 'Displays' group CANNOT access the get attendance for student for invoice view
+class AttendanceForStudentForInvoiceViewAsDisplaysGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create user
+        self.user = User.objects.create_user(
+            username='testuser', password='testpassword')
+
+        # add user to 'Displays' group
+        displays_group = Group.objects.create(name='Displays')
+        self.user.groups.add(displays_group)
+
+        # authenticate user
+        self.client.force_authenticate(user=self.user)
+
+    def test_attendance_for_student_for_invoice_view_get(self):
+        # attempt to access attendance for student for invoice view
+        response = self.client.get('/api/attendance/attendance/attendance_for_student_for_invoice/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in but in the 'Customers' group CANNOT access the get attendance for student for invoice view
+class AttendanceForStudentForInvoiceViewAsCustomersGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create user
+        self.user = User.objects.create_user(
+            username='testuser', password='testpassword')
+
+        # add user to 'Customers' group
+        customers_group = Group.objects.create(name='Customers')
+        self.user.groups.add(customers_group)
+
+        # authenticate user
+        self.client.force_authenticate(user=self.user)
+
+    def test_attendance_for_student_for_invoice_view_get(self):
+        # attempt to access attendance for student for invoice view
+        response = self.client.get('/api/attendance/attendance/attendance_for_student_for_invoice/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in but in the 'Instructors' group CANNOT access the get attendance for student for invoice view
+class AttendanceForStudentForInvoiceViewAsInstructorsGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create user
+        self.user = User.objects.create_user(
+            username='testuser', password='testpassword')
+
+        # add user to 'Instructors' group
+        instructors_group = Group.objects.create(name='Instructors')
+        self.user.groups.add(instructors_group)
+
+        # authenticate user
+        self.client.force_authenticate(user=self.user)
+
+    def test_attendance_for_student_for_invoice_view_get(self):
+        # attempt to access attendance for student for invoice view
+        response = self.client.get('/api/attendance/attendance/attendance_for_student_for_invoice/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in but in the 'Instructors_Staff' group CANNOT access the get attendance for student for invoice view
+class AttendanceForStudentForInvoiceViewAsInstructorsStaffGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create user
+        self.user = User.objects.create_user(
+            username='testuser', password='testpassword')
+
+        # add user to 'Instructors_Staff' group
+        instructors_staff_group = Group.objects.create(name='Instructors_Staff')
+        self.user.groups.add(instructors_staff_group)
+
+        # authenticate user
+        self.client.force_authenticate(user=self.user)
+
+    def test_attendance_for_student_for_invoice_view_get(self):
+        # attempt to access attendance for student for invoice view
+        response = self.client.get('/api/attendance/attendance/attendance_for_student_for_invoice/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in but in the 'Superusers' group CANNOT access the get attendance for student for invoice view
+class AttendanceForStudentForInvoiceViewAsSuperusersGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create user
+        self.user = User.objects.create_user(
+            username='testuser', password='testpassword')
+
+        # add user to 'Superusers' group
+        superusers_group = Group.objects.create(name='Superusers')
+        self.user.groups.add(superusers_group)
+
+        # authenticate user
+        self.client.force_authenticate(user=self.user)
+
+    def test_attendance_for_student_for_invoice_view_get(self):
+        # attempt to access attendance for student for invoice view
+        response = self.client.get('/api/attendance/attendance/attendance_for_student_for_invoice/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in and in the 'Staff' group CAN access the get attendance for student for invoice view
+class AttendanceForStudentForInvoiceViewAsStaffGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create user
+        self.user = User.objects.create_user(
+            username='testuser', password='testpassword')
+
+        # add user to 'Staff' group
+        staff_group = Group.objects.create(name='Staff')
+        self.user.groups.add(staff_group)
+
+        # authenticate user
+        self.client.force_authenticate(user=self.user)
+
+    def test_attendance_for_student_for_invoice_view_get(self):
+        # attempt to access attendance for student for invoice view
+        response = self.client.get('/api/attendance/attendance/attendance_for_student_for_invoice/')
+
+        # response status code is 200 OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 

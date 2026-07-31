@@ -1091,7 +1091,7 @@ class ProfilesDetailsViewAsStaffGroupTest(TestCase):
         self.assertEqual(response.data['birthday'], (date.today() - timedelta(days=(365*9))).strftime('%Y-%m-%d'))
         self.assertEqual(response.data['grade'], self.test_grade_choice.id)
         self.assertEqual(response.data['status'], self.test_status_choice.id)
-        self.assertEqual(response.data['payment_method'], self.test_payment_choice.id)
+        self.assertEqual(response.data['payment_method_from_invoice'], self.test_payment_choice.id)
         self.assertEqual(response.data['archived'], False)
 
     # POST - create a new student profile
@@ -1141,7 +1141,7 @@ class ProfilesDetailsViewAsStaffGroupTest(TestCase):
         self.assertEqual(response.data['birthday'], (date.today() - timedelta(days=(365*9))).strftime('%Y-%m-%d'))
         self.assertEqual(response.data['grade'], self.test_grade_choice.id)
         self.assertEqual(response.data['status'], self.test_status_choice.id)
-        self.assertEqual(response.data['payment_method'], self.test_payment_choice.id)
+        self.assertEqual(response.data['payment_method_from_invoice'], self.test_payment_choice.id)
         self.assertEqual(response.data['archived'], False)
 
     # PUT - update a student profile
@@ -1192,7 +1192,7 @@ class ProfilesDetailsViewAsStaffGroupTest(TestCase):
         self.assertEqual(response.data['birthday'], (date.today() - timedelta(days=(365*10))).strftime('%Y-%m-%d'))
         self.assertEqual(response.data['grade'], self.test_grade_choice_updated.id)
         self.assertEqual(response.data['status'], self.test_status_choice_updated.id)
-        self.assertEqual(response.data['payment_method'], self.test_payment_choice_updated.id)
+        self.assertEqual(response.data['payment_method_from_invoice'], self.test_payment_choice_updated.id)
         self.assertEqual(response.data['archived'], True)
 
     # DELETE - delete a student profile

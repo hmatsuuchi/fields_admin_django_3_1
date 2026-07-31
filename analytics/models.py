@@ -65,7 +65,7 @@ class StudentChurnModelTrainingHistory(models.Model):
 # list of students likely to churn, based on the student churn model prediction
 class StudentChurnPrediction(models.Model):
     student                                 = models.ForeignKey(Students, on_delete=models.CASCADE, blank=False, null=False)
-    predicted_active_probability            = models.FloatField(blank=False, null=False)
+    churn_probability                       = models.FloatField(blank=False, null=False)
 
     date_time_created                       = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_time_modified                      = models.DateTimeField(auto_now=True, blank=True, null=True)
@@ -75,4 +75,4 @@ class StudentChurnPrediction(models.Model):
         verbose_name_plural = "Student Churn Predictions"
 
     def __str__(self):
-        return f"{self.student.id} - {self.student.first_name_romaji} {self.student.last_name_romaji} (Predicted Active Probability: {self.predicted_active_probability:.2f})"
+        return f"{self.student.id} - {self.student.first_name_romaji} {self.student.last_name_romaji} (Predicted Churn Probability: {self.churn_probability:.3f})"

@@ -13,12 +13,11 @@ from authentication.permissions import isInCustomersGroup
 from user_profiles.models import UserProfilesCustomers, UserProfilesInstructors
 from attendance.models import AttendanceRecord, Attendance
 from students.models import Students, GradeChoices
-from analytics.models import HighestActiveStudentCount, HighestRevenuePerStudent, HighestLifetimeInDaysPerStudent
+from analytics.models import HighestActiveStudentCount, HighestRevenuePerStudent, HighestLifetimeInDaysPerStudent, StudentChurnPrediction
 from schedule.models import Events
 from invoices.models import Invoice, InvoiceItem
 # serializers
-from dashboard.serializers import InvoiceSerializerForCustomer
-from dashboard.serializers import UpcomingBirthdayStudentSerializer
+from dashboard.serializers import InvoiceSerializerForCustomer, UpcomingBirthdayStudentSerializer, AtRiskStudentSerializer
 
 # get all incomplete recent attendance records for an instructor
 class IncompleteAttendanceForInstructorView(APIView):
@@ -890,6 +889,28 @@ class InvoicesForCustomerView(APIView):
 
             data = {
                 "student_invoices": students_data,
+            }
+
+            return Response(data, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            print(e)
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+# fetches list of at risk students
+class AtRiskStudentsView(APIView):
+    authentication_classes = ([CustomAuthentication])
+    permission_classes = ([isInStaffGroup])
+
+    def get(self, request, format=None):        
+        try:
+            # get at risk student list
+            at_risk_students = StudentChurnPrediction.objects.filter(churn_probability__gte=0.4).order_by('-churn_probability')
+
+            serializer = AtRiskStudentSerializer(at_risk_students, many=True)
+
+            data = {
+                'at_risk_students': serializer.data,
             }
 
             return Response(data, status=status.HTTP_200_OK)

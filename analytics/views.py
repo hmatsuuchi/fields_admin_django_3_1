@@ -246,29 +246,30 @@ class StudentChurnPredict(APIView):
                 ]])
 
                 # make prediction using the trained model
-                predicted_active = clf.predict(features)[0]  # 1 = currently active, 0 = churning
-                predicted_active_probability = clf.predict_proba(features)[0][1]  # Probability of being active (currently active = 1, churning = 0)
+                churn_probability = clf.predict_proba(features)[0][0]  # Probability of churning (currently active = 1, churning = 0)
 
                 student_data = {
                     'student_id': student.id,
                     'first_name': student.first_name_romaji,
                     'last_name': student.last_name_romaji,
-                    'predicted_active': bool(predicted_active),
-                    'prediction_probability': float(predicted_active_probability),
+                    'churn_probability': float(churn_probability),
                 }
 
-                # if churn is predicted
-                if not predicted_active:
-                    # append prediction result to the list
-                    predictions.append(student_data)
-
-                    # save the prediction to the database
-                    StudentChurnPrediction.objects.update_or_create(
-                        student=student,
-                        defaults={'predicted_active_probability': predicted_active_probability}
-                    )
+                predictions.append(student_data)
 
                 print(student_data)
+
+            # delete existing predictions
+            StudentChurnPrediction.objects.all().delete()
+
+            # bulk create new predictions
+            StudentChurnPrediction.objects.bulk_create([
+                StudentChurnPrediction(
+                    student_id=pred['student_id'],
+                    churn_probability=pred['churn_probability'],
+                )
+                for pred in predictions
+            ])
 
             return Response({'status': 'HTTP_200_OK', 'predictions': predictions}, status=status.HTTP_200_OK)
 
