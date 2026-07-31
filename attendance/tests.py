@@ -2489,3 +2489,144 @@ class AttendanceForStudentForInvoiceViewAsStaffGroupTest(TestCase):
         # response status code is 200 OK
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+# ============================================
+# === DATA VALIDATION & ERROR HANDLING =======
+# ============================================
+
+# AttendanceForDateView - Invalid date format
+class AttendanceForDateViewInvalidDateFormatTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.staff_group = Group.objects.create(name='Staff')
+        self.user = User.objects.create_user(username='staffuser', password='testpass123')
+        self.user.groups.add(self.staff_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_invalid_date_format_returns_400(self):
+        response = self.client.get(
+            reverse('attendance_for_date'),
+            {'date': 'invalid-date', 'instructor_id': 1}
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+# AttendanceDetailsView - Missing required fields
+class AttendanceDetailsViewMissingFieldsTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.staff_group = Group.objects.create(name='Staff')
+        self.user = User.objects.create_user(username='staffuser', password='testpass123')
+        self.user.groups.add(self.staff_group)
+        self.client.force_authenticate(user=self.user)
+        
+        # Create required objects
+        self.tax = Tax.objects.create(name='Test Tax', rate=10)
+        self.revenue_type = RevenueType.objects.create(name='Test Revenue Type')
+        self.service_type = ServiceType.objects.create(
+            name='Test Service Type',
+            tax=self.tax,
+            revenue_type=self.revenue_type
+        )
+        self.event_type = EventType.objects.create(
+            name='Test Event Type',
+            invoice_service_type=self.service_type
+        )
+
+    def test_post_without_linked_class_returns_400(self):
+        data = {
+            'date': '2024-01-15',
+            'start_time': '10:00',
+            'instructor': self.user.id
+            # missing 'linked_class'
+        }
+        response = self.client.post(
+            reverse('attendance_details'),
+            data,
+            format='json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+# AttendanceRecordDetailsView - Invalid foreign keys
+class AttendanceRecordDetailsViewInvalidForeignKeysTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.staff_group = Group.objects.create(name='Staff')
+        self.user = User.objects.create_user(username='staffuser', password='testpass123')
+        self.user.groups.add(self.staff_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_post_with_invalid_student_id_returns_400(self):
+        data = {
+            'student': 99999,  # non-existent student
+            'attendance': 1
+        }
+        response = self.client.post(
+            reverse('attendance_record_details'),
+            data,
+            format='json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+# UpdateAttendanceRecordStatusView - Invalid status ID
+class UpdateAttendanceRecordStatusViewInvalidStatusTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.staff_group = Group.objects.create(name='Staff')
+        self.user = User.objects.create_user(username='staffuser', password='testpass123')
+        self.user.groups.add(self.staff_group)
+        self.client.force_authenticate(user=self.user)
+        
+        # Create test data
+        self.status = AttendanceRecordStatus.objects.create(status_name='Present')
+        self.student = Students.objects.create(
+            first_name_romaji='Test',
+            last_name_romaji='Student'
+        )
+        
+        self.tax = Tax.objects.create(name='Test Tax', rate=10)
+        self.revenue_type = RevenueType.objects.create(name='Test Revenue Type')
+        self.service_type = ServiceType.objects.create(
+            name='Test Service Type',
+            tax=self.tax,
+            revenue_type=self.revenue_type
+        )
+        self.event_type = EventType.objects.create(
+            name='Test Event Type',
+            invoice_service_type=self.service_type
+        )
+        self.event = Events.objects.create(
+            event_name='Test Event',
+            primary_instructor=self.user,
+            event_type=self.event_type,
+            day_of_week=1,
+            start_time='10:00:00',
+            archived=False
+        )
+        self.attendance = Attendance.objects.create(
+            date='2024-01-15',
+            start_time='10:00',
+            instructor=self.user,
+            linked_class=self.event
+        )
+
+        # Create grade choice (add this before creating attendance_record)
+        self.grade = GradeChoices.objects.create(name='Test Grade', order=99)
+
+        self.attendance_record = AttendanceRecord.objects.create(
+            student=self.student,
+            status=self.status,
+            grade=self.grade
+        )
+        self.attendance.attendance_records.add(self.attendance_record)
+
+    def test_put_with_invalid_status_id_returns_400(self):
+        data = {
+            'attendance_record_id': self.attendance_record.id,
+            'attendance_record_status_id': 99999  # non-existent status
+        }
+        response = self.client.put(
+            reverse('attendance_update_attendance_record_status'),
+            data,
+            format='json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+

@@ -50,7 +50,7 @@ class AttendanceForDateView(APIView):
         
         except Exception as e:
             print(e)
-            return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
 # attendance details
 class AttendanceDetailsView(APIView):
@@ -75,7 +75,7 @@ class AttendanceDetailsView(APIView):
         
         except Exception as e:
             print(e)
-            return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
     # PUT - update attendance record
     def put(self, request, format=None):
@@ -101,6 +101,7 @@ class AttendanceDetailsView(APIView):
             return Response({'error': 'Attendance record not found'}, status=status.HTTP_404_NOT_FOUND)
         
         except Exception as e:
+            print(e)
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
     # DELETE - delete attendance record
@@ -132,7 +133,7 @@ class AttendanceDetailsView(APIView):
         
         except Exception as e:
             print(e)
-            return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 # update attendance record status
 class UpdateAttendanceRecordStatusView(APIView):
@@ -161,7 +162,7 @@ class UpdateAttendanceRecordStatusView(APIView):
         
         except Exception as e:
             print(e)
-            return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
 # primary instructor choice list
 class InstructorChoicesView(APIView):
@@ -185,7 +186,7 @@ class InstructorChoicesView(APIView):
         
         except Exception as e:
             print(e)
-            return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
 # event choice list
 class EventChoicesView(APIView):
@@ -209,7 +210,7 @@ class EventChoicesView(APIView):
         
         except Exception as e:
             print(e)
-            return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 # student choice list
 class StudentChoicesView(APIView):
@@ -233,7 +234,7 @@ class StudentChoicesView(APIView):
         
         except Exception as e:
             print(e)
-            return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 # gets & updates user preferences for attendance app
 class AttendanceUserPreferencesView(APIView):
@@ -257,7 +258,7 @@ class AttendanceUserPreferencesView(APIView):
         
         except Exception as e:
             print(e)
-            return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
     # PUT - update user preferences
     def put(self, request, format=None):
@@ -288,7 +289,7 @@ class AttendanceUserPreferencesView(APIView):
         
         except Exception as e:
             print(e)
-            return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
 # attendance record details
 class AttendanceRecordDetailsView(APIView):
@@ -324,7 +325,7 @@ class AttendanceRecordDetailsView(APIView):
         
         except Exception as e:
             print(e)
-            return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
     # DELETE - delete attendance record
     def delete(self, request, format=None):
@@ -351,7 +352,7 @@ class AttendanceRecordDetailsView(APIView):
         
         except Exception as e:
             print(e)
-            return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 # auto generate attendance records for date and instructor
 class AutoGenerateAttendanceRecordsView(APIView):
@@ -411,7 +412,7 @@ class AutoGenerateAttendanceRecordsView(APIView):
         
         except Exception as e:
             print(e)
-            return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 # get attendance for profile
 class GetAttendanceForProfileView(APIView):
@@ -438,7 +439,7 @@ class GetAttendanceForProfileView(APIView):
         
         except Exception as e:
             print(e)
-            return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 # get attendance for a single student for invoice creation
 class AttendanceForStudentForInvoiceView(APIView):
@@ -473,4 +474,4 @@ class AttendanceForStudentForInvoiceView(APIView):
         
         except Exception as e:
             print(e)
-            return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

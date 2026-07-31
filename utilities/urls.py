@@ -1,7 +1,6 @@
 from django.urls import path
 # VIEWS
 from analytics.views import StudentChurnModelTrain, StudentChurnPredict
-from attendance.views import AttendanceImport
 from game.views import ImportCardUUID
 from journal.views import JournalImport
 from schedule.views import EventsImport
@@ -21,8 +20,6 @@ urlpatterns = [
 
     # ========== ATTENDANCE =========
 
-    # import attendance and attendance records from CSV
-    # path('utilities/attendance_import/', AttendanceImport, name='attendance_import'),
     
 
 
