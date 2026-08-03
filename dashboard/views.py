@@ -339,30 +339,6 @@ class TotalActiveStudentsByGrade(APIView):
             print(e)
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-# get list of students at risk of churn
-class AtRiskStudentsView(APIView):
-    authentication_classes = ([CustomAuthentication])
-    permission_classes = ([isInStaffGroup])
-
-    def get(self, request, format=None):        
-        try:
-
-            # get at risk student list
-            at_risk_students = AtRiskStudents.objects.all().order_by('-date_time_created')
-
-            # serialize student list
-            serializer = AtRiskStudentSerializer(at_risk_students, many=True)
-
-            data = {
-                'at_risk_students': serializer.data,
-            }
-
-            return Response(data, status=status.HTTP_200_OK)
-        
-        except Exception as e:
-            print(e)
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
 # get list of students with upcoming birthdays
 class UpcomingBirthdaysView(APIView):
     authentication_classes = ([CustomAuthentication])

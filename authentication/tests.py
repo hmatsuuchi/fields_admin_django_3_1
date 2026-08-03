@@ -141,6 +141,28 @@ class RefreshWithBlacklistedRefreshTokenTest(TestCase):
         # assertions
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
+# NOT authenticated users CANNOT log out
+class LogoutAsUnauthenticatedUserTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+
+    def test_logout_unauthenticated_user(self):
+        response = self.client.post(reverse('logout'), content_type='application/json')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+# users with invalid tokens CANNOT log out
+class LogoutWithInvalidTokenTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+    def test_logout_with_malformed_token(self):
+        # Set an invalid token in the logout cookie
+        self.client.cookies[settings.SIMPLE_JWT['LOGOUT_COOKIE']] = 'invalid.token.here'
+        
+        response = self.client.post(reverse('logout'), content_type='application/json')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
 # users with valid refresh tokens CAN log out
 class LogoutWithValidRefreshTokenTest(TestCase):
     def setUp(self):
@@ -217,9 +239,29 @@ class LogoutWithBlacklistedRefreshTokenTest(TestCase):
         # assertion
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+# users with valid refresh tokens CAN log out and delete auth cookie
+class LogoutDeletesAuthCookieTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+    def test_logout_deletes_auth_cookie(self):
+        refresh_token = RefreshToken.for_user(self.user)
+        access_token = AccessToken.for_user(self.user)
+        
+        self.client.cookies[settings.SIMPLE_JWT['AUTH_COOKIE']] = str(access_token)
+        self.client.cookies[settings.SIMPLE_JWT['LOGOUT_COOKIE']] = str(refresh_token)
+
+        response = self.client.post(reverse('logout'), content_type='application/json')
+
+        # Verify auth cookie is deleted
+        self.assertEqual(response.status_code, status.HTTP_205_RESET_CONTENT)
+        self.assertIn(settings.SIMPLE_JWT['AUTH_COOKIE'], response.cookies)
+        self.assertEqual(response.cookies[settings.SIMPLE_JWT['AUTH_COOKIE']].value, '')
+
 # ======= CSRF Refresh Tests =======
 
-# authenticated users can refresh csrf token
+# authenticated users CAN refresh csrf token
 class CsrfRefreshViewAsAuthenticatedUserTest(TestCase):
     def setUp(self):
         # create test client
@@ -245,11 +287,35 @@ class CsrfRefreshViewAsAuthenticatedUserTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertNotEqual(csrf_token, response.cookies[settings.CSRF_COOKIE].value)
 
-# NOT authenticated users can refresh csrf token
-class CsrfRefreshViewAsUnuthenticatedUserTest(TestCase):
+# NOT authenticated users CANNOT refresh csrf token
+class CsrfRefreshViewAsUnauthenticatedUserTest(TestCase):
     def test_refresh_csrf_token(self):
         # get refresh token
         response = self.client.get(reverse('csrf_refresh'))
 
         # assertion
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+class CsrfRefreshWithInvalidAuthTest(TestCase):
+    def test_csrf_refresh_with_expired_token(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        
+        # Manually set an invalid/expired token
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer invalid.expired.token')
+        
+        response = self.client.get(reverse('csrf_refresh'))
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+class CsrfRefreshResponseValidationTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        self.client.force_authenticate(user=self.user)
+
+    def test_csrf_refresh_response_contains_token(self):
+        response = self.client.get(reverse('csrf_refresh'))
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('csrftoken', response.data)
+        self.assertGreater(len(response.data['csrftoken']), 0)
