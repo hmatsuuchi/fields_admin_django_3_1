@@ -9,6 +9,7 @@ from rest_framework.test import APIClient
 from user_profiles.models import UserProfilesInstructors
 from students.models import Students, PrefectureChoices, PhoneChoice, Phone, GradeChoices, StatusChoices, PaymentChoices
 from .models import Events, EventType
+from invoices.models import ServiceType, Tax, RevenueType
 
 
 # ======================================
@@ -221,10 +222,13 @@ class EventsAllViewAsStaffGroupTest(TestCase):
         # set test user as authenticated
         self.client.force_authenticate(user=self.user)
 
-        # create event types
-        event_type_1 = EventType.objects.create(name='Test Event Type 1', price=999, duration=60, order=1, capacity=6)
-        event_type_2 = EventType.objects.create(name='Test Event Type 2', price=999, duration=60, order=2, capacity=6)
-        event_type_3 = EventType.objects.create(name='Test Event Type 3', price=999, duration=60, order=3, capacity=6)
+        # create new event type
+        tax = Tax.objects.create(name='Test Tax', rate=0)
+        revenue_type = RevenueType.objects.create(name='Test Revenue Type')
+        service_type = ServiceType.objects.create(name='Test Service', price=999, tax=tax, revenue_type=revenue_type)
+        event_type_1 = EventType.objects.create(name='Test Event Type 1', duration=60, order=1, capacity=6, invoice_service_type=service_type)
+        event_type_2 = EventType.objects.create(name='Test Event Type 2', duration=60, order=2, capacity=6, invoice_service_type=service_type)
+        event_type_3 = EventType.objects.create(name='Test Event Type 3', duration=60, order=3, capacity=6, invoice_service_type=service_type)
 
         # create test events
         event_1 = Events.objects.create(
@@ -278,9 +282,12 @@ class EventsAllViewContentRetrievalTest(TestCase):
         self.client.force_authenticate(user=self.user)
 
         # create event types
-        event_type_1 = EventType.objects.create(name='Test Event Type 1', price=999, duration=60, order=1, capacity=6)
-        event_type_2 = EventType.objects.create(name='Test Event Type 2', price=999, duration=60, order=2, capacity=6)
-        event_type_3 = EventType.objects.create(name='Test Event Type 3', price=999, duration=60, order=3, capacity=6)
+        tax = Tax.objects.create(name='Test Tax', rate=0)
+        revenue_type = RevenueType.objects.create(name='Test Revenue Type')
+        service_type = ServiceType.objects.create(name='Test Service', price=999, tax=tax, revenue_type=revenue_type)
+        event_type_1 = EventType.objects.create(name='Test Event Type 1', duration=60, order=1, capacity=6, invoice_service_type=service_type)
+        event_type_2 = EventType.objects.create(name='Test Event Type 2', duration=60, order=2, capacity=6, invoice_service_type=service_type)
+        event_type_3 = EventType.objects.create(name='Test Event Type 3', duration=60, order=3, capacity=6, invoice_service_type=service_type)
 
         # create test events
         event_1 = Events.objects.create(
@@ -326,7 +333,6 @@ class EventsAllViewContentRetrievalTest(TestCase):
 # =========================================
 
 # ========= ACCESS PERMISSIONS =========
-
 # users NOT logged in CANNOT access the events details view
 class EventsDetailsViewAsUnauthenticatedUserTest(TestCase):
     def setUp(self):
@@ -514,7 +520,10 @@ class EventsDetailsViewAsStaffGroupTest(TestCase):
         self.client.force_authenticate(user=self.user)
 
         # create new event type
-        event_type = EventType.objects.create(name='Test Event Type', price=999, duration=60, order=1, capacity=6)
+        tax = Tax.objects.create(name='Test Tax', rate=0)
+        revenue_type = RevenueType.objects.create(name='Test Revenue Type')
+        service_type = ServiceType.objects.create(name='Test Service', price=999, tax=tax, revenue_type=revenue_type)
+        event_type = EventType.objects.create(name='Test Event Type', duration=60, order=1, capacity=6, invoice_service_type=service_type)
 
         # create new event
         self.event = Events.objects.create(
@@ -557,7 +566,10 @@ class EventsDetailsViewContentRetrievalTest(TestCase):
         self.client.force_authenticate(user=self.user)
 
         # create event type
-        self.event_type = EventType.objects.create(name='Test Event Type', price=999, duration=60, order=1, capacity=6)
+        tax = Tax.objects.create(name='Test Tax', rate=0)
+        revenue_type = RevenueType.objects.create(name='Test Revenue Type')
+        service_type = ServiceType.objects.create(name='Test Service', price=999, tax=tax, revenue_type=revenue_type)
+        self.event_type = EventType.objects.create(name='Test Event Type', duration=60, order=1, capacity=6, invoice_service_type=service_type)
 
         # create test event
         self.event = Events.objects.create(
@@ -816,7 +828,10 @@ class EventChoicesViewContentRetrievalTest(TestCase):
         self.client.force_authenticate(user=self.user)
 
         # create event type
-        self.event_type = EventType.objects.create(name='Test Event Type', price=999, duration=60, order=1, capacity=6)
+        tax = Tax.objects.create(name='Test Tax', rate=0)
+        revenue_type = RevenueType.objects.create(name='Test Revenue Type')
+        service_type = ServiceType.objects.create(name='Test Service', price=999, tax=tax, revenue_type=revenue_type)
+        self.event_type = EventType.objects.create(name='Test Event Type', duration=60, order=1, capacity=6, invoice_service_type=service_type)
 
     def test_event_choices_view(self):
         # attempt to access events all view
@@ -1109,7 +1124,10 @@ class RemoveStudentFromEventViewAsStaffGroupTest(TestCase):
         self.test_profile.save()
 
         # create new event type
-        event_type = EventType.objects.create(name='Test Event Type', price=999, duration=60, order=1, capacity=6)
+        tax = Tax.objects.create(name='Test Tax', rate=0)
+        revenue_type = RevenueType.objects.create(name='Test Revenue Type')
+        service_type = ServiceType.objects.create(name='Test Service', price=999, tax=tax, revenue_type=revenue_type)
+        event_type = EventType.objects.create(name='Test Event Type', duration=60, order=1, capacity=6, invoice_service_type=service_type)
 
         # create new event
         self.event = Events.objects.create(
@@ -1229,7 +1247,10 @@ class RemoveStudentFromEventViewActionTest(TestCase):
         self.test_profile.save()
 
         # create new event type
-        event_type = EventType.objects.create(name='Test Event Type', price=999, duration=60, order=1, capacity=6)
+        tax = Tax.objects.create(name='Test Tax', rate=0)
+        revenue_type = RevenueType.objects.create(name='Test Revenue Type')
+        service_type = ServiceType.objects.create(name='Test Service', price=999, tax=tax, revenue_type=revenue_type)
+        event_type = EventType.objects.create(name='Test Event Type', duration=60, order=1, capacity=6, invoice_service_type=service_type)
 
         # create new event
         self.event = Events.objects.create(
@@ -1531,7 +1552,10 @@ class AddStudentToEventViewAsStaffGroupTest(TestCase):
         self.test_profile.save()
 
         # create new event type
-        event_type = EventType.objects.create(name='Test Event Type', price=999, duration=60, order=1, capacity=6)
+        tax = Tax.objects.create(name='Test Tax', rate=0)
+        revenue_type = RevenueType.objects.create(name='Test Revenue Type')
+        service_type = ServiceType.objects.create(name='Test Service', price=999, tax=tax, revenue_type=revenue_type)
+        event_type = EventType.objects.create(name='Test Event Type', duration=60, order=1, capacity=6, invoice_service_type=service_type)
 
         # create new event
         self.event = Events.objects.create(
@@ -1651,7 +1675,10 @@ class AddStudentToEventViewActionTest(TestCase):
         self.test_profile.save()
 
         # create new event type
-        event_type = EventType.objects.create(name='Test Event Type', price=999, duration=60, order=1, capacity=6)
+        tax = Tax.objects.create(name='Test Tax', rate=0)
+        revenue_type = RevenueType.objects.create(name='Test Revenue Type')
+        service_type = ServiceType.objects.create(name='Test Service', price=999, tax=tax, revenue_type=revenue_type)
+        event_type = EventType.objects.create(name='Test Event Type', duration=60, order=1, capacity=6, invoice_service_type=service_type)
 
         # create new event
         self.event = Events.objects.create(
@@ -1874,7 +1901,10 @@ class ArchiveEventViewAsStaffGroupTest(TestCase):
         self.client.force_authenticate(user=self.user)
 
         # create new event type
-        event_type = EventType.objects.create(name='Test Event Type', price=999, duration=60, order=1, capacity=6)
+        tax = Tax.objects.create(name='Test Tax', rate=0)
+        revenue_type = RevenueType.objects.create(name='Test Revenue Type')
+        service_type = ServiceType.objects.create(name='Test Service', price=999, tax=tax, revenue_type=revenue_type)
+        event_type = EventType.objects.create(name='Test Event Type', duration=60, order=1, capacity=6, invoice_service_type=service_type)
 
         # create new event
         self.event = Events.objects.create(
@@ -1916,7 +1946,10 @@ class ArchiveEventViewActionTest(TestCase):
         self.client.force_authenticate(user=self.user)
 
         # create new event type
-        event_type = EventType.objects.create(name='Test Event Type', price=999, duration=60, order=1, capacity=6)
+        tax = Tax.objects.create(name='Test Tax', rate=0)
+        revenue_type = RevenueType.objects.create(name='Test Revenue Type')
+        service_type = ServiceType.objects.create(name='Test Service', price=999, tax=tax, revenue_type=revenue_type)
+        event_type = EventType.objects.create(name='Test Event Type', duration=60, order=1, capacity=6, invoice_service_type=service_type)
 
         # create new event
         self.event = Events.objects.create(
@@ -2150,7 +2183,10 @@ class GetEventsForProfileViewAsStaffGroupTest(TestCase):
         self.client.force_authenticate(user=self.user)
 
         # create new event type
-        event_type = EventType.objects.create(name='Test Event Type', price=999, duration=60, order=1, capacity=6)
+        tax = Tax.objects.create(name='Test Tax', rate=0)
+        revenue_type = RevenueType.objects.create(name='Test Revenue Type')
+        service_type = ServiceType.objects.create(name='Test Service', price=999, tax=tax, revenue_type=revenue_type)
+        event_type = EventType.objects.create(name='Test Event Type', duration=60, order=1, capacity=6, invoice_service_type=service_type)
 
         # create new event
         self.event = Events.objects.create(
@@ -2275,7 +2311,10 @@ class GetEventsForProfileViewActionTest(TestCase):
         self.client.force_authenticate(user=self.user)
 
         # create new event type
-        event_type = EventType.objects.create(name='Test Event Type', price=999, duration=60, order=1, capacity=6)
+        tax = Tax.objects.create(name='Test Tax', rate=0)
+        revenue_type = RevenueType.objects.create(name='Test Revenue Type')
+        service_type = ServiceType.objects.create(name='Test Service', price=999, tax=tax, revenue_type=revenue_type)
+        event_type = EventType.objects.create(name='Test Event Type', duration=60, order=1, capacity=6, invoice_service_type=service_type)
 
         # create new event
         self.event = Events.objects.create(
