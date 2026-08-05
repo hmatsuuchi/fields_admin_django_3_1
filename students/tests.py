@@ -7,6 +7,7 @@ import json
 from datetime import date, timedelta
 
 from .models import Students, Phone, PhoneChoice, PrefectureChoices, GradeChoices, StatusChoices, PaymentChoices
+from invoices.models import PaymentMethod
 
 # ================================================
 # ======= STUDENT PROFILES LIST VIEW TESTS =======
@@ -277,14 +278,8 @@ class ProfilesDetailsViewAsUnauthenticatedUserTest(TestCase):
         self.test_status_choice_updated.order = 2
         self.test_status_choice_updated.save()
         # create test payment choice
-        self.test_payment_choice = PaymentChoices()
-        self.test_payment_choice.name = 'test_payment_choice'
-        self.test_payment_choice.order = 1
-        self.test_payment_choice.save()
-        self.test_payment_choice_updated = PaymentChoices()
-        self.test_payment_choice_updated.name = 'test_payment_choice_updated'
-        self.test_payment_choice_updated.order = 1
-        self.test_payment_choice_updated.save()
+        self.test_payment_choice = PaymentMethod.objects.create(name='test_payment_method', order=1)
+        self.test_payment_choice_updated = PaymentMethod.objects.create(name='test_payment_method_updated', order=2)
         # creates test profile
         self.test_profile = Students()
         self.test_profile.save()
@@ -304,6 +299,7 @@ class ProfilesDetailsViewAsUnauthenticatedUserTest(TestCase):
         self.test_profile.grade = self.test_grade_choice
         self.test_profile.status = self.test_status_choice
         self.test_profile.payment_method = self.test_payment_choice
+        self.test_profile.payment_method_from_invoice = self.test_payment_choice_updated
         self.test_profile.archived = False
         self.test_profile.save()
 
@@ -337,7 +333,7 @@ class ProfilesDetailsViewAsUnauthenticatedUserTest(TestCase):
             'birthday': (date.today() - timedelta(days=(365*9))).strftime('%Y-%m-%d'),
             'grade': self.test_grade_choice.id,
             'status': self.test_status_choice.id,
-            'payment_method': self.test_payment_choice.id,
+            'payment_method_from_invoice': self.test_payment_choice.id,
             'archived': False,
             }
         
@@ -370,7 +366,7 @@ class ProfilesDetailsViewAsUnauthenticatedUserTest(TestCase):
             'birthday': (date.today() - timedelta(days=(365*10))).strftime('%Y-%m-%d'),
             'grade': self.test_grade_choice_updated.id,
             'status': self.test_status_choice_updated.id,
-            'payment_method': self.test_payment_choice_updated.id,
+            'payment_method_from_invoice': self.test_payment_choice_updated.id,
             'archived': True,
             }
         
@@ -449,14 +445,8 @@ class ProfilesDetailsViewAsNoGroupTest(TestCase):
         self.test_status_choice_updated.order = 2
         self.test_status_choice_updated.save()
         # create test payment choice
-        self.test_payment_choice = PaymentChoices()
-        self.test_payment_choice.name = 'test_payment_choice'
-        self.test_payment_choice.order = 1
-        self.test_payment_choice.save()
-        self.test_payment_choice_updated = PaymentChoices()
-        self.test_payment_choice_updated.name = 'test_payment_choice_updated'
-        self.test_payment_choice_updated.order = 1
-        self.test_payment_choice_updated.save()
+        self.test_payment_choice = PaymentMethod.objects.create(name='test_payment_method', order=1)
+        self.test_payment_choice_updated = PaymentMethod.objects.create(name='test_payment_method_updated', order=2)
         # creates test profile
         self.test_profile = Students()
         self.test_profile.save()
@@ -476,6 +466,7 @@ class ProfilesDetailsViewAsNoGroupTest(TestCase):
         self.test_profile.grade = self.test_grade_choice
         self.test_profile.status = self.test_status_choice
         self.test_profile.payment_method = self.test_payment_choice
+        self.test_profile.payment_method_from_invoice = self.test_payment_choice_updated
         self.test_profile.archived = False
         self.test_profile.save()
 
@@ -509,7 +500,7 @@ class ProfilesDetailsViewAsNoGroupTest(TestCase):
             'birthday': (date.today() - timedelta(days=(365*9))).strftime('%Y-%m-%d'),
             'grade': self.test_grade_choice.id,
             'status': self.test_status_choice.id,
-            'payment_method': self.test_payment_choice.id,
+            'payment_method_from_invoice': self.test_payment_choice.id,
             'archived': False,
             }
         
@@ -542,7 +533,7 @@ class ProfilesDetailsViewAsNoGroupTest(TestCase):
             'birthday': (date.today() - timedelta(days=(365*10))).strftime('%Y-%m-%d'),
             'grade': self.test_grade_choice_updated.id,
             'status': self.test_status_choice_updated.id,
-            'payment_method': self.test_payment_choice_updated.id,
+            'payment_method_from_invoice': self.test_payment_choice_updated.id,
             'archived': True,
             }
         
@@ -673,14 +664,8 @@ class ProfilesDetailsViewAsCustomerGroupTest(TestCase):
         self.test_status_choice_updated.order = 2
         self.test_status_choice_updated.save()
         # create test payment choice
-        self.test_payment_choice = PaymentChoices()
-        self.test_payment_choice.name = 'test_payment_choice'
-        self.test_payment_choice.order = 1
-        self.test_payment_choice.save()
-        self.test_payment_choice_updated = PaymentChoices()
-        self.test_payment_choice_updated.name = 'test_payment_choice_updated'
-        self.test_payment_choice_updated.order = 1
-        self.test_payment_choice_updated.save()
+        self.test_payment_choice = PaymentMethod.objects.create(name='test_payment_method', order=1)
+        self.test_payment_choice_updated = PaymentMethod.objects.create(name='test_payment_method_updated', order=2)
         # creates test profile
         self.test_profile = Students()
         self.test_profile.save()
@@ -700,6 +685,7 @@ class ProfilesDetailsViewAsCustomerGroupTest(TestCase):
         self.test_profile.grade = self.test_grade_choice
         self.test_profile.status = self.test_status_choice
         self.test_profile.payment_method = self.test_payment_choice
+        self.test_profile.payment_method_from_invoice = self.test_payment_choice_updated
         self.test_profile.archived = False
         self.test_profile.save()
 
@@ -733,7 +719,7 @@ class ProfilesDetailsViewAsCustomerGroupTest(TestCase):
             'birthday': (date.today() - timedelta(days=(365*9))).strftime('%Y-%m-%d'),
             'grade': self.test_grade_choice.id,
             'status': self.test_status_choice.id,
-            'payment_method': self.test_payment_choice.id,
+            'payment_method_from_invoice': self.test_payment_choice.id,
             'archived': False,
             }
         
@@ -766,14 +752,14 @@ class ProfilesDetailsViewAsCustomerGroupTest(TestCase):
             'birthday': (date.today() - timedelta(days=(365*10))).strftime('%Y-%m-%d'),
             'grade': self.test_grade_choice_updated.id,
             'status': self.test_status_choice_updated.id,
-            'payment_method': self.test_payment_choice_updated.id,
+            'payment_method_from_invoice': self.test_payment_choice_updated.id,
             'archived': True,
             }
         
         # converts student profile data to json
         json_data = json.dumps(data)
 
-        # attempt to update student profile     
+        # attempt to update student profile       
         response = self.client.put(reverse('student_profiles_details'), json_data, content_type='application/json')
         
         # assertion
@@ -1035,14 +1021,8 @@ class ProfilesDetailsViewAsStaffGroupTest(TestCase):
         self.test_status_choice_updated.order = 2
         self.test_status_choice_updated.save()
         # create test payment choice
-        self.test_payment_choice = PaymentChoices()
-        self.test_payment_choice.name = 'test_payment_choice'
-        self.test_payment_choice.order = 1
-        self.test_payment_choice.save()
-        self.test_payment_choice_updated = PaymentChoices()
-        self.test_payment_choice_updated.name = 'test_payment_choice_updated'
-        self.test_payment_choice_updated.order = 1
-        self.test_payment_choice_updated.save()
+        self.test_payment_choice = PaymentMethod.objects.create(name='test_payment_method', order=1)
+        self.test_payment_choice_updated = PaymentMethod.objects.create(name='test_payment_method_updated', order=2)
         # creates test profile
         self.test_profile = Students()
         self.test_profile.save()
@@ -1062,6 +1042,7 @@ class ProfilesDetailsViewAsStaffGroupTest(TestCase):
         self.test_profile.grade = self.test_grade_choice
         self.test_profile.status = self.test_status_choice
         self.test_profile.payment_method = self.test_payment_choice
+        self.test_profile.payment_method_from_invoice = self.test_payment_choice_updated
         self.test_profile.archived = False
         self.test_profile.save()
 
@@ -1091,7 +1072,7 @@ class ProfilesDetailsViewAsStaffGroupTest(TestCase):
         self.assertEqual(response.data['birthday'], (date.today() - timedelta(days=(365*9))).strftime('%Y-%m-%d'))
         self.assertEqual(response.data['grade'], self.test_grade_choice.id)
         self.assertEqual(response.data['status'], self.test_status_choice.id)
-        self.assertEqual(response.data['payment_method_from_invoice'], self.test_payment_choice.id)
+        self.assertEqual(response.data['payment_method_from_invoice'], self.test_payment_choice_updated.id)
         self.assertEqual(response.data['archived'], False)
 
     # POST - create a new student profile
@@ -1113,7 +1094,7 @@ class ProfilesDetailsViewAsStaffGroupTest(TestCase):
             'birthday': (date.today() - timedelta(days=(365*9))).strftime('%Y-%m-%d'),
             'grade': self.test_grade_choice.id,
             'status': self.test_status_choice.id,
-            'payment_method': self.test_payment_choice.id,
+            'payment_method_from_invoice': self.test_payment_choice_updated.id,
             'archived': False,
             }
         
@@ -1141,7 +1122,7 @@ class ProfilesDetailsViewAsStaffGroupTest(TestCase):
         self.assertEqual(response.data['birthday'], (date.today() - timedelta(days=(365*9))).strftime('%Y-%m-%d'))
         self.assertEqual(response.data['grade'], self.test_grade_choice.id)
         self.assertEqual(response.data['status'], self.test_status_choice.id)
-        self.assertEqual(response.data['payment_method_from_invoice'], self.test_payment_choice.id)
+        self.assertEqual(response.data['payment_method_from_invoice'], self.test_payment_choice_updated.id)
         self.assertEqual(response.data['archived'], False)
 
     # PUT - update a student profile
@@ -1164,7 +1145,7 @@ class ProfilesDetailsViewAsStaffGroupTest(TestCase):
             'birthday': (date.today() - timedelta(days=(365*10))).strftime('%Y-%m-%d'),
             'grade': self.test_grade_choice_updated.id,
             'status': self.test_status_choice_updated.id,
-            'payment_method': self.test_payment_choice_updated.id,
+            'payment_method_from_invoice': self.test_payment_choice_updated.id,
             'archived': True,
             }
         
