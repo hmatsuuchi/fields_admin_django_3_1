@@ -1920,573 +1920,354 @@ class AttendanceUserPreferencesViewAsSuperusersGroupTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 # =============================================================
-# ======== AUTO GENERATE ATTENDANCE RECORDS VIEW TESTS ========
-# =============================================================
+# ======== AUTO GENERATE ATTENDANCE RECORDS VIEW TESTS ============
+# ================================================================
 
 # ==================== ACCESS PERMISSIONS ====================
 
 # users NOT logged in CANNOT access the auto generate attendance records view
 class AutoGenerateAttendanceRecordsViewAsUnauthenticatedUserTest(TestCase):
     def setUp(self):
-        # create test client
         self.client = APIClient()
 
     def test_auto_generate_attendance_records_view_post(self):
-        # attempt to access auto generate attendance records view
         response = self.client.post('/api/attendance/attendance/auto_generate_attendance_records/')
-
-        # response status code is 401 UNAUTHORIZED
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 # users logged in but NOT in any group CANNOT access the auto generate attendance records view
 class AutoGenerateAttendanceRecordsViewAsNoGroupTest(TestCase):
     def setUp(self):
-        # create test client
         self.client = APIClient()
-
-        # create user
-        self.user = User.objects.create_user(
-            username='testuser', password='testpassword')
-        
-        # authenticate user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
         self.client.force_authenticate(user=self.user)
 
     def test_auto_generate_attendance_records_view_post(self):
-        # attempt to access auto generate attendance records view
         response = self.client.post('/api/attendance/attendance/auto_generate_attendance_records/')
-
-        # response status code is 403 FORBIDDEN
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 # users logged in but in the 'Administrators' group CANNOT access the auto generate attendance records view
 class AutoGenerateAttendanceRecordsViewAsAdministratorsGroupTest(TestCase):
     def setUp(self):
-        # create test client
         self.client = APIClient()
-
-        # create user
-        self.user = User.objects.create_user(
-            username='testuser', password='testpassword')
-
-        # add user to 'Administrators' group
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
         administrators_group = Group.objects.create(name='Administrators')
         self.user.groups.add(administrators_group)
-
-        # authenticate user
         self.client.force_authenticate(user=self.user)
 
     def test_auto_generate_attendance_records_view_post(self):
-        # attempt to access auto generate attendance records view
         response = self.client.post('/api/attendance/attendance/auto_generate_attendance_records/')
-
-        # response status code is 403 FORBIDDEN
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 # users logged in but in the 'Displays' group CANNOT access the auto generate attendance records view
 class AutoGenerateAttendanceRecordsViewAsDisplaysGroupTest(TestCase):
     def setUp(self):
-        # create test client
         self.client = APIClient()
-
-        # create user
-        self.user = User.objects.create_user(
-            username='testuser', password='testpassword')
-
-        # add user to 'Displays' group
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
         displays_group = Group.objects.create(name='Displays')
         self.user.groups.add(displays_group)
-
-        # authenticate user
         self.client.force_authenticate(user=self.user)
 
     def test_auto_generate_attendance_records_view_post(self):
-        # attempt to access auto generate attendance records view
         response = self.client.post('/api/attendance/attendance/auto_generate_attendance_records/')
-
-        # response status code is 403 FORBIDDEN
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 # users logged in but in the 'Customers' group CANNOT access the auto generate attendance records view
 class AutoGenerateAttendanceRecordsViewAsCustomersGroupTest(TestCase):
     def setUp(self):
-        # create test client
         self.client = APIClient()
-
-        # create user
-        self.user = User.objects.create_user(
-            username='testuser', password='testpassword')
-
-        # add user to 'Customers' group
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
         customers_group = Group.objects.create(name='Customers')
         self.user.groups.add(customers_group)
-
-        # authenticate user
         self.client.force_authenticate(user=self.user)
 
     def test_auto_generate_attendance_records_view_post(self):
-        # attempt to access auto generate attendance records view
         response = self.client.post('/api/attendance/attendance/auto_generate_attendance_records/')
-
-        # response status code is 403 FORBIDDEN
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 # users logged in but in the 'Instructors' group CANNOT access the auto generate attendance records view
 class AutoGenerateAttendanceRecordsViewAsInstructorsGroupTest(TestCase):
     def setUp(self):
-        # create test client
         self.client = APIClient()
-
-        # create user
-        self.user = User.objects.create_user(
-            username='testuser', password='testpassword')
-
-        # add user to 'Instructors' group
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
         instructors_group = Group.objects.create(name='Instructors')
         self.user.groups.add(instructors_group)
-
-        # authenticate user
         self.client.force_authenticate(user=self.user)
 
     def test_auto_generate_attendance_records_view_post(self):
-        # attempt to access auto generate attendance records view
         response = self.client.post('/api/attendance/attendance/auto_generate_attendance_records/')
-
-        # response status code is 403 FORBIDDEN
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 # users logged in but in the 'Instructors_Staff' group CANNOT access the auto generate attendance records view
 class AutoGenerateAttendanceRecordsViewAsInstructorsStaffGroupTest(TestCase):
     def setUp(self):
-        # create test client
         self.client = APIClient()
-
-        # create user
-        self.user = User.objects.create_user(
-            username='testuser', password='testpassword')
-
-        # add user to 'Instructors_Staff' group
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
         instructors_staff_group = Group.objects.create(name='Instructors_Staff')
         self.user.groups.add(instructors_staff_group)
-
-        # authenticate user
         self.client.force_authenticate(user=self.user)
 
     def test_auto_generate_attendance_records_view_post(self):
-        # attempt to access auto generate attendance records view
         response = self.client.post('/api/attendance/attendance/auto_generate_attendance_records/')
-
-        # response status code is 403 FORBIDDEN
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 # users logged in but in the 'Superusers' group CANNOT access the auto generate attendance records view
 class AutoGenerateAttendanceRecordsViewAsSuperusersGroupTest(TestCase):
     def setUp(self):
-        # create test client
         self.client = APIClient()
-
-        # create user
-        self.user = User.objects.create_user(
-            username='testuser', password='testpassword')
-
-        # add user to 'Superusers' group
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
         superusers_group = Group.objects.create(name='Superusers')
         self.user.groups.add(superusers_group)
-
-        # authenticate user
         self.client.force_authenticate(user=self.user)
 
     def test_auto_generate_attendance_records_view_post(self):
-        # attempt to access auto generate attendance records view
         response = self.client.post('/api/attendance/attendance/auto_generate_attendance_records/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-# =======================================================
-# ======== GET ATTENDANCE FOR PROFILE VIEW TESTS ========
-# =======================================================
+# users logged in and in the 'Staff' group CAN access the auto generate attendance records view
+class AutoGenerateAttendanceRecordsViewAsStaffGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        staff_group = Group.objects.create(name='Staff')
+        self.user.groups.add(staff_group)
+        self.client.force_authenticate(user=self.user)
 
-# ================= ACCESS PERMISSIONS =================
+    def test_auto_generate_attendance_records_view_post(self):
+        response = self.client.post('/api/attendance/attendance/auto_generate_attendance_records/')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+# ================================================================
+# ======== GET ATTENDANCE FOR PROFILE VIEW TESTS ==================
+# ================================================================
+
+# ==================== ACCESS PERMISSIONS ====================
 
 # users NOT logged in CANNOT access the get attendance for profile view
 class GetAttendanceForProfileViewAsUnauthenticatedUserTest(TestCase):
     def setUp(self):
-        # create test client
         self.client = APIClient()
 
-    def test_get_attendance_for_profile_view_post(self):
-        # attempt to access get attendance for profile view
-        response = self.client.post('/api/attendance/attendance/get_attendance_for_profile/')
-
-        # response status code is 401 UNAUTHORIZED
+    def test_get_attendance_for_profile_view_get(self):
+        response = self.client.get('/api/attendance/attendance/get_attendance_for_profile/')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 # users logged in but NOT in any group CANNOT access the get attendance for profile view
 class GetAttendanceForProfileViewAsNoGroupTest(TestCase):
     def setUp(self):
-        # create test client
         self.client = APIClient()
-
-        # create user
-        self.user = User.objects.create_user(
-            username='testuser', password='testpassword')
-        
-        # authenticate user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
         self.client.force_authenticate(user=self.user)
 
-    def test_get_attendance_for_profile_view_post(self):
-        # attempt to access get attendance for profile view
-        response = self.client.post('/api/attendance/attendance/get_attendance_for_profile/')
-
-        # response status code is 403 FORBIDDEN
+    def test_get_attendance_for_profile_view_get(self):
+        response = self.client.get('/api/attendance/attendance/get_attendance_for_profile/')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 # users logged in but in the 'Administrators' group CANNOT access the get attendance for profile view
 class GetAttendanceForProfileViewAsAdministratorsGroupTest(TestCase):
     def setUp(self):
-        # create test client
         self.client = APIClient()
-
-        # create user
-        self.user = User.objects.create_user(
-            username='testuser', password='testpassword')
-
-        # add user to 'Administrators' group
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
         administrators_group = Group.objects.create(name='Administrators')
         self.user.groups.add(administrators_group)
-
-        # authenticate user
         self.client.force_authenticate(user=self.user)
 
-    def test_get_attendance_for_profile_view_post(self):
-        # attempt to access get attendance for profile view
-        response = self.client.post('/api/attendance/attendance/get_attendance_for_profile/')
-
-        # response status code is 403 FORBIDDEN
+    def test_get_attendance_for_profile_view_get(self):
+        response = self.client.get('/api/attendance/attendance/get_attendance_for_profile/')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 # users logged in but in the 'Displays' group CANNOT access the get attendance for profile view
 class GetAttendanceForProfileViewAsDisplaysGroupTest(TestCase):
     def setUp(self):
-        # create test client
         self.client = APIClient()
-
-        # create user
-        self.user = User.objects.create_user(
-            username='testuser', password='testpassword')
-
-        # add user to 'Displays' group
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
         displays_group = Group.objects.create(name='Displays')
         self.user.groups.add(displays_group)
-
-        # authenticate user
         self.client.force_authenticate(user=self.user)
 
-    def test_get_attendance_for_profile_view_post(self):
-        # attempt to access get attendance for profile view
-        response = self.client.post('/api/attendance/attendance/get_attendance_for_profile/')
-
-        # response status code is 403 FORBIDDEN
+    def test_get_attendance_for_profile_view_get(self):
+        response = self.client.get('/api/attendance/attendance/get_attendance_for_profile/')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 # users logged in but in the 'Customers' group CANNOT access the get attendance for profile view
 class GetAttendanceForProfileViewAsCustomersGroupTest(TestCase):
     def setUp(self):
-        # create test client
         self.client = APIClient()
-
-        # create user
-        self.user = User.objects.create_user(
-            username='testuser', password='testpassword')
-
-        # add user to 'Customers' group
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
         customers_group = Group.objects.create(name='Customers')
         self.user.groups.add(customers_group)
-
-        # authenticate user
         self.client.force_authenticate(user=self.user)
 
-    def test_get_attendance_for_profile_view_post(self):
-        # attempt to access get attendance for profile view
-        response = self.client.post('/api/attendance/attendance/get_attendance_for_profile/')
-
-        # response status code is 403 FORBIDDEN
+    def test_get_attendance_for_profile_view_get(self):
+        response = self.client.get('/api/attendance/attendance/get_attendance_for_profile/')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 # users logged in but in the 'Instructors' group CANNOT access the get attendance for profile view
 class GetAttendanceForProfileViewAsInstructorsGroupTest(TestCase):
     def setUp(self):
-        # create test client
         self.client = APIClient()
-
-        # create user
-        self.user = User.objects.create_user(
-            username='testuser', password='testpassword')
-
-        # add user to 'Instructors' group
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
         instructors_group = Group.objects.create(name='Instructors')
         self.user.groups.add(instructors_group)
-
-        # authenticate user
         self.client.force_authenticate(user=self.user)
 
-    def test_get_attendance_for_profile_view_post(self):
-        # attempt to access get attendance for profile view
-        response = self.client.post('/api/attendance/attendance/get_attendance_for_profile/')
-
-        # response status code is 403 FORBIDDEN
+    def test_get_attendance_for_profile_view_get(self):
+        response = self.client.get('/api/attendance/attendance/get_attendance_for_profile/')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 # users logged in but in the 'Instructors_Staff' group CANNOT access the get attendance for profile view
 class GetAttendanceForProfileViewAsInstructorsStaffGroupTest(TestCase):
     def setUp(self):
-        # create test client
         self.client = APIClient()
-
-        # create user
-        self.user = User.objects.create_user(
-            username='testuser', password='testpassword')
-
-        # add user to 'Instructors_Staff' group
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
         instructors_staff_group = Group.objects.create(name='Instructors_Staff')
         self.user.groups.add(instructors_staff_group)
-
-        # authenticate user
         self.client.force_authenticate(user=self.user)
 
-    def test_get_attendance_for_profile_view_post(self):
-        # attempt to access get attendance for profile view
-        response = self.client.post('/api/attendance/attendance/get_attendance_for_profile/')
-
-        # response status code is 403 FORBIDDEN
+    def test_get_attendance_for_profile_view_get(self):
+        response = self.client.get('/api/attendance/attendance/get_attendance_for_profile/')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 # users logged in but in the 'Superusers' group CANNOT access the get attendance for profile view
 class GetAttendanceForProfileViewAsSuperusersGroupTest(TestCase):
     def setUp(self):
-        # create test client
         self.client = APIClient()
-
-        # create user
-        self.user = User.objects.create_user(
-            username='testuser', password='testpassword')
-
-        # add user to 'Superusers' group
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
         superusers_group = Group.objects.create(name='Superusers')
         self.user.groups.add(superusers_group)
-
-        # authenticate user
         self.client.force_authenticate(user=self.user)
 
-    def test_get_attendance_for_profile_view_post(self):
-        # attempt to access get attendance for profile view
-        response = self.client.post('/api/attendance/attendance/get_attendance_for_profile/')
-
-        # response status code is 403 FORBIDDEN
+    def test_get_attendance_for_profile_view_get(self):
+        response = self.client.get('/api/attendance/attendance/get_attendance_for_profile/')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-# ===================================================================
-# ======== GET ATTENDANCE FOR STUDENT FOR INVOICE VIEW TESTS ========
-# ===================================================================
-
-# ================= ACCESS PERMISSIONS =================
-
-# users NOT logged in CANNOT access the get attendance for student for invoice view
-class AttendanceForStudentForInvoiceViewAsUnauthenticatedUserTest(TestCase):
+# users logged in and in the 'Staff' group CAN access the get attendance for profile view
+class GetAttendanceForProfileViewAsStaffGroupTest(TestCase):
     def setUp(self):
-        # create test client
         self.client = APIClient()
-
-    def test_attendance_for_student_for_invoice_view_get(self):
-        # attempt to access attendance for student for invoice view
-        response = self.client.get('/api/attendance/attendance/attendance_for_student_for_invoice/')
-
-        # response status code is 401 UNAUTHORIZED
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-
-# users logged in but NOT in any group CANNOT access the get attendance for student for invoice view
-class AttendanceForStudentForInvoiceViewAsNoGroupTest(TestCase):
-    def setUp(self):
-        # create test client
-        self.client = APIClient()
-
-        # create user
-        self.user = User.objects.create_user(
-            username='testuser', password='testpassword')
-
-        # authenticate user
-        self.client.force_authenticate(user=self.user)
-
-    def test_attendance_for_student_for_invoice_view_get(self):
-        # attempt to access attendance for student for invoice view
-        response = self.client.get('/api/attendance/attendance/attendance_for_student_for_invoice/')
-
-        # response status code is 403 FORBIDDEN
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-# users logged in but in the 'Administrators' group CANNOT access the get attendance for student for invoice view
-class AttendanceForStudentForInvoiceViewAsAdministratorsGroupTest(TestCase):
-    def setUp(self):
-        # create test client
-        self.client = APIClient()
-
-        # create user
-        self.user = User.objects.create_user(
-            username='testuser', password='testpassword')
-
-        # add user to 'Administrators' group
-        administrators_group = Group.objects.create(name='Administrators')
-        self.user.groups.add(administrators_group)
-
-        # authenticate user
-        self.client.force_authenticate(user=self.user)
-
-    def test_attendance_for_student_for_invoice_view_get(self):
-        # attempt to access attendance for student for invoice view
-        response = self.client.get('/api/attendance/attendance/attendance_for_student_for_invoice/')
-
-        # response status code is 403 FORBIDDEN
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-# users logged in but in the 'Displays' group CANNOT access the get attendance for student for invoice view
-class AttendanceForStudentForInvoiceViewAsDisplaysGroupTest(TestCase):
-    def setUp(self):
-        # create test client
-        self.client = APIClient()
-
-        # create user
-        self.user = User.objects.create_user(
-            username='testuser', password='testpassword')
-
-        # add user to 'Displays' group
-        displays_group = Group.objects.create(name='Displays')
-        self.user.groups.add(displays_group)
-
-        # authenticate user
-        self.client.force_authenticate(user=self.user)
-
-    def test_attendance_for_student_for_invoice_view_get(self):
-        # attempt to access attendance for student for invoice view
-        response = self.client.get('/api/attendance/attendance/attendance_for_student_for_invoice/')
-
-        # response status code is 403 FORBIDDEN
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-# users logged in but in the 'Customers' group CANNOT access the get attendance for student for invoice view
-class AttendanceForStudentForInvoiceViewAsCustomersGroupTest(TestCase):
-    def setUp(self):
-        # create test client
-        self.client = APIClient()
-
-        # create user
-        self.user = User.objects.create_user(
-            username='testuser', password='testpassword')
-
-        # add user to 'Customers' group
-        customers_group = Group.objects.create(name='Customers')
-        self.user.groups.add(customers_group)
-
-        # authenticate user
-        self.client.force_authenticate(user=self.user)
-
-    def test_attendance_for_student_for_invoice_view_get(self):
-        # attempt to access attendance for student for invoice view
-        response = self.client.get('/api/attendance/attendance/attendance_for_student_for_invoice/')
-
-        # response status code is 403 FORBIDDEN
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-# users logged in but in the 'Instructors' group CANNOT access the get attendance for student for invoice view
-class AttendanceForStudentForInvoiceViewAsInstructorsGroupTest(TestCase):
-    def setUp(self):
-        # create test client
-        self.client = APIClient()
-
-        # create user
-        self.user = User.objects.create_user(
-            username='testuser', password='testpassword')
-
-        # add user to 'Instructors' group
-        instructors_group = Group.objects.create(name='Instructors')
-        self.user.groups.add(instructors_group)
-
-        # authenticate user
-        self.client.force_authenticate(user=self.user)
-
-    def test_attendance_for_student_for_invoice_view_get(self):
-        # attempt to access attendance for student for invoice view
-        response = self.client.get('/api/attendance/attendance/attendance_for_student_for_invoice/')
-
-        # response status code is 403 FORBIDDEN
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-# users logged in but in the 'Instructors_Staff' group CANNOT access the get attendance for student for invoice view
-class AttendanceForStudentForInvoiceViewAsInstructorsStaffGroupTest(TestCase):
-    def setUp(self):
-        # create test client
-        self.client = APIClient()
-
-        # create user
-        self.user = User.objects.create_user(
-            username='testuser', password='testpassword')
-
-        # add user to 'Instructors_Staff' group
-        instructors_staff_group = Group.objects.create(name='Instructors_Staff')
-        self.user.groups.add(instructors_staff_group)
-
-        # authenticate user
-        self.client.force_authenticate(user=self.user)
-
-    def test_attendance_for_student_for_invoice_view_get(self):
-        # attempt to access attendance for student for invoice view
-        response = self.client.get('/api/attendance/attendance/attendance_for_student_for_invoice/')
-
-        # response status code is 403 FORBIDDEN
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-# users logged in but in the 'Superusers' group CANNOT access the get attendance for student for invoice view
-class AttendanceForStudentForInvoiceViewAsSuperusersGroupTest(TestCase):
-    def setUp(self):
-        # create test client
-        self.client = APIClient()
-
-        # create user
-        self.user = User.objects.create_user(
-            username='testuser', password='testpassword')
-
-        # add user to 'Superusers' group
-        superusers_group = Group.objects.create(name='Superusers')
-        self.user.groups.add(superusers_group)
-
-        # authenticate user
-        self.client.force_authenticate(user=self.user)
-
-    def test_attendance_for_student_for_invoice_view_get(self):
-        # attempt to access attendance for student for invoice view
-        response = self.client.get('/api/attendance/attendance/attendance_for_student_for_invoice/')
-
-        # response status code is 403 FORBIDDEN
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-# users logged in and in the 'Staff' group CAN access the get attendance for student for invoice view
-class AttendanceForStudentForInvoiceViewAsStaffGroupTest(TestCase):
-    def setUp(self):
-        # create test client
-        self.client = APIClient()
-
-        # create user
-        self.user = User.objects.create_user(
-            username='testuser', password='testpassword')
-
-        # add user to 'Staff' group
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
         staff_group = Group.objects.create(name='Staff')
         self.user.groups.add(staff_group)
+        self.client.force_authenticate(user=self.user)
 
-        # authenticate user
+    def test_get_attendance_for_profile_view_get(self):
+        response = self.client.get('/api/attendance/attendance/get_attendance_for_profile/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+# ================================================================
+# ======== ATTENDANCE FOR STUDENT FOR INVOICE VIEW TESTS ===========
+# ================================================================
+
+# ==================== ACCESS PERMISSIONS ====================
+
+# users NOT logged in CANNOT access the attendance for student for invoice view
+class AttendanceForStudentForInvoiceViewAsUnauthenticatedUserTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+
+    def test_attendance_for_student_for_invoice_view_get(self):
+        response = self.client.get('/api/attendance/attendance/attendance_for_student_for_invoice/')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+# users logged in but NOT in any group CANNOT access the attendance for student for invoice view
+class AttendanceForStudentForInvoiceViewAsNoGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
         self.client.force_authenticate(user=self.user)
 
     def test_attendance_for_student_for_invoice_view_get(self):
-        # attempt to access attendance for student for invoice view
         response = self.client.get('/api/attendance/attendance/attendance_for_student_for_invoice/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        # response status code is 200 OK
+# users logged in but in the 'Administrators' group CANNOT access the attendance for student for invoice view
+class AttendanceForStudentForInvoiceViewAsAdministratorsGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        administrators_group = Group.objects.create(name='Administrators')
+        self.user.groups.add(administrators_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_attendance_for_student_for_invoice_view_get(self):
+        response = self.client.get('/api/attendance/attendance/attendance_for_student_for_invoice/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in but in the 'Displays' group CANNOT access the attendance for student for invoice view
+class AttendanceForStudentForInvoiceViewAsDisplaysGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        displays_group = Group.objects.create(name='Displays')
+        self.user.groups.add(displays_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_attendance_for_student_for_invoice_view_get(self):
+        response = self.client.get('/api/attendance/attendance/attendance_for_student_for_invoice/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in but in the 'Customers' group CANNOT access the attendance for student for invoice view
+class AttendanceForStudentForInvoiceViewAsCustomersGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        customers_group = Group.objects.create(name='Customers')
+        self.user.groups.add(customers_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_attendance_for_student_for_invoice_view_get(self):
+        response = self.client.get('/api/attendance/attendance/attendance_for_student_for_invoice/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in but in the 'Instructors' group CANNOT access the attendance for student for invoice view
+class AttendanceForStudentForInvoiceViewAsInstructorsGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        instructors_group = Group.objects.create(name='Instructors')
+        self.user.groups.add(instructors_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_attendance_for_student_for_invoice_view_get(self):
+        response = self.client.get('/api/attendance/attendance/attendance_for_student_for_invoice/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in but in the 'Instructors_Staff' group CANNOT access the attendance for student for invoice view
+class AttendanceForStudentForInvoiceViewAsInstructorsStaffGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        instructors_staff_group = Group.objects.create(name='Instructors_Staff')
+        self.user.groups.add(instructors_staff_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_attendance_for_student_for_invoice_view_get(self):
+        response = self.client.get('/api/attendance/attendance/attendance_for_student_for_invoice/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in but in the 'Superusers' group CANNOT access the attendance for student for invoice view
+class AttendanceForStudentForInvoiceViewAsSuperusersGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        superusers_group = Group.objects.create(name='Superusers')
+        self.user.groups.add(superusers_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_attendance_for_student_for_invoice_view_get(self):
+        response = self.client.get('/api/attendance/attendance/attendance_for_student_for_invoice/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in and in the 'Staff' group CAN access the attendance for student for invoice view
+class AttendanceForStudentForInvoiceViewAsStaffGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        staff_group = Group.objects.create(name='Staff')
+        self.user.groups.add(staff_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_attendance_for_student_for_invoice_view_get(self):
+        response = self.client.get('/api/attendance/attendance/attendance_for_student_for_invoice/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 # ============================================

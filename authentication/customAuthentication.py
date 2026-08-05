@@ -2,6 +2,7 @@ from django.conf import settings
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.authentication import CSRFCheck
 from rest_framework import exceptions
+from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken
 
 def enforce_csrf(request):
     # provides dummy argument to CSRFCheck
@@ -28,5 +29,11 @@ class CustomAuthentication(JWTAuthentication):
         # only enforce csrf for unsafe methods
         if request.method not in ['GET', 'HEAD', 'OPTIONS', 'TRACE']:
             enforce_csrf(request)
+
+        try:
+            BlacklistedToken.objects.get(token__jti=validated_token.get('jti'))
+            raise exceptions.PermissionDenied('Token is blacklisted')
+        except BlacklistedToken.DoesNotExist:
+            pass  # Token not blacklisted, proceed
 
         return self.get_user(validated_token), validated_token

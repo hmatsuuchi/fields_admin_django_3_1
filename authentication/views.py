@@ -4,11 +4,6 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
 
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.views import APIView
-
 from django.conf import settings
 from django.middleware import csrf
 from authentication.customAuthentication import CustomAuthentication
@@ -20,15 +15,17 @@ class LogoutView(APIView):
     
     def post(self, request, format=None):
         try:
-            # gets the refresh token from the cookie
+            # get refresh token from cookie
             refresh_token = request.COOKIES.get(settings.SIMPLE_JWT['LOGOUT_COOKIE'])
-            # checks if the refresh token is present    
+            
             if refresh_token is None:
                 return Response({'error': 'Refresh token is required'}, status=status.HTTP_400_BAD_REQUEST)
-            # blacklists the refresh token
+            
+            # blacklist the refresh token
             token = RefreshToken(refresh_token)
             token.blacklist()
-            # deletes access cookie
+            
+            # delete access cookie
             response = Response(status=status.HTTP_205_RESET_CONTENT)
             response.delete_cookie(settings.SIMPLE_JWT['AUTH_COOKIE'], samesite='None')
 
