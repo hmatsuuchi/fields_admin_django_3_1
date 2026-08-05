@@ -18,6 +18,7 @@ urlpatterns = [
     path('dashboard/overview/revenue_breakdown_by_month/', views.RevenueBreakdownByMonthView.as_view(), name='revenue_breakdown_by_month'),
     path('dashboard/overview/lifetime_data/', views.LifetimeDataView.as_view(), name='lifetime_data'),
     path('dashboard/overview/instructor_data/', views.InstructorDataView.as_view(), name='instructor_data'),
+    path('dashboard/overview/attendance_for_all_instructors/', views.AttendanceForAllInstructorsView.as_view(), name='attendance_for_all_instructors'),
 
     # Customer Dashboard Endpoints
     path('dashboard/invoices_for_customer/', views.InvoicesForCustomerView.as_view(), name='invoices_for_customer'),
