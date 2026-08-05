@@ -881,7 +881,7 @@ class AtRiskStudentsView(APIView):
     def get(self, request, format=None):        
         try:
             # get at risk student list
-            at_risk_students = StudentChurnPrediction.objects.filter(churn_probability__gte=0.4).order_by('-churn_probability')
+            at_risk_students = StudentChurnPrediction.objects.filter(churn_probability__gte=0.5).order_by('-churn_probability')
 
             serializer = AtRiskStudentSerializer(at_risk_students, many=True)
 
