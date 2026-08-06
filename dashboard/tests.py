@@ -1096,3 +1096,757 @@ class UpcomingBirthdaysViewAsSuperusersGroupTest(TestCase):
     def test_view_get(self):
         # attempt to access view
         response = self.client.get('/api/dashboard/dashboard/upcoming_birthdays/')
+
+# ====================================================================
+# ======= TOTAL ACTIVE STUDENTS BY GRADE VIEW TESTS =======
+# ====================================================================
+
+# users NOT logged in CANNOT access the total active students by grade view
+class TotalActiveStudentsByGradeViewAsUnauthenticatedUserTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/total_active_students_by_grade/')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+# users logged in but NOT in any group CANNOT access the total active students by grade view
+class TotalActiveStudentsByGradeViewAsNoGroupUserTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/total_active_students_by_grade/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class TotalActiveStudentsByGradeViewAsAdministratorsGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        administrators_group = Group.objects.create(name='Administrators')
+        self.user.groups.add(administrators_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/total_active_students_by_grade/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class TotalActiveStudentsByGradeViewAsDisplaysGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        displays_group = Group.objects.create(name='Displays')
+        self.user.groups.add(displays_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/total_active_students_by_grade/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class TotalActiveStudentsByGradeViewAsCustomersGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        customers_group = Group.objects.create(name='Customers')
+        self.user.groups.add(customers_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/total_active_students_by_grade/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class TotalActiveStudentsByGradeViewAsInstructorsGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        instructors_group = Group.objects.create(name='Instructors')
+        self.user.groups.add(instructors_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/total_active_students_by_grade/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class TotalActiveStudentsByGradeViewAsInstructorsStaffGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        instructors_staff_group = Group.objects.create(name='Instructors_Staff')
+        self.user.groups.add(instructors_staff_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/total_active_students_by_grade/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class TotalActiveStudentsByGradeViewAsSuperusersGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        superusers_group = Group.objects.create(name='Superusers')
+        self.user.groups.add(superusers_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/total_active_students_by_grade/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# ====================================================================
+# ======= REVENUE BY MONTH VIEW TESTS =======
+# ====================================================================
+
+class RevenueByMonthViewAsUnauthenticatedUserTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/overview/revenue_by_month/')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+class RevenueByMonthViewAsNoGroupUserTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/overview/revenue_by_month/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class RevenueByMonthViewAsAdministratorsGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        administrators_group = Group.objects.create(name='Administrators')
+        self.user.groups.add(administrators_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/overview/revenue_by_month/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class RevenueByMonthViewAsDisplaysGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        displays_group = Group.objects.create(name='Displays')
+        self.user.groups.add(displays_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/overview/revenue_by_month/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class RevenueByMonthViewAsCustomersGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        customers_group = Group.objects.create(name='Customers')
+        self.user.groups.add(customers_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/overview/revenue_by_month/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class RevenueByMonthViewAsInstructorsGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        instructors_group = Group.objects.create(name='Instructors')
+        self.user.groups.add(instructors_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/overview/revenue_by_month/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class RevenueByMonthViewAsInstructorsStaffGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        instructors_staff_group = Group.objects.create(name='Instructors_Staff')
+        self.user.groups.add(instructors_staff_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/overview/revenue_by_month/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class RevenueByMonthViewAsSuperusersGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        superusers_group = Group.objects.create(name='Superusers')
+        self.user.groups.add(superusers_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/overview/revenue_by_month/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# ====================================================================
+# ======= REVENUE BREAKDOWN BY MONTH VIEW TESTS =======
+# ====================================================================
+
+class RevenueBreakdownByMonthViewAsUnauthenticatedUserTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/overview/revenue_breakdown_by_month/')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+class RevenueBreakdownByMonthViewAsNoGroupUserTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/overview/revenue_breakdown_by_month/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class RevenueBreakdownByMonthViewAsAdministratorsGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        administrators_group = Group.objects.create(name='Administrators')
+        self.user.groups.add(administrators_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/overview/revenue_breakdown_by_month/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class RevenueBreakdownByMonthViewAsDisplaysGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        displays_group = Group.objects.create(name='Displays')
+        self.user.groups.add(displays_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/overview/revenue_breakdown_by_month/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class RevenueBreakdownByMonthViewAsCustomersGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        customers_group = Group.objects.create(name='Customers')
+        self.user.groups.add(customers_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/overview/revenue_breakdown_by_month/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class RevenueBreakdownByMonthViewAsInstructorsGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        instructors_group = Group.objects.create(name='Instructors')
+        self.user.groups.add(instructors_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/overview/revenue_breakdown_by_month/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class RevenueBreakdownByMonthViewAsInstructorsStaffGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        instructors_staff_group = Group.objects.create(name='Instructors_Staff')
+        self.user.groups.add(instructors_staff_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/overview/revenue_breakdown_by_month/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class RevenueBreakdownByMonthViewAsSuperusersGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        superusers_group = Group.objects.create(name='Superusers')
+        self.user.groups.add(superusers_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/overview/revenue_breakdown_by_month/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# ====================================================================
+# ======= LIFETIME DATA VIEW TESTS =======
+# ====================================================================
+
+class LifetimeDataViewAsUnauthenticatedUserTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/overview/lifetime_data/')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+class LifetimeDataViewAsNoGroupUserTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/overview/lifetime_data/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class LifetimeDataViewAsAdministratorsGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        administrators_group = Group.objects.create(name='Administrators')
+        self.user.groups.add(administrators_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/overview/lifetime_data/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class LifetimeDataViewAsDisplaysGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        displays_group = Group.objects.create(name='Displays')
+        self.user.groups.add(displays_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/overview/lifetime_data/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class LifetimeDataViewAsCustomersGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        customers_group = Group.objects.create(name='Customers')
+        self.user.groups.add(customers_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/overview/lifetime_data/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class LifetimeDataViewAsInstructorsGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        instructors_group = Group.objects.create(name='Instructors')
+        self.user.groups.add(instructors_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/overview/lifetime_data/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class LifetimeDataViewAsInstructorsStaffGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        instructors_staff_group = Group.objects.create(name='Instructors_Staff')
+        self.user.groups.add(instructors_staff_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/overview/lifetime_data/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class LifetimeDataViewAsSuperusersGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        superusers_group = Group.objects.create(name='Superusers')
+        self.user.groups.add(superusers_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/overview/lifetime_data/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# ====================================================================
+# ======= INSTRUCTOR DATA VIEW TESTS =======
+# ====================================================================
+
+class InstructorDataViewAsUnauthenticatedUserTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/overview/instructor_data/')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+class InstructorDataViewAsNoGroupUserTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/overview/instructor_data/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class InstructorDataViewAsAdministratorsGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        administrators_group = Group.objects.create(name='Administrators')
+        self.user.groups.add(administrators_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/overview/instructor_data/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class InstructorDataViewAsDisplaysGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        displays_group = Group.objects.create(name='Displays')
+        self.user.groups.add(displays_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/overview/instructor_data/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class InstructorDataViewAsCustomersGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        customers_group = Group.objects.create(name='Customers')
+        self.user.groups.add(customers_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/overview/instructor_data/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class InstructorDataViewAsInstructorsGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        instructors_group = Group.objects.create(name='Instructors')
+        self.user.groups.add(instructors_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/overview/instructor_data/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class InstructorDataViewAsInstructorsStaffGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        instructors_staff_group = Group.objects.create(name='Instructors_Staff')
+        self.user.groups.add(instructors_staff_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/overview/instructor_data/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class InstructorDataViewAsSuperusersGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        superusers_group = Group.objects.create(name='Superusers')
+        self.user.groups.add(superusers_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/overview/instructor_data/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# ====================================================================
+# ======= CUSTOMER PROFILE DATA VIEW TESTS (Customers Required) =======
+# ====================================================================
+
+class CustomerProfileDataViewAsUnauthenticatedUserTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/customer_profile/')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+class CustomerProfileDataViewAsNoGroupUserTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/customer_profile/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class CustomerProfileDataViewAsStaffGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        staff_group = Group.objects.create(name='Staff')
+        self.user.groups.add(staff_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/customer_profile/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class CustomerProfileDataViewAsAdministratorsGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        administrators_group = Group.objects.create(name='Administrators')
+        self.user.groups.add(administrators_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/customer_profile/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class CustomerProfileDataViewAsDisplaysGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        displays_group = Group.objects.create(name='Displays')
+        self.user.groups.add(displays_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/customer_profile/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class CustomerProfileDataViewAsInstructorsGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        instructors_group = Group.objects.create(name='Instructors')
+        self.user.groups.add(instructors_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/customer_profile/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class CustomerProfileDataViewAsInstructorsStaffGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        instructors_staff_group = Group.objects.create(name='Instructors_Staff')
+        self.user.groups.add(instructors_staff_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/customer_profile/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class CustomerProfileDataViewAsSuperusersGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        superusers_group = Group.objects.create(name='Superusers')
+        self.user.groups.add(superusers_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/customer_profile/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# ====================================================================
+# ======= INVOICES FOR CUSTOMER VIEW TESTS (Customers Required) =======
+# ====================================================================
+
+class InvoicesForCustomerViewAsUnauthenticatedUserTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/invoices_for_customer/')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+class InvoicesForCustomerViewAsNoGroupUserTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/invoices_for_customer/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class InvoicesForCustomerViewAsStaffGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        staff_group = Group.objects.create(name='Staff')
+        self.user.groups.add(staff_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/invoices_for_customer/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class InvoicesForCustomerViewAsAdministratorsGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        administrators_group = Group.objects.create(name='Administrators')
+        self.user.groups.add(administrators_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/invoices_for_customer/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class InvoicesForCustomerViewAsDisplaysGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        displays_group = Group.objects.create(name='Displays')
+        self.user.groups.add(displays_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/invoices_for_customer/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class InvoicesForCustomerViewAsInstructorsGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        instructors_group = Group.objects.create(name='Instructors')
+        self.user.groups.add(instructors_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/invoices_for_customer/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class InvoicesForCustomerViewAsInstructorsStaffGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        instructors_staff_group = Group.objects.create(name='Instructors_Staff')
+        self.user.groups.add(instructors_staff_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/invoices_for_customer/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class InvoicesForCustomerViewAsSuperusersGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        superusers_group = Group.objects.create(name='Superusers')
+        self.user.groups.add(superusers_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/invoices_for_customer/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# ====================================================================
+# ======= ATTENDANCE FOR ALL INSTRUCTORS VIEW TESTS (Superusers Required) =======
+# ====================================================================
+
+class AttendanceForAllInstructorsViewAsUnauthenticatedUserTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/overview/attendance_for_all_instructors/')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+class AttendanceForAllInstructorsViewAsNoGroupUserTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/overview/attendance_for_all_instructors/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class AttendanceForAllInstructorsViewAsStaffGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        staff_group = Group.objects.create(name='Staff')
+        self.user.groups.add(staff_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/overview/attendance_for_all_instructors/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class AttendanceForAllInstructorsViewAsAdministratorsGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        administrators_group = Group.objects.create(name='Administrators')
+        self.user.groups.add(administrators_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/overview/attendance_for_all_instructors/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class AttendanceForAllInstructorsViewAsDisplaysGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        displays_group = Group.objects.create(name='Displays')
+        self.user.groups.add(displays_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/overview/attendance_for_all_instructors/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class AttendanceForAllInstructorsViewAsCustomersGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        customers_group = Group.objects.create(name='Customers')
+        self.user.groups.add(customers_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/overview/attendance_for_all_instructors/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class AttendanceForAllInstructorsViewAsInstructorsGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        instructors_group = Group.objects.create(name='Instructors')
+        self.user.groups.add(instructors_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/overview/attendance_for_all_instructors/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class AttendanceForAllInstructorsViewAsInstructorsStaffGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        instructors_staff_group = Group.objects.create(name='Instructors_Staff')
+        self.user.groups.add(instructors_staff_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/dashboard/dashboard/overview/attendance_for_all_instructors/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

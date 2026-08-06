@@ -369,3 +369,186 @@ class GetRecentCheckinsViewAsSuperusersGroupTest(TestCase):
 
         # response status code is 403 FORBIDDEN
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# ===================================================
+# ======= DISPLAY 02 GET STUDENT DATA VIEW TESTS =======
+# ===================================================
+
+# =========== ACCESS PERMISSIONS ===========
+
+# users NOT logged in CANNOT access the display 02 get student data view
+class Display02GetStudentDataViewAsUnauthenticatedUserTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+    def test_view_get(self):
+        # attempt to access view
+        response = self.client.get('/api/game/display/02/get_student_data/')
+
+        # response status code is 401 UNAUTHORIZED
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+# users logged in but NOT in any group CANNOT access the display 02 get student data view
+class Display02GetStudentDataViewAsNoGroupUserTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create user
+        self.user = User.objects.create_user(
+            username='testuser', password='testpassword')
+
+        # authenticate user
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        # attempt to access view
+        response = self.client.get('/api/game/display/02/get_student_data/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in but in the 'Administrators' group CANNOT access the display 02 get student data view
+class Display02GetStudentDataViewAsAdministratorsGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create user
+        self.user = User.objects.create_user(
+            username='testuser', password='testpassword')
+
+        # add user to 'Administrators' group
+        administrators_group = Group.objects.create(name='Administrators')
+        self.user.groups.add(administrators_group)
+
+        # authenticate user
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        # attempt to access view
+        response = self.client.get('/api/game/display/02/get_student_data/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in and in the 'Customers' group CANNOT access the display 02 get student data view
+class Display02GetStudentDataViewAsCustomersGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create user
+        self.user = User.objects.create_user(
+            username='testuser', password='testpassword')
+
+        # add user to 'Customers' group
+        customers_group = Group.objects.create(name='Customers')
+        self.user.groups.add(customers_group)
+
+        # authenticate user
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        # attempt to access view
+        response = self.client.get('/api/game/display/02/get_student_data/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in and in the 'Instructors' group CANNOT access the display 02 get student data view
+class Display02GetStudentDataViewAsInstructorsGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create user
+        self.user = User.objects.create_user(
+            username='testuser', password='testpassword')
+
+        # add user to 'Instructors' group
+        instructors_group = Group.objects.create(name='Instructors')
+        self.user.groups.add(instructors_group)
+
+        # authenticate user
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        # attempt to access view
+        response = self.client.get('/api/game/display/02/get_student_data/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in and in the 'Instructors_Staff' group CANNOT access the display 02 get student data view
+class Display02GetStudentDataViewAsInstructorsStaffGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create user
+        self.user = User.objects.create_user(
+            username='testuser', password='testpassword')
+
+        # add user to 'Instructors_Staff' group
+        instructors_staff_group = Group.objects.create(name='Instructors_Staff')
+        self.user.groups.add(instructors_staff_group)
+
+        # authenticate user
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        # attempt to access view
+        response = self.client.get('/api/game/display/02/get_student_data/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in and in the 'Staff' group CANNOT access the display 02 get student data view
+class Display02GetStudentDataViewAsStaffGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create user
+        self.user = User.objects.create_user(
+            username='testuser', password='testpassword')
+
+        # add user to 'Staff' group
+        staff_group = Group.objects.create(name='Staff')
+        self.user.groups.add(staff_group)
+
+        # authenticate user
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        # attempt to access view
+        response = self.client.get('/api/game/display/02/get_student_data/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in and in the 'Superusers' group CANNOT access the display 02 get student data view
+class Display02GetStudentDataViewAsSuperusersGroupTest(TestCase):
+    def setUp(self):
+        # create test client
+        self.client = APIClient()
+
+        # create user
+        self.user = User.objects.create_user(
+            username='testuser', password='testpassword')
+
+        # add user to 'Superusers' group
+        superusers_group = Group.objects.create(name='Superusers')
+        self.user.groups.add(superusers_group)
+
+        # authenticate user
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        # attempt to access view
+        response = self.client.get('/api/game/display/02/get_student_data/')
+
+        # response status code is 403 FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
