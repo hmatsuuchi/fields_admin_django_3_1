@@ -1381,6 +1381,19 @@ class ProfilesChoicesViewAsSuperusersGroupTest(TestCase):
         # assertion
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+# users logged in and in the 'Staff' group CAN access the profile choices view
+class ProfilesChoicesViewAsStaffGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        self.staff_group = Group.objects.create(name='Staff')
+        self.user.groups.add(self.staff_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_profiles_choices_view_get(self):
+        response = self.client.get(reverse('student_profiles_choices'))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
 # ==================================================
 # ======= PROFILE LIST FOR SELECT VIEW TESTS =======
 # ==================================================
@@ -1390,181 +1403,110 @@ class ProfilesChoicesViewAsSuperusersGroupTest(TestCase):
 # users NOT logged in CANNOT access the profile list for select view
 class ProfilesListForSelectViewAsUnauthenticatedUserTest(TestCase):
     def setUp(self):
-        # create test client
         self.client = APIClient()
 
     def test_profiles_list_for_select_view_get(self):
-        # attempt to access profile list for select view
         response = self.client.get(reverse('student_profiles_select'))
-
-        # assertion
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 # users logged in but NOT in any group CANNOT access the profile list for select view
 class ProfilesListForSelectViewAsNoGroupTest(TestCase):
     def setUp(self):
-        # create test client
         self.client = APIClient()
-
-        # create test user
         self.user = User.objects.create_user(username='testuser', password='testpassword')
-
-        # set test user as authenticated
         self.client.force_authenticate(user=self.user)
 
     def test_profiles_list_for_select_view_get(self):
-        # attempt to access profile list for select view
         response = self.client.get(reverse('student_profiles_select'))
-
-        # assertion
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 # users logged in and in the 'Administrators' group CANNOT access the profile list for select view
 class ProfilesListForSelectViewAsAdministratorsGroupTest(TestCase):
     def setUp(self):
-        # create test client
         self.client = APIClient()
-
-        # create test user
         self.user = User.objects.create_user(username='testuser', password='testpassword')
-
-        # create test group
         self.group = Group.objects.create(name='Administrators')
-
-        # add test user to group
         self.user.groups.add(self.group)
-
-        # set test user as authenticated
         self.client.force_authenticate(user=self.user)
 
     def test_profiles_list_for_select_view_get(self):
-        # attempt to access profile list for select view
         response = self.client.get(reverse('student_profiles_select'))
-
-        # assertion
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 # users logged in and in the 'Customers' group CANNOT access the profile list for select view
 class ProfilesListForSelectViewAsCustomersGroupTest(TestCase):
     def setUp(self):
-        # create test client
         self.client = APIClient()
-
-        # create test user
         self.user = User.objects.create_user(username='testuser', password='testpassword')
-
-        # create test group
         self.group = Group.objects.create(name='Customers')
-
-        # add test user to group
         self.user.groups.add(self.group)
-
-        # set test user as authenticated
         self.client.force_authenticate(user=self.user)
 
     def test_profiles_list_for_select_view_get(self):
-        # attempt to access profile list for select view
         response = self.client.get(reverse('student_profiles_select'))
-
-        # assertion
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 # users logged in and in the 'Displays' group CANNOT access the profile list for select view
 class ProfilesListForSelectViewAsDisplaysGroupTest(TestCase):
     def setUp(self):
-        # create test client
         self.client = APIClient()
-
-        # create test user
         self.user = User.objects.create_user(username='testuser', password='testpassword')
-
-        # create test group
         self.group = Group.objects.create(name='Displays')
-
-        # add test user to group
         self.user.groups.add(self.group)
-
-        # set test user as authenticated
         self.client.force_authenticate(user=self.user)
 
     def test_profiles_list_for_select_view_get(self):
-        # attempt to access profile list for select view
         response = self.client.get(reverse('student_profiles_select'))
-
-        # assertion
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 # users logged in and in the 'Instructors' group CANNOT access the profile list for select view
 class ProfilesListForSelectViewAsInstructorsGroupTest(TestCase):
     def setUp(self):
-        # create test client
         self.client = APIClient()
-
-        # create test user
         self.user = User.objects.create_user(username='testuser', password='testpassword')
-
-        # create test group
         self.group = Group.objects.create(name='Instructors')
-
-        # add test user to group
         self.user.groups.add(self.group)
-
-        # set test user as authenticated
         self.client.force_authenticate(user=self.user)
 
     def test_profiles_list_for_select_view_get(self):
-        # attempt to access profile list for select view
         response = self.client.get(reverse('student_profiles_select'))
-
-        # assertion
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 # users logged in and in the 'Instructors_Staff' group CANNOT access the profile list for select view
 class ProfilesListForSelectViewAsInstructorsStaffGroupTest(TestCase):
     def setUp(self):
-        # create test client
         self.client = APIClient()
-
-        # create test user
         self.user = User.objects.create_user(username='testuser', password='testpassword')
-
-        # create test group
         self.group = Group.objects.create(name='Instructors_Staff')
-
-        # add test user to group
         self.user.groups.add(self.group)
-
-        # set test user as authenticated
         self.client.force_authenticate(user=self.user)
 
     def test_profiles_list_for_select_view_get(self):
-        # attempt to access profile list for select view
         response = self.client.get(reverse('student_profiles_select'))
-
-        # assertion
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 # users logged in and in the 'Superusers' group CANNOT access the profile list for select view
 class ProfilesListForSelectViewAsSuperusersGroupTest(TestCase):
     def setUp(self):
-        # create test client
         self.client = APIClient()
-
-        # create test user
         self.user = User.objects.create_user(username='testuser', password='testpassword')
-
-        # create test group
         self.group = Group.objects.create(name='Superusers')
-
-        # add test user to group
         self.user.groups.add(self.group)
-
-        # set test user as authenticated
         self.client.force_authenticate(user=self.user)
 
     def test_profiles_list_for_select_view_get(self):
-        # attempt to access profile list for select view
         response = self.client.get(reverse('student_profiles_select'))
-
-        # assertion
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+# users logged in and in the 'Staff' group CAN access the profile list for select view
+class ProfilesListForSelectViewAsStaffGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        self.staff_group = Group.objects.create(name='Staff')
+        self.user.groups.add(self.staff_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_profiles_list_for_select_view_get(self):
+        response = self.client.get(reverse('student_profiles_select'))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)

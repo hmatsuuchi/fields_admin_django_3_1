@@ -43,15 +43,6 @@ def AdjustStudentAttendanceStatus(request):
             student.status = StatusChoices.objects.get(id=3)
             student.save()
 
-    # get at risk students list
-    at_risk_students = AtRiskStudents.objects.all()
-
-    # remove students who have quit from the AtRiskStudents list
-    for student in quit_students:
-        if at_risk_students.filter(student=student).exists():
-            print(f"Removing {student.last_name_romaji}, {student.first_name_romaji} from AtRiskStudents")
-            at_risk_students.filter(student=student).delete()
-
     return JsonResponse({'status': '200 OK'})
 
 # removes attendance that does not have any associated attendance records

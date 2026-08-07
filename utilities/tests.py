@@ -6,23 +6,21 @@ from django.test import TestCase
 
 # ============= ACCESS PERMISSIONS =============
 
+# ========== ANALYTICS ==========
+
 # student churn model train view is NOT ACCESSIBLE to anyone
 class StudentChurnModelTrainAccessPermissionsTests(TestCase):
     def test_student_churn_model_train_view_not_accessible(self):
         response = self.client.get('/utilities/student_churn_model_train/')
         self.assertEqual(response.status_code, 404)
 
-# loop through list of students view is NOT ACCESSIBLE to anyone
-class LoopThroughStudentsAccessPermissionsTests(TestCase):
-    def test_loop_through_students_view_not_accessible(self):
-        response = self.client.get('/utilities/loop_through_students/')
+# student churn predict view is NOT ACCESSIBLE to anyone
+class StudentChurnPredictAccessPermissionsTests(TestCase):
+    def test_student_churn_predict_view_not_accessible(self):
+        response = self.client.get('/utilities/student_churn_predict/')
         self.assertEqual(response.status_code, 404)
 
-# attendance import view is NOT ACCESSIBLE to anyone
-class AttendanceImportAccessPermissionsTests(TestCase):
-    def test_attendance_import_view_not_accessible(self):
-        response = self.client.get('/utilities/attendance_import/')
-        self.assertEqual(response.status_code, 404)
+# ============= GAME ============
 
 # card UUID import view is NOT ACCESSIBLE to anyone
 class ImportCardUUIDAccessPermissionsTests(TestCase):
@@ -30,17 +28,23 @@ class ImportCardUUIDAccessPermissionsTests(TestCase):
         response = self.client.get('/utilities/id_import/')
         self.assertEqual(response.status_code, 404)
 
+# =========== JOURNAL ===========
+
 # journal import view is NOT ACCESSIBLE to anyone
 class JournalImportAccessPermissionsTests(TestCase):
     def test_journal_import_view_not_accessible(self):
         response = self.client.get('/utilities/journal_import/')
         self.assertEqual(response.status_code, 404)
 
+# =========== SCHEDULE ==========
+
 # events import view is NOT ACCESSIBLE to anyone
 class EventsImportAccessPermissionsTests(TestCase):
     def test_events_import_view_not_accessible(self):
         response = self.client.get('/utilities/events_import/')
         self.assertEqual(response.status_code, 404)
+
+# =========== STUDENTS ==========
 
 # profiles import view is NOT ACCESSIBLE to anyone
 class ProfilesImportAccessPermissionsTests(TestCase):
@@ -53,6 +57,8 @@ class IncrementStudentGradesAccessPermissionsTests(TestCase):
     def test_increment_student_grades_view_not_accessible(self):
         response = self.client.get('/utilities/increment_student_grades/')
         self.assertEqual(response.status_code, 404)
+
+# ========== UTILITIES ==========
 
 # adjust attendance status view is NOT ACCESSIBLE to anyone
 class AdjustAttendanceStatusAccessPermissionsTests(TestCase):

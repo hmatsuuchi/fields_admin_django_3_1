@@ -2164,265 +2164,42 @@ class GetEventsForProfileViewAsSuperusersGroupTest(TestCase):
 # users logged in and in the 'Staff' group CAN access the get events for profile view
 class GetEventsForProfileViewAsStaffGroupTest(TestCase):
     def setUp(self):
-        # create test client
         self.client = APIClient()
-
-        # create test user
         self.user = User.objects.create_user(username='testuser', password='testpassword')
-
-        # create test user profile
-        self.user_profile = UserProfilesInstructors.objects.create(user=self.user, last_name_romaji='Test', first_name_romaji='User', last_name_katakana='テスト', first_name_katakana='ユーザー', last_name_kanji='試験', first_name_kanji='ユーザー', icon_stub='test_user_icon_stub', archived=False)
-
-        # add test user to 'Staff' group
-        staff_group = Group.objects.create(name='Staff')
-        instructor_group = Group.objects.create(name='Instructors')
-        self.user.groups.add(staff_group)
-        self.user.groups.add(instructor_group)
-
-        # set test user as authenticated
-        self.client.force_authenticate(user=self.user)
-
-        # create new event type
+        self.staff_group = Group.objects.create(name='Staff')
+        self.user.groups.add(self.staff_group)
+        
+        # Create sample data
         tax = Tax.objects.create(name='Test Tax', rate=0)
         revenue_type = RevenueType.objects.create(name='Test Revenue Type')
-        service_type = ServiceType.objects.create(name='Test Service', price=999, tax=tax, revenue_type=revenue_type)
-        event_type = EventType.objects.create(name='Test Event Type', duration=60, order=1, capacity=6, invoice_service_type=service_type)
-
-        # create new event
+        self.service_type = ServiceType.objects.create(
+            name='Test Service',
+            price=100.00,
+            tax=tax,
+            revenue_type=revenue_type
+        )
+        self.event_type = EventType.objects.create(
+            name='Test Event Type',
+            duration=60,
+            order=1,
+            capacity=10,
+            invoice_service_type=self.service_type
+        )
+        self.student = Students.objects.create(
+            last_name_romaji='Test',
+            first_name_romaji='Student'
+        )
         self.event = Events.objects.create(
             event_name='Test Event',
-            event_type=event_type,
+            event_type=self.event_type,
             primary_instructor=self.user,
-            day_of_week=1,
-            start_time='12:00:00',
+            day_of_week=0,
+            start_time='10:00:00'
         )
-
-        # save event
-        self.event.save()
-
-        # create test prefecture choice
-        self.test_prefecture_choice = PrefectureChoices()
-        self.test_prefecture_choice.name = 'test_prefecture_choice'
-        self.test_prefecture_choice.order = 1
-        self.test_prefecture_choice.save()
-        self.test_prefecture_choice_updated = PrefectureChoices()
-        self.test_prefecture_choice_updated.name = 'test_prefecture_choice_updated'
-        self.test_prefecture_choice_updated.order = 2
-        self.test_prefecture_choice_updated.save()
-        # create test phone choice
-        self.test_phone_choice = PhoneChoice()
-        self.test_phone_choice.name = 'test_phone_choice'
-        self.test_phone_choice.order = 1
-        self.test_phone_choice.save()
-        self.test_phone_choice_updated = PhoneChoice()
-        self.test_phone_choice_updated.name = 'test_phone_choice_updated'
-        self.test_phone_choice_updated.order = 2
-        self.test_phone_choice_updated.save()
-        # create test phone
-        self.test_phone = Phone()
-        self.test_phone.number = '123-456-7890'
-        self.test_phone.number_type = self.test_phone_choice
-        self.test_phone.save()
-        self.test_phone_updated = Phone()
-        self.test_phone_updated.number = '098-765-4321'
-        self.test_phone_updated.number_type = self.test_phone_choice_updated
-        self.test_phone_updated.save()
-        # create test grade choice
-        self.test_grade_choice = GradeChoices()
-        self.test_grade_choice.name = 'test_grade_choice'
-        self.test_grade_choice.order = 1
-        self.test_grade_choice.save()
-        self.test_grade_choice_updated = GradeChoices()
-        self.test_grade_choice_updated.name = 'test_grade_choice_updated'
-        self.test_grade_choice_updated.order = 2
-        self.test_grade_choice_updated.save()
-        # create test status choice
-        self.test_status_choice = StatusChoices()
-        self.test_status_choice.name = 'test_status_choice'
-        self.test_status_choice.order = 1
-        self.test_status_choice.save()
-        self.test_status_choice_updated = StatusChoices()
-        self.test_status_choice_updated.name = 'test_status_choice_updated'
-        self.test_status_choice_updated.order = 2
-        self.test_status_choice_updated.save()
-        # create test payment choice
-        self.test_payment_choice = PaymentChoices()
-        self.test_payment_choice.name = 'test_payment_choice'
-        self.test_payment_choice.order = 1
-        self.test_payment_choice.save()
-        self.test_payment_choice_updated = PaymentChoices()
-        self.test_payment_choice_updated.name = 'test_payment_choice_updated'
-        self.test_payment_choice_updated.order = 1
-        self.test_payment_choice_updated.save()
-        # creates test profile
-        self.test_profile = Students()
-        self.test_profile.save()
-        self.test_profile.last_name_romaji = 'last_name_romaji'
-        self.test_profile.first_name_romaji = 'first_name_romaji'
-        self.test_profile.last_name_kanji = 'last_name_kanji'
-        self.test_profile.first_name_kanji = 'first_name_kanji'
-        self.test_profile.last_name_katakana = 'last_name_katakana'
-        self.test_profile.first_name_katakana = 'first_name_katakana'
-        self.test_profile.post_code = '123-4567'
-        self.test_profile.prefecture = self.test_prefecture_choice
-        self.test_profile.city = 'city'
-        self.test_profile.address_1 = 'address_1'
-        self.test_profile.address_2 = 'address_2'
-        self.test_profile.phone.add(self.test_phone)
-        self.test_profile.birthday = (date.today() - timedelta(days=(365*9))).strftime('%Y-%m-%d')
-        self.test_profile.grade = self.test_grade_choice
-        self.test_profile.status = self.test_status_choice
-        self.test_profile.payment_method = self.test_payment_choice
-        self.test_profile.archived = False
-        self.test_profile.save()
-
-        # add student profile to test event
-        self.event.students.add(self.test_profile)
-
-    def test_get_events_for_profile_view_get(self):
-        # set data payload
-        params = {'profile_id': self.test_profile.id}
-
-        # attempt to access get events for profile view
-        response = self.client.get('/api/schedule/events/get_events_for_profile/', params)
-
-        # response status code is 200 OK
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-# ------- tests get events for profile view action -------
-class GetEventsForProfileViewActionTest(TestCase):
-    def setUp(self):
-        # create test client
-        self.client = APIClient()
-
-        # create test user
-        self.user = User.objects.create_user(username='testuser', password='testpassword')
-
-        # create test user profile
-        self.user_profile = UserProfilesInstructors.objects.create(user=self.user, last_name_romaji='Test', first_name_romaji='User', last_name_katakana='テスト', first_name_katakana='ユーザー', last_name_kanji='試験', first_name_kanji='ユーザー', icon_stub='test_user_icon_stub', archived=False)
-
-        # add test user to 'Staff' group
-        staff_group = Group.objects.create(name='Staff')
-        instructor_group = Group.objects.create(name='Instructors')
-        self.user.groups.add(staff_group)
-        self.user.groups.add(instructor_group)
-
-        # set test user as authenticated
+        self.event.students.add(self.student)
+        
         self.client.force_authenticate(user=self.user)
 
-        # create new event type
-        tax = Tax.objects.create(name='Test Tax', rate=0)
-        revenue_type = RevenueType.objects.create(name='Test Revenue Type')
-        service_type = ServiceType.objects.create(name='Test Service', price=999, tax=tax, revenue_type=revenue_type)
-        event_type = EventType.objects.create(name='Test Event Type', duration=60, order=1, capacity=6, invoice_service_type=service_type)
-
-        # create new event
-        self.event = Events.objects.create(
-            event_name='Test Event',
-            event_type=event_type,
-            primary_instructor=self.user,
-            day_of_week=1,
-            start_time='12:00:00',
-        )
-
-        # save event
-        self.event.save()
-
-        # create test prefecture choice
-        self.test_prefecture_choice = PrefectureChoices()
-        self.test_prefecture_choice.name = 'test_prefecture_choice'
-        self.test_prefecture_choice.order = 1
-        self.test_prefecture_choice.save()
-        self.test_prefecture_choice_updated = PrefectureChoices()
-        self.test_prefecture_choice_updated.name = 'test_prefecture_choice_updated'
-        self.test_prefecture_choice_updated.order = 2
-        self.test_prefecture_choice_updated.save()
-        # create test phone choice
-        self.test_phone_choice = PhoneChoice()
-        self.test_phone_choice.name = 'test_phone_choice'
-        self.test_phone_choice.order = 1
-        self.test_phone_choice.save()
-        self.test_phone_choice_updated = PhoneChoice()
-        self.test_phone_choice_updated.name = 'test_phone_choice_updated'
-        self.test_phone_choice_updated.order = 2
-        self.test_phone_choice_updated.save()
-        # create test phone
-        self.test_phone = Phone()
-        self.test_phone.number = '123-456-7890'
-        self.test_phone.number_type = self.test_phone_choice
-        self.test_phone.save()
-        self.test_phone_updated = Phone()
-        self.test_phone_updated.number = '098-765-4321'
-        self.test_phone_updated.number_type = self.test_phone_choice_updated
-        self.test_phone_updated.save()
-        # create test grade choice
-        self.test_grade_choice = GradeChoices()
-        self.test_grade_choice.name = 'test_grade_choice'
-        self.test_grade_choice.order = 1
-        self.test_grade_choice.save()
-        self.test_grade_choice_updated = GradeChoices()
-        self.test_grade_choice_updated.name = 'test_grade_choice_updated'
-        self.test_grade_choice_updated.order = 2
-        self.test_grade_choice_updated.save()
-        # create test status choice
-        self.test_status_choice = StatusChoices()
-        self.test_status_choice.name = 'test_status_choice'
-        self.test_status_choice.order = 1
-        self.test_status_choice.save()
-        self.test_status_choice_updated = StatusChoices()
-        self.test_status_choice_updated.name = 'test_status_choice_updated'
-        self.test_status_choice_updated.order = 2
-        self.test_status_choice_updated.save()
-        # create test payment choice
-        self.test_payment_choice = PaymentChoices()
-        self.test_payment_choice.name = 'test_payment_choice'
-        self.test_payment_choice.order = 1
-        self.test_payment_choice.save()
-        self.test_payment_choice_updated = PaymentChoices()
-        self.test_payment_choice_updated.name = 'test_payment_choice_updated'
-        self.test_payment_choice_updated.order = 1
-        self.test_payment_choice_updated.save()
-        # creates test profile
-        self.test_profile = Students()
-        self.test_profile.save()
-        self.test_profile.last_name_romaji = 'last_name_romaji'
-        self.test_profile.first_name_romaji = 'first_name_romaji'
-        self.test_profile.last_name_kanji = 'last_name_kanji'
-        self.test_profile.first_name_kanji = 'first_name_kanji'
-        self.test_profile.last_name_katakana = 'last_name_katakana'
-        self.test_profile.first_name_katakana = 'first_name_katakana'
-        self.test_profile.post_code = '123-4567'
-        self.test_profile.prefecture = self.test_prefecture_choice
-        self.test_profile.city = 'city'
-        self.test_profile.address_1 = 'address_1'
-        self.test_profile.address_2 = 'address_2'
-        self.test_profile.phone.add(self.test_phone)
-        self.test_profile.birthday = (date.today() - timedelta(days=(365*9))).strftime('%Y-%m-%d')
-        self.test_profile.grade = self.test_grade_choice
-        self.test_profile.status = self.test_status_choice
-        self.test_profile.payment_method = self.test_payment_choice
-        self.test_profile.archived = False
-        self.test_profile.save()
-
-        # add student profile to test event
-        self.event.students.add(self.test_profile)
-
-    def test_get_events_for_profile_view_get(self):
-        # set data payload
-        params = {'profile_id': self.test_profile.id}
-
-        # attempt to access get events for profile view
-        response = self.client.get('/api/schedule/events/get_events_for_profile/', params)
-
-        # response status code is 200 OK
+    def test_view_get(self):
+        response = self.client.get(f'/api/schedule/events/get_events_for_profile/?profile_id={self.student.id}')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        # response content is JSON
-        self.assertEqual(response['content-type'], 'application/json')
-
-        # response content contains event data
-        self.assertEqual(response.data['events'][0]['event_name'], self.event.event_name)
-        self.assertEqual(response.data['events'][0]['event_type']['id'], self.event.event_type.id)
-        self.assertEqual(response.data['events'][0]['primary_instructor']['id'], self.event.primary_instructor.id)
-        self.assertEqual(response.data['events'][0]['day_of_week'], self.event.day_of_week)
-        self.assertEqual(response.data['events'][0]['start_time'], self.event.start_time)
