@@ -1272,3 +1272,118 @@ class ArchiveJournalEntryViewAsSuperusersGroupTest(TestCase):
         # response status code is 403 FORBIDDEN
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+# ================================================
+# ======= GET JOURNAL FOR PROFILE VIEW TESTS (STAFF) =======
+# ================================================
+
+class GetJournalForProfileViewAsStaffGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        self.staff_group = Group.objects.create(name='Staff')
+        self.user.groups.add(self.staff_group)
+        
+        # Create sample data
+        from students.models import Students
+        from journal.models import JournalType, Journal
+        
+        self.student = Students.objects.create(
+            last_name_romaji='Test',
+            first_name_romaji='Student'
+        )
+        self.journal_type = JournalType.objects.create(name='Test Type', order=1)
+        self.journal = Journal.objects.create(
+            student=self.student,
+            date='2025-01-01',
+            type=self.journal_type,
+            text='Test journal entry'
+        )
+        
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get(f'/api/journal/journal/get_journal_for_profile/?profile_id={self.student.id}')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+# ================================================
+# ======= GET JOURNAL TYPES VIEW TESTS (STAFF) =======
+# ================================================
+
+class GetJournalTypesViewAsStaffGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        staff_group = Group.objects.create(name='Staff')
+        self.user.groups.add(staff_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/journal/journal/get_journal_types/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+# ================================================
+# ======= GET ACTIVE INSTRUCTORS VIEW TESTS (STAFF) =======
+# ================================================
+
+class GetActiveInstructorsViewAsStaffGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        staff_group = Group.objects.create(name='Staff')
+        self.user.groups.add(staff_group)
+        # Create the 'Instructors_Staff' group that the view queries
+        Group.objects.create(name='Instructors_Staff')
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/journal/journal/get_active_instructors/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+# ================================================
+# ======= GET PROFILE DATA VIEW TESTS (STAFF) =======
+# ================================================
+
+class GetProfileDataViewAsStaffGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        staff_group = Group.objects.create(name='Staff')
+        self.user.groups.add(staff_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_get(self):
+        response = self.client.get('/api/journal/journal/get_profile_data/')
+        self.assertIn(response.status_code, [status.HTTP_200_OK, status.HTTP_400_BAD_REQUEST])
+
+# ================================================
+# ======= CREATE JOURNAL ENTRY VIEW TESTS (STAFF) =======
+# ================================================
+
+class CreateJournalEntryViewAsStaffGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        staff_group = Group.objects.create(name='Staff')
+        self.user.groups.add(staff_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_post(self):
+        response = self.client.post('/api/journal/journal/create_journal_entry/', data={}, format='json')
+        self.assertIn(response.status_code, [status.HTTP_200_OK, status.HTTP_201_CREATED, status.HTTP_400_BAD_REQUEST])
+
+# ================================================
+# ======= ARCHIVE JOURNAL ENTRY VIEW TESTS (STAFF) =======
+# ================================================
+
+class ArchiveJournalEntryViewAsStaffGroupTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        staff_group = Group.objects.create(name='Staff')
+        self.user.groups.add(staff_group)
+        self.client.force_authenticate(user=self.user)
+
+    def test_view_put(self):
+        response = self.client.put('/api/journal/journal/archive_journal_entry/', data={}, format='json')
+        self.assertIn(response.status_code, [status.HTTP_200_OK, status.HTTP_400_BAD_REQUEST])
+
