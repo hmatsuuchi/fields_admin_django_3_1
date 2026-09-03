@@ -66,6 +66,17 @@ class StudentChurnModelTrainingHistory(models.Model):
 class StudentChurnPrediction(models.Model):
     student                                 = models.ForeignKey(Students, on_delete=models.CASCADE, blank=False, null=False)
     churn_probability                       = models.FloatField(blank=False, null=False)
+    trend                                   = models.CharField(
+        max_length=10,
+        choices=[
+            ('up', 'Up'),
+            ('no_change', 'No Change'),
+            ('down', 'Down'),
+        ],
+        blank=True,
+        null=True,
+        default=None
+    )
 
     date_time_created                       = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_time_modified                      = models.DateTimeField(auto_now=True, blank=True, null=True)
@@ -75,4 +86,4 @@ class StudentChurnPrediction(models.Model):
         verbose_name_plural = "Student Churn Predictions"
 
     def __str__(self):
-        return f"{self.student.id} - {self.student.first_name_romaji} {self.student.last_name_romaji} (Predicted Churn Probability: {self.churn_probability:.3f})"
+        return f"{self.student.id} - {self.student.first_name_romaji} {self.student.last_name_romaji} (Predicted Churn Probability: {self.churn_probability:.3f}) [{self.date_time_created.strftime('%y-%m-%d')} @ {self.date_time_created.strftime('%H:%M:%S')} UTC]"

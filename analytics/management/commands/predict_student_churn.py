@@ -54,15 +54,31 @@ class Command(BaseCommand):
                 # make prediction using the trained model
                 churn_probability = clf.predict_proba(features)[0][0]
 
+                # Get the previous prediction to calculate trend
+                previous_prediction = StudentChurnPrediction.objects.filter(
+                    student=student
+                ).order_by('-date_time_created').first()
+
+                # Calculate trend
+                trend = 'no_change'
+                if previous_prediction:
+                    if churn_probability > previous_prediction.churn_probability:
+                        trend = 'up'
+                    elif churn_probability < previous_prediction.churn_probability:
+                        trend = 'down'
+
                 student_data = {
                     'student_id': student.id,
                     'first_name': student.first_name_romaji,
                     'last_name': student.last_name_romaji,
                     'churn_probability': float(churn_probability),
+                    'trend': trend,
                 }
 
                 predictions.append(student_data)
-                self.stdout.write(f"{student_data}")
+            self.stdout.write("=========================================")
+            self.stdout.write(f"Run Date: {date.today()}")
+            self.stdout.write(f"Number of Students: {len(predictions)}")
 
             # delete existing predictions
             StudentChurnPrediction.objects.all().delete()
@@ -72,6 +88,7 @@ class Command(BaseCommand):
                 StudentChurnPrediction(
                     student_id=pred['student_id'],
                     churn_probability=pred['churn_probability'],
+                    trend=pred['trend'],
                 )
                 for pred in predictions
             ])
