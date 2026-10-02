@@ -46,3 +46,36 @@ class AttendanceRecordStatus(models.Model):
 
     def __str__(self):
         return str(self.id) + " - " + str(self.status_name)
+
+# attendance notes
+class AttendanceNote(models.Model):
+    linked_attendance           = models.ForeignKey(Attendance, on_delete=models.CASCADE)
+
+    lesson_note                 = models.TextField()
+    homework_note               = models.TextField()
+
+    date_time_created           = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    date_time_modified          = models.DateTimeField(auto_now=True, blank=True, null=True)
+
+    class Meta:
+        verbose_name_plural = "Attendance Notes"
+
+    def __str__(self):
+        return str(self.id) + " - " + str(self.linked_attendance)
+
+# attendance note comments for students
+class AttendanceNoteComment(models.Model):
+    linked_attendance_note      = models.ForeignKey(AttendanceNote, on_delete=models.CASCADE)
+    linked_student              = models.ForeignKey(Students, on_delete=models.CASCADE)
+    linked_author               = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    comment_text                = models.TextField()
+
+    date_time_created           = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    date_time_modified          = models.DateTimeField(auto_now=True, blank=True, null=True)
+
+    class Meta:
+        verbose_name_plural = "Attendance Note Comments"
+
+    def __str__(self):
+        return str(self.id)
