@@ -47,35 +47,62 @@ class AttendanceRecordStatus(models.Model):
     def __str__(self):
         return str(self.id) + " - " + str(self.status_name)
 
-# attendance notes
-class AttendanceNote(models.Model):
-    linked_attendance           = models.ForeignKey(Attendance, on_delete=models.CASCADE)
+# attendance notes - lesson
+class AttendanceRecordLessonNote(models.Model):
+    linked_attendance_record = models.OneToOneField(
+        AttendanceRecord,
+        on_delete=models.CASCADE,
+        related_name="lesson_note_obj",
+    )
+    linked_student              = models.ForeignKey(Students, on_delete=models.CASCADE, blank=False, null=False)
 
     lesson_note                 = models.TextField()
+
+    date_time_created           = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    date_time_modified          = models.DateTimeField(auto_now=True, blank=True, null=True)
+
+    class Meta:
+        verbose_name_plural = "Attendance Record Lesson Notes"
+
+    def __str__(self):
+        return str(self.id) + " - " + str(self.linked_attendance_record)
+
+# attendance notes - homework
+class AttendanceRecordHomeworkNote(models.Model):
+    linked_attendance_record = models.OneToOneField(
+            AttendanceRecord,
+            on_delete=models.CASCADE,
+            related_name="homework_note_obj",
+        )
+    linked_student              = models.ForeignKey(Students, on_delete=models.CASCADE, blank=False, null=False)
+
     homework_note               = models.TextField()
 
     date_time_created           = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_time_modified          = models.DateTimeField(auto_now=True, blank=True, null=True)
 
     class Meta:
-        verbose_name_plural = "Attendance Notes"
+        verbose_name_plural = "Attendance Record Homework Notes"
 
     def __str__(self):
-        return str(self.id) + " - " + str(self.linked_attendance)
+        return str(self.id) + " - " + str(self.linked_attendance_record)
 
-# attendance note comments for students
-class AttendanceNoteComment(models.Model):
-    linked_attendance_note      = models.ForeignKey(AttendanceNote, on_delete=models.CASCADE)
-    linked_student              = models.ForeignKey(Students, on_delete=models.CASCADE)
-    linked_author               = models.ForeignKey(User, on_delete=models.CASCADE)
+# attendance notes - student
+class AttendanceRecordStudentNote(models.Model):
+    linked_attendance_record = models.OneToOneField(
+            AttendanceRecord,
+            on_delete=models.CASCADE,
+            related_name="student_note_obj",
+        )
+    linked_student              = models.ForeignKey(Students, on_delete=models.CASCADE, blank=False, null=False)
 
-    comment_text                = models.TextField()
+    student_note                = models.TextField()
 
     date_time_created           = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_time_modified          = models.DateTimeField(auto_now=True, blank=True, null=True)
 
     class Meta:
-        verbose_name_plural = "Attendance Note Comments"
+        verbose_name_plural = "Attendance Record Student Notes"
 
     def __str__(self):
-        return str(self.id)
+        return str(self.id) + " - " + str(self.linked_attendance_record)

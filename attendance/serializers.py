@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 # models
-from .models import Attendance, AttendanceRecord
+from .models import Attendance, AttendanceRecord, AttendanceRecordLessonNote, AttendanceRecordHomeworkNote, AttendanceRecordStudentNote
 from students.models import Students, GradeChoices
 from schedule.models import Events, EventType
 from user_profiles.models import UserProfilesInstructors
@@ -72,11 +72,32 @@ class InstructorSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'userprofilesinstructors', 'username']
 
+# Attendance Record Lesson Note Serializer
+class AttendanceRecordLessonNoteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AttendanceRecordLessonNote
+        fields = '__all__'
+
+# Attendance Record Homework Note Serializer
+class AttendanceRecordHomeworkNoteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AttendanceRecordHomeworkNote
+        fields = '__all__'
+
+# Attendance Record Student Note Serializer
+class AttendanceRecordStudentNoteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AttendanceRecordStudentNote
+        fields = '__all__'
+
 # Attendance Serializer
 class AttendanceSerializer(serializers.ModelSerializer):
     linked_class = LinkedClassSerializer(required=False)
     attendance_records = AttendanceRecordSerializer(many=True, required=False)
     instructor = InstructorSerializer(required=False)
+    lesson_note_obj = AttendanceRecordLessonNoteSerializer(required=False)
+    homework_note_obj = AttendanceRecordHomeworkNoteSerializer(required=False)
+    student_note_obj = AttendanceRecordStudentNoteSerializer(required=False)
 
     class Meta:
         model = Attendance

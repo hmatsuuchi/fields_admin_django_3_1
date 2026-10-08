@@ -9,7 +9,7 @@ from authentication.customAuthentication import CustomAuthentication
 # group permission control
 from authentication.permissions import isInStaffGroup
 # models
-from .models import Attendance, AttendanceRecord, AttendanceRecordStatus
+from .models import Attendance, AttendanceRecord, AttendanceRecordStatus, AttendanceRecordLessonNote, AttendanceRecordHomeworkNote, AttendanceRecordStudentNote
 from schedule.models import Events
 from students.models import Students
 # serializers
@@ -36,7 +36,10 @@ class AttendanceForDateView(APIView):
                 ).order_by(
                     'start_time'
                 ).prefetch_related(
-                    'attendance_records'
+                    'attendance_records',
+                    'attendance_records__lesson_note_obj',
+                    'attendance_records__homework_note_obj',
+                    'attendance_records__student_note_obj',
                     )
 
             # serialize attendance
@@ -471,6 +474,54 @@ class AttendanceForStudentForInvoiceView(APIView):
             }
 
             return Response(data, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            print(e)
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+# edit attendance record notes or create new ones
+class EditAttendanceRecordNotesView(APIView):
+    authentication_classes = ([CustomAuthentication])
+    permission_classes = ([isInStaffGroup])
+
+    # POST - edit attendance record notes or create new ones
+    def post(self, request, format=None):
+        try:
+            # get request data
+            attendance_record_id = request.data.get('attendance_record_id')
+            student_id = request.data.get('student_id')
+            lesson_note = request.data.get('lesson_note')
+            homework_note = request.data.get('homework_note')
+            student_note = request.data.get('student_note')
+
+            # get or create attendance record lesson note
+            if lesson_note:
+                lesson_note_obj, created = AttendanceRecordLessonNote.objects.get_or_create(
+                    linked_attendance_record_id=attendance_record_id,
+                    linked_student_id=student_id,
+                )
+                lesson_note_obj.lesson_note = lesson_note
+                lesson_note_obj.save()
+
+            # get or create attendance record homework note
+            if homework_note:
+                homework_note_obj, created = AttendanceRecordHomeworkNote.objects.get_or_create(
+                    linked_attendance_record_id=attendance_record_id,
+                    linked_student_id=student_id,
+                )
+                homework_note_obj.homework_note = homework_note
+                homework_note_obj.save()
+
+            # get or create attendance record student note
+            if student_note:
+                student_note_obj, created = AttendanceRecordStudentNote.objects.get_or_create(
+                    linked_attendance_record_id=attendance_record_id,
+                    linked_student_id=student_id,
+                )
+                student_note_obj.student_note = student_note
+                student_note_obj.save()
+
+            return Response({'success': True}, status=status.HTTP_200_OK)
         
         except Exception as e:
             print(e)
