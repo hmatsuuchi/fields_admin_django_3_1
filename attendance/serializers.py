@@ -26,6 +26,9 @@ class StudentSerializer(serializers.ModelSerializer):
 class AttendanceRecordSerializer(serializers.ModelSerializer):
     student = StudentSerializer(required=False)
     grade_verbose = serializers.CharField(source='grade.name', read_only=True)
+    attendance_record_lesson_note = serializers.CharField(source='attendance_record_lesson_note.lesson_note', read_only=True)
+    attendance_record_homework_note = serializers.CharField(source='attendance_record_homework_note.homework_note', read_only=True)
+    attendance_record_student_note = serializers.CharField(source='attendance_record_student_note.student_note', read_only=True)
 
 
     class Meta:
@@ -72,32 +75,11 @@ class InstructorSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'userprofilesinstructors', 'username']
 
-# Attendance Record Lesson Note Serializer
-class AttendanceRecordLessonNoteSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = AttendanceRecordLessonNote
-        fields = '__all__'
-
-# Attendance Record Homework Note Serializer
-class AttendanceRecordHomeworkNoteSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = AttendanceRecordHomeworkNote
-        fields = '__all__'
-
-# Attendance Record Student Note Serializer
-class AttendanceRecordStudentNoteSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = AttendanceRecordStudentNote
-        fields = '__all__'
-
 # Attendance Serializer
 class AttendanceSerializer(serializers.ModelSerializer):
     linked_class = LinkedClassSerializer(required=False)
     attendance_records = AttendanceRecordSerializer(many=True, required=False)
     instructor = InstructorSerializer(required=False)
-    lesson_note_obj = AttendanceRecordLessonNoteSerializer(required=False)
-    homework_note_obj = AttendanceRecordHomeworkNoteSerializer(required=False)
-    student_note_obj = AttendanceRecordStudentNoteSerializer(required=False)
 
     class Meta:
         model = Attendance

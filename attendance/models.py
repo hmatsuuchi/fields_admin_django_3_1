@@ -52,7 +52,7 @@ class AttendanceRecordLessonNote(models.Model):
     linked_attendance_record = models.OneToOneField(
         AttendanceRecord,
         on_delete=models.CASCADE,
-        related_name="lesson_note_obj",
+        related_name="attendance_record_lesson_note",
     )
     linked_student              = models.ForeignKey(Students, on_delete=models.CASCADE, blank=False, null=False)
 
@@ -72,7 +72,7 @@ class AttendanceRecordHomeworkNote(models.Model):
     linked_attendance_record = models.OneToOneField(
             AttendanceRecord,
             on_delete=models.CASCADE,
-            related_name="homework_note_obj",
+            related_name="attendance_record_homework_note",
         )
     linked_student              = models.ForeignKey(Students, on_delete=models.CASCADE, blank=False, null=False)
 
@@ -92,7 +92,7 @@ class AttendanceRecordStudentNote(models.Model):
     linked_attendance_record = models.OneToOneField(
             AttendanceRecord,
             on_delete=models.CASCADE,
-            related_name="student_note_obj",
+            related_name="attendance_record_student_note",
         )
     linked_student              = models.ForeignKey(Students, on_delete=models.CASCADE, blank=False, null=False)
 

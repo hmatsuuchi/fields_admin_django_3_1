@@ -1,5 +1,4 @@
 import datetime
-from django.utils import timezone
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -14,10 +13,6 @@ from schedule.models import Events
 from students.models import Students
 # serializers
 from .serializers import AttendanceSerializer, AttendanceDetailsSerializer, AttendanceRecordDetailsSerializer, UserInstructorSerializer, UserInstructorPreferenceSerializer, EventsChoiceListSerializer, StudentsChoiceListSerializer, AttendanceRecordForProfileDetailsSerializer, AttendanceRecordForInvoiceCreateSerializer
-# importing csv
-import csv
-from django.http import JsonResponse
-
 # get all attendance records for single date
 class AttendanceForDateView(APIView):
     authentication_classes = ([CustomAuthentication])
@@ -37,9 +32,9 @@ class AttendanceForDateView(APIView):
                     'start_time'
                 ).prefetch_related(
                     'attendance_records',
-                    'attendance_records__lesson_note_obj',
-                    'attendance_records__homework_note_obj',
-                    'attendance_records__student_note_obj',
+                    'attendance_records__attendance_record_lesson_note',
+                    'attendance_records__attendance_record_homework_note',
+                    'attendance_records__attendance_record_student_note',
                     )
 
             # serialize attendance
@@ -480,11 +475,11 @@ class AttendanceForStudentForInvoiceView(APIView):
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 # edit attendance record notes or create new ones
-class EditAttendanceRecordNotesView(APIView):
+class AddOrEditAttendanceRecordNotesView(APIView):
     authentication_classes = ([CustomAuthentication])
     permission_classes = ([isInStaffGroup])
 
-    # POST - edit attendance record notes or create new ones
+    # POST - edit attendance record notes, create new ones, or delete empty notes
     def post(self, request, format=None):
         try:
             # get request data
@@ -494,6 +489,14 @@ class EditAttendanceRecordNotesView(APIView):
             homework_note = request.data.get('homework_note')
             student_note = request.data.get('student_note')
 
+            # removes leading and trailing whitespace from notes
+            if isinstance(lesson_note, str):
+                lesson_note = lesson_note.strip()
+            if isinstance(homework_note, str):
+                homework_note = homework_note.strip()
+            if isinstance(student_note, str):
+                student_note = student_note.strip()
+
             # get or create attendance record lesson note
             if lesson_note:
                 lesson_note_obj, created = AttendanceRecordLessonNote.objects.get_or_create(
@@ -502,6 +505,11 @@ class EditAttendanceRecordNotesView(APIView):
                 )
                 lesson_note_obj.lesson_note = lesson_note
                 lesson_note_obj.save()
+            else:
+                AttendanceRecordLessonNote.objects.filter(
+                    linked_attendance_record_id=attendance_record_id,
+                    linked_student_id=student_id,
+                ).delete()
 
             # get or create attendance record homework note
             if homework_note:
@@ -511,6 +519,11 @@ class EditAttendanceRecordNotesView(APIView):
                 )
                 homework_note_obj.homework_note = homework_note
                 homework_note_obj.save()
+            else:
+                AttendanceRecordHomeworkNote.objects.filter(
+                    linked_attendance_record_id=attendance_record_id,
+                    linked_student_id=student_id,
+                ).delete()
 
             # get or create attendance record student note
             if student_note:
@@ -520,6 +533,11 @@ class EditAttendanceRecordNotesView(APIView):
                 )
                 student_note_obj.student_note = student_note
                 student_note_obj.save()
+            else:
+                AttendanceRecordStudentNote.objects.filter(
+                    linked_attendance_record_id=attendance_record_id,
+                    linked_student_id=student_id,
+                ).delete()
 
             return Response({'success': True}, status=status.HTTP_200_OK)
         

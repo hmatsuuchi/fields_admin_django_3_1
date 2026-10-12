@@ -15,4 +15,6 @@ urlpatterns = [
     path('attendance/get_attendance_for_profile/', views.GetAttendanceForProfileView.as_view(), name='get_attendance_for_profile'),
     # Invoice related views
     path('attendance/attendance_for_student_for_invoice/', views.AttendanceForStudentForInvoiceView.as_view(), name='attendance_for_student_for_invoice'),
+    # add or edit attendance record note
+    path('attendance/add_edit_attendance_record_note/', views.AddOrEditAttendanceRecordNotesView.as_view(), name='add_or_edit_attendance_record_note'),
 ]
