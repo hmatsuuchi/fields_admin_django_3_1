@@ -254,14 +254,15 @@ class AttendanceForProfileDetailsSerializer(serializers.ModelSerializer):
 
 # attendance record serializer for use in the profile details page
 class AttendanceRecordForProfileDetailsSerializer(serializers.ModelSerializer):
-    attendance_reverse_relationship = AttendanceForProfileDetailsSerializer(
-        many=True, read_only=True
-    )
+    attendance_reverse_relationship = AttendanceForProfileDetailsSerializer(many=True, read_only=True)
     grade = GradeChoicesForProfileDetailsSerializer(required=False)
+    attendance_record_lesson_note = serializers.CharField(source='attendance_record_lesson_note.lesson_note', read_only=True)
+    attendance_record_homework_note = serializers.CharField(source='attendance_record_homework_note.homework_note', read_only=True)
+    attendance_record_student_note = serializers.CharField(source='attendance_record_student_note.student_note', read_only=True)
 
     class Meta:
         model = AttendanceRecord
-        fields = ['id', 'status', 'grade', 'attendance_reverse_relationship']
+        fields = ['id', 'status', 'grade', 'attendance_reverse_relationship', 'attendance_record_lesson_note', 'attendance_record_homework_note', 'attendance_record_student_note']
 
 # ======= ATTENDANCE RECORDS FOR INVOICE CREATE SERIALIZERS =======
 

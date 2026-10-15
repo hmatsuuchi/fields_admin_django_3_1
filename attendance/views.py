@@ -424,7 +424,21 @@ class GetAttendanceForProfileView(APIView):
             profile_id = request.GET.get('profile_id')
 
             # get all attendance records for student
-            attendance_records = AttendanceRecord.objects.filter(student=profile_id).order_by('-attendance_reverse_relationship__date', '-attendance_reverse_relationship__start_time').prefetch_related('attendance_reverse_relationship', 'attendance_reverse_relationship__linked_class', 'attendance_reverse_relationship__instructor', 'attendance_reverse_relationship__instructor__userprofilesinstructors', 'grade')
+            attendance_records = AttendanceRecord.objects.filter(
+                student=profile_id
+                ).order_by(
+                    '-attendance_reverse_relationship__date',
+                    '-attendance_reverse_relationship__start_time'
+                ).prefetch_related(
+                    'attendance_reverse_relationship',
+                    'attendance_reverse_relationship__linked_class',
+                    'attendance_reverse_relationship__instructor',
+                    'attendance_reverse_relationship__instructor__userprofilesinstructors',
+                    'grade',
+                    'attendance_record_lesson_note',
+                    'attendance_record_homework_note',
+                    'attendance_record_student_note',
+                )
 
             # serialize attendance records
             attendance_records_serializer = AttendanceRecordForProfileDetailsSerializer(attendance_records, many=True)
