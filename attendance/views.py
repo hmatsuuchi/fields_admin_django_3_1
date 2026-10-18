@@ -171,7 +171,7 @@ class InstructorChoicesView(APIView):
     def get(self, request, format=None):
         try:
             # get all primary instructors
-            primary_instructor_choices = User.objects.filter(groups__name='Instructors').order_by('username')
+            primary_instructor_choices = User.objects.filter(groups__name='Instructors', userprofilesinstructors__archived=False).order_by('username')
 
             # serialize primary instructors
             primary_instructor_choices_serializer = UserInstructorSerializer(primary_instructor_choices, many=True)
