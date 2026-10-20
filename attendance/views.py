@@ -3,6 +3,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.contrib.auth.models import User
+from django.db.models import Q
 # authentication
 from authentication.customAuthentication import CustomAuthentication
 # group permission control
@@ -12,7 +13,8 @@ from .models import Attendance, AttendanceRecord, AttendanceRecordStatus, Attend
 from schedule.models import Events
 from students.models import Students
 # serializers
-from .serializers import AttendanceSerializer, AttendanceDetailsSerializer, AttendanceRecordDetailsSerializer, UserInstructorSerializer, UserInstructorPreferenceSerializer, EventsChoiceListSerializer, StudentsChoiceListSerializer, AttendanceRecordForProfileDetailsSerializer, AttendanceRecordForInvoiceCreateSerializer
+from .serializers import AttendanceSerializer, AttendanceDetailsSerializer, AttendanceRecordDetailsSerializer, UserInstructorSerializer, UserInstructorPreferenceSerializer, EventsChoiceListSerializer, StudentsChoiceListSerializer, AttendanceRecordForProfileDetailsSerializer, AttendanceRecordForInvoiceCreateSerializer, AttendanceRecordForPreviousNotesSerializer
+
 # get all attendance records for single date
 class AttendanceForDateView(APIView):
     authentication_classes = ([CustomAuthentication])
@@ -32,16 +34,59 @@ class AttendanceForDateView(APIView):
                     'start_time'
                 ).prefetch_related(
                     'attendance_records',
+                    'attendance_records__attendance_reverse_relationship',
                     'attendance_records__attendance_record_lesson_note',
                     'attendance_records__attendance_record_homework_note',
                     'attendance_records__attendance_record_student_note',
-                    )
+                )
 
             # serialize attendance
             attendance_serialzer = AttendanceSerializer(attendance, many=True)
 
+            # create a set of (linked_class_id, student_id) pairs for all attendance records
+            attendance = list(attendance)
+
+            pairs = {
+                (item.linked_class_id, record.student_id)
+                for item in attendance
+                for record in item.attendance_records.all()
+            }
+
+            pair_filter = Q(pk__in=[])  # Matches nothing if there are no pairs.
+
+            for linked_class_id, student_id in pairs:
+                pair_filter |= Q(
+                    linked_class_id=linked_class_id,
+                    attendance_records__student_id=student_id,
+                )
+
+            previous_attendances = (
+                Attendance.objects
+                .filter(pair_filter, date__lt=date)
+                .order_by('-date', '-start_time', '-pk')
+                .distinct()
+                .prefetch_related(
+                    'attendance_records',
+                    'attendance_records__attendance_reverse_relationship',
+                    'attendance_records__attendance_record_lesson_note',
+                    'attendance_records__attendance_record_homework_note',
+                    'attendance_records__attendance_record_student_note',
+                )
+            )
+
+            previous_records = {}
+
+            for previous in previous_attendances:
+                for record in previous.attendance_records.all():
+                    key = (previous.linked_class_id, record.student_id)
+                    if key in pairs and key not in previous_records:
+                        previous_records[key] = record
+
+            previous_attendance = AttendanceRecordForPreviousNotesSerializer(previous_records.values(), many=True)
+
             data = {
                 'attendance': attendance_serialzer.data,
+                'previous_attendance': previous_attendance.data,
             }
 
             return Response(data, status=status.HTTP_200_OK)

@@ -21,6 +21,7 @@ urlpatterns = [
     path('dashboard/overview/attendance_for_all_instructors/', views.AttendanceForAllInstructorsView.as_view(), name='attendance_for_all_instructors'),
 
     # Customer Dashboard Endpoints
+    path('dashboard/customer_profile/', views.CustomerProfileDataView.as_view(), name='customer_profile_data'),
     path('dashboard/invoices_for_customer/', views.InvoicesForCustomerView.as_view(), name='invoices_for_customer'),
-    path('dashboard/customer_profile/', views.CustomerProfileDataView.as_view(), name='customer_profile_data')
+    path('dashboard/attendance_for_customer/', views.AttendanceForCustomerView.as_view(), name='attendance_for_customer'),
 ]

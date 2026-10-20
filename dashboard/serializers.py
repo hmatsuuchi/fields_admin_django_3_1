@@ -2,8 +2,9 @@ from rest_framework import serializers
 # models
 from invoices.models import Invoice, InvoiceItem
 from students.models import Students
-from schedule.models import Events
+from schedule.models import Events, EventType
 from analytics.models import StudentChurnPrediction
+from attendance.models import Attendance, AttendanceRecord
 
 # ==================================
 # ======= UPCOMING BIRTHDAYS =======
@@ -44,6 +45,35 @@ class InvoiceSerializerForCustomer(serializers.ModelSerializer):
     class Meta:
         model = Invoice
         fields = '__all__'
+
+# ===============================================
+# ======= ATTENDANCE RECORDS FOR CUSTOMER =======
+# ===============================================
+class EventTypeSerializerForCustomer(serializers.ModelSerializer):
+    class Meta:
+        model = EventType
+        fields = ['id', 'name']
+
+class LinkedClassSerializerForCustomer(serializers.ModelSerializer):
+    event_type = EventTypeSerializerForCustomer(read_only=True)
+
+    class Meta:
+        model = Events
+        fields = ['id', 'event_name', 'primary_instructor', 'start_time', 'event_type']
+
+class AttendanceSerializerForCustomer(serializers.ModelSerializer):
+    linked_class = LinkedClassSerializerForCustomer(read_only=True)
+
+    class Meta:
+        model = Attendance
+        fields = ['id', 'linked_class', 'date']
+
+class AttendanceRecordSerializerForCustomer(serializers.ModelSerializer):
+    attendance_reverse_relationship = AttendanceSerializerForCustomer(many=True, read_only=True)
+
+    class Meta:
+        model = AttendanceRecord
+        fields = ['id', 'student', 'status','attendance_reverse_relationship']
 
 # ================================
 # ======= AT RISK STUDENTS =======

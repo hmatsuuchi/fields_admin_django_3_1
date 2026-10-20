@@ -1,10 +1,29 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 # models
-from .models import Attendance, AttendanceRecord, AttendanceRecordLessonNote, AttendanceRecordHomeworkNote, AttendanceRecordStudentNote
+from .models import Attendance, AttendanceRecord
 from students.models import Students, GradeChoices
 from schedule.models import Events, EventType
 from user_profiles.models import UserProfilesInstructors
+
+# Attendance Record for Previous Notes Serializer
+class AttendanceRecordForPreviousNotesSerializer(serializers.ModelSerializer):
+    attendance_record_lesson_note = serializers.CharField(source='attendance_record_lesson_note.lesson_note', read_only=True)
+    attendance_record_homework_note = serializers.CharField(source='attendance_record_homework_note.homework_note', read_only=True)
+    attendance_record_student_note = serializers.CharField(source='attendance_record_student_note.student_note', read_only=True)
+    attendance_dates = serializers.SerializerMethodField()
+    linked_class_id = serializers.IntegerField(source='attendance_reverse_relationship.first.linked_class.id', read_only=True)
+    student_id = serializers.IntegerField(source='student.id', read_only=True)
+
+    def get_attendance_dates(self, obj):
+        return [
+            attendance.date
+            for attendance in obj.attendance_reverse_relationship.all()
+        ]
+
+    class Meta:
+        model = AttendanceRecord
+        fields = ['id', 'attendance_dates', 'linked_class_id', 'student_id', 'attendance_record_lesson_note', 'attendance_record_homework_note', 'attendance_record_student_note']
 
 # Student Serializer
 class StudentSerializer(serializers.ModelSerializer):
@@ -29,11 +48,25 @@ class AttendanceRecordSerializer(serializers.ModelSerializer):
     attendance_record_lesson_note = serializers.CharField(source='attendance_record_lesson_note.lesson_note', read_only=True)
     attendance_record_homework_note = serializers.CharField(source='attendance_record_homework_note.homework_note', read_only=True)
     attendance_record_student_note = serializers.CharField(source='attendance_record_student_note.student_note', read_only=True)
+    attendance_dates = serializers.SerializerMethodField()
 
+    def get_attendance_dates(self, obj):
+        return [
+            attendance.date
+            for attendance in obj.attendance_reverse_relationship.all()
+        ]
 
     class Meta:
         model = AttendanceRecord
         fields = '__all__'
+
+# Previous Attendance Serializer
+class PreviousAttendanceSerializer(serializers.ModelSerializer):
+    attendance_records = AttendanceRecordSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Attendance
+        fields = ['id', 'date', 'start_time', 'attendance_records']
 
 # Event Type Serializer
 class EventTypeSerializer(serializers.ModelSerializer):
@@ -339,4 +372,3 @@ class AttendanceRecordForInvoiceCreateSerializer(serializers.ModelSerializer):
             return None
 
         return instructor.userprofilesinstructors.icon_stub
-

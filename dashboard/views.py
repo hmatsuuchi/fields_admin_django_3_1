@@ -8,8 +8,7 @@ import statistics
 # authentication
 from authentication.customAuthentication import CustomAuthentication
 # group permission control
-from authentication.permissions import isInStaffGroup, isInSuperusersGroup
-from authentication.permissions import isInCustomersGroup
+from authentication.permissions import isInStaffGroup, isInSuperusersGroup, isInCustomersGroup
 # models
 from user_profiles.models import UserProfilesCustomers, UserProfilesInstructors
 from attendance.models import AttendanceRecord, Attendance
@@ -18,7 +17,7 @@ from analytics.models import HighestActiveStudentCount, HighestRevenuePerStudent
 from schedule.models import Events
 from invoices.models import Invoice, InvoiceItem
 # serializers
-from dashboard.serializers import InvoiceSerializerForCustomer, UpcomingBirthdayStudentSerializer, AtRiskStudentSerializer
+from dashboard.serializers import InvoiceSerializerForCustomer, UpcomingBirthdayStudentSerializer, AtRiskStudentSerializer, AttendanceRecordSerializerForCustomer
 
 # get all incomplete recent attendance records for an instructor
 class IncompleteAttendanceForInstructorView(APIView):
@@ -799,77 +798,6 @@ class CustomerProfileDataView(APIView):
             print(e)
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-# get all invoices for a given customer
-class InvoicesForCustomerView(APIView):
-    authentication_classes = ([CustomAuthentication])
-    permission_classes = ([isInCustomersGroup])
-
-    def get(self, request, format=None):        
-        try:
-            # get user from request
-            user = request.user
-            # get customer profile for the user
-            customer_profile = UserProfilesCustomers.objects.get(user=user)
-
-            if not customer_profile:
-                return Response({'error': 'Customer profile not found.'}, status=status.HTTP_404_NOT_FOUND)
-            
-            # get all related students (evaluate once, grade join avoids N+1)
-            students = sorted(
-                customer_profile.related_students.select_related('grade').all(),
-                key=lambda s: s.grade.id if s.grade else float('-inf'),
-                reverse=True
-            )
-
-            # get all invoices for the related students
-            invoices = Invoice.objects.filter(
-                student__in=students
-            ).select_related(
-                'payment_method'
-            ).prefetch_related(
-                'invoiceitem_set',
-                'invoiceitem_set__service_type',
-                'invoiceitem_set__tax_type',
-            ).order_by(
-                'student__grade', '-year', '-month'
-            )
-
-            serializer = InvoiceSerializerForCustomer(invoices, many=True)
-
-            # group invoices by student
-            invoices_by_student = {
-                student.id: {
-                    'last_name_kanji': student.last_name_kanji,
-                    'first_name_kanji': student.first_name_kanji,
-                    'grade': student.grade.name if student.grade else None,
-                    'invoices': [],
-                } for student in students}
-            for invoice in serializer.data:
-                student_id = invoice['student']
-                if student_id in invoices_by_student:
-                    invoices_by_student[student_id]['invoices'].append(invoice)
-
-            students_data = [
-                {
-                    'student_id': student_id,
-                    'last_name_kanji': data['last_name_kanji'],
-                    'first_name_kanji': data['first_name_kanji'],
-                    'grade': data['grade'],
-                    'invoices': data['invoices'],
-                }
-                for student_id, data in invoices_by_student.items()
-            ]
-
-            data = {
-                "student_invoices": students_data,
-            }
-
-            return Response(data, status=status.HTTP_200_OK)
-        
-        except Exception as e:
-            print(e)
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
 # fetches list of at risk students
 class AtRiskStudentsView(APIView):
     authentication_classes = ([CustomAuthentication])
@@ -1037,3 +965,141 @@ class AttendanceForAllInstructorsView(APIView):
         except Exception as e:
             print(e)
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+# ======= CUSTOMER DASHBOARD ENDPOINTS =======
+
+# get all invoices for a given customer
+class InvoicesForCustomerView(APIView):
+    authentication_classes = ([CustomAuthentication])
+    permission_classes = ([isInCustomersGroup])
+
+    def get(self, request, format=None):        
+        try:
+            # get user from request
+            user = request.user
+            # get customer profile for the user
+            customer_profile = UserProfilesCustomers.objects.get(user=user)
+
+            if not customer_profile:
+                return Response({'error': 'Customer profile not found.'}, status=status.HTTP_404_NOT_FOUND)
+            
+            # get all related students (evaluate once, grade join avoids N+1)
+            students = sorted(
+                customer_profile.related_students.select_related('grade').all(),
+                key=lambda s: s.grade.id if s.grade else float('-inf'),
+                reverse=True
+            )
+
+            # get all invoices for the related students
+            invoices = Invoice.objects.filter(
+                student__in=students
+            ).select_related(
+                'payment_method'
+            ).prefetch_related(
+                'invoiceitem_set',
+                'invoiceitem_set__service_type',
+                'invoiceitem_set__tax_type',
+            ).order_by(
+                'student__grade', '-year', '-month'
+            )
+
+            serializer = InvoiceSerializerForCustomer(invoices, many=True)
+
+            # group invoices by student
+            invoices_by_student = {
+                student.id: {
+                    'last_name_kanji': student.last_name_kanji,
+                    'first_name_kanji': student.first_name_kanji,
+                    'grade': student.grade.name if student.grade else None,
+                    'invoices': [],
+                } for student in students}
+            for invoice in serializer.data:
+                student_id = invoice['student']
+                if student_id in invoices_by_student:
+                    invoices_by_student[student_id]['invoices'].append(invoice)
+
+            students_data = [
+                {
+                    'student_id': student_id,
+                    'last_name_kanji': data['last_name_kanji'],
+                    'first_name_kanji': data['first_name_kanji'],
+                    'grade': data['grade'],
+                    'invoices': data['invoices'],
+                }
+                for student_id, data in invoices_by_student.items()
+            ]
+
+            data = {
+                "student_invoices": students_data,
+            }
+
+            return Response(data, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            print(e)
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+class AttendanceForCustomerView(APIView):
+    authentication_classes = ([CustomAuthentication])
+    permission_classes = ([isInCustomersGroup])
+    
+    def get(self, request, *args, **kwargs):
+        print("getting attendance for customer")
+
+        # get user from request
+        user = request.user
+        # get customer profile for the user
+        customer_profile = UserProfilesCustomers.objects.get(user=user)
+
+        if not customer_profile:
+            return Response({'error': 'Customer profile not found.'}, status=status.HTTP_404_NOT_FOUND)
+        
+        # get all related students (evaluate once, grade join avoids N+1)
+        students = sorted(
+            customer_profile.related_students.select_related('grade').all(),
+            key=lambda s: s.grade.id if s.grade else float('-inf'),
+            reverse=True
+        )
+
+        # get all attendance records for the related students
+        attendance_records = AttendanceRecord.objects.filter(
+            student__in=students,
+        ).exclude(
+            status=2
+        ).prefetch_related(
+            'attendance_reverse_relationship',
+            'attendance_reverse_relationship__linked_class',
+            'attendance_reverse_relationship__linked_class__event_type',
+        ).order_by(
+            'student',
+            '-attendance_reverse_relationship__date',
+        )
+
+        serializer = AttendanceRecordSerializerForCustomer(attendance_records, many=True)
+
+        # group attendance records by student
+        attendance_records_by_student = {
+            student.id: {
+                'last_name_kanji': student.last_name_kanji,
+                'first_name_kanji': student.first_name_kanji,
+                'grade': student.grade.name if student.grade else None,
+                'attendance_records': [],
+            } for student in students}
+        
+        for attendance_record in serializer.data:
+            student_id = attendance_record['student']
+            if student_id in attendance_records_by_student:
+                attendance_records_by_student[student_id]['attendance_records'].append(attendance_record)
+
+        students_data = [
+            {
+                'student_id': student_id,
+                'last_name_kanji': data['last_name_kanji'],
+                'first_name_kanji': data['first_name_kanji'],
+                'grade': data['grade'],
+                'attendance_records': data['attendance_records'],
+            }
+            for student_id, data in attendance_records_by_student.items()
+        ]
+
+        return Response({'student_attendance': students_data}, status=status.HTTP_200_OK)
