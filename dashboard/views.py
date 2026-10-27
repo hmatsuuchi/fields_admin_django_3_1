@@ -1070,6 +1070,9 @@ class AttendanceForCustomerView(APIView):
             'attendance_reverse_relationship',
             'attendance_reverse_relationship__linked_class',
             'attendance_reverse_relationship__linked_class__event_type',
+            'attendance_record_lesson_note',
+            'attendance_record_homework_note',
+            'attendance_record_student_note',
         ).order_by(
             'student',
             '-attendance_reverse_relationship__date',

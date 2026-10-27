@@ -5,6 +5,7 @@ from students.models import Students
 from schedule.models import Events, EventType
 from analytics.models import StudentChurnPrediction
 from attendance.models import Attendance, AttendanceRecord
+from user_profiles.models import UserProfilesInstructors
 
 # ==================================
 # ======= UPCOMING BIRTHDAYS =======
@@ -49,13 +50,19 @@ class InvoiceSerializerForCustomer(serializers.ModelSerializer):
 # ===============================================
 # ======= ATTENDANCE RECORDS FOR CUSTOMER =======
 # ===============================================
+class PrimaryInstructorSerializerForCustomer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfilesInstructors
+        fields = ['id', 'last_name_kanji', 'first_name_kanji', 'icon_stub']
+
 class EventTypeSerializerForCustomer(serializers.ModelSerializer):
     class Meta:
         model = EventType
-        fields = ['id', 'name']
+        fields = ['id', 'name', 'duration']
 
 class LinkedClassSerializerForCustomer(serializers.ModelSerializer):
     event_type = EventTypeSerializerForCustomer(read_only=True)
+    primary_instructor = PrimaryInstructorSerializerForCustomer(source='primary_instructor.userprofilesinstructors', read_only=True)
 
     class Meta:
         model = Events
@@ -70,10 +77,13 @@ class AttendanceSerializerForCustomer(serializers.ModelSerializer):
 
 class AttendanceRecordSerializerForCustomer(serializers.ModelSerializer):
     attendance_reverse_relationship = AttendanceSerializerForCustomer(many=True, read_only=True)
+    lesson_note = serializers.CharField(source='attendance_record_lesson_note.lesson_note', read_only=True)
+    homework_note = serializers.CharField(source='attendance_record_homework_note.homework_note', read_only=True)
+    student_note = serializers.CharField(source='attendance_record_student_note.student_note', read_only=True)
 
     class Meta:
         model = AttendanceRecord
-        fields = ['id', 'student', 'status','attendance_reverse_relationship']
+        fields = ['id', 'student', 'status','attendance_reverse_relationship', 'lesson_note', 'homework_note', 'student_note']
 
 # ================================
 # ======= AT RISK STUDENTS =======
